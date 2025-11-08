@@ -1,0 +1,548 @@
+﻿/* registro.component.scss - VersiÃ³n Sin Fondo */
+
+@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@300;400;700&family=Nunito:wght@300;400;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+:host {
+  display: flex;
+  min-height: 100vh;
+  font-family: 'Poppins', sans-serif;
+  position: relative;
+  overflow: auto;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: transparent;
+}
+
+/* Contenedor principal con centrado perfecto */
+.registro-container {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 10;
+  animation: pageSlideIn 0.6s ease-out;
+}
+
+/* Header centrado */
+.registro-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  width: 100%;
+  
+  h1 {
+    font-family: 'Comic Neue', cursive;
+    font-size: 2.8rem;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  p {
+    font-size: 1.2rem;
+    color: #4a5568;
+    font-weight: 400;
+  }
+}
+
+/* Formulario con fondo blanco */
+.registro-form {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+/* Grupos de formulario con alineaciÃ³n mejorada */
+.form-group {
+  margin-bottom: 1.5rem;
+  width: 100%;
+  
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #2d3748;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    width: 100%;
+  }
+}
+
+/* Input containers mejorados */
+.input-container {
+  position: relative;
+  width: 100%;
+  
+  input, select {
+    width: 100%;
+    padding: 12px 45px 12px 15px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 1rem;
+    background: white;
+    color: #2d3748;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    
+    &::placeholder {
+      color: #a0aec0;
+    }
+    
+    &:focus {
+      outline: none;
+      border-color: #667eea;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+  }
+  
+  i {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a0aec0;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    
+    &:hover {
+      color: #667eea;
+    }
+  }
+}
+
+/* Date group mejorado */
+.date-group {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  
+  select {
+    flex: 1;
+    padding: 12px;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    color: #2d3748;
+    cursor: pointer;
+    box-sizing: border-box;
+    
+    option {
+      background: white;
+      color: #2d3748;
+    }
+    
+    &:focus {
+      border-color: #667eea;
+    }
+  }
+}
+
+/* Contenedor de botones centrado */
+.button-container {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 1.5rem;
+}
+
+/* Botones mejorados */
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+  
+  &-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+  }
+  
+  &-secondary {
+    background: #f7fafc;
+    color: #4a5568;
+    border: 1px solid #e2e8f0;
+    
+    &:hover:not(:disabled) {
+      background: #edf2f7;
+      border-color: #cbd5e0;
+    }
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+}
+
+/* Form toggle centrado */
+.form-toggle {
+  text-align: center;
+  margin-top: 2rem;
+  color: #4a5568;
+  width: 100%;
+  
+  .toggle-btn {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    margin-left: 5px;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      color: #764ba2;
+      text-decoration: underline;
+    }
+  }
+}
+
+/* Error messages mejorados */
+.error-message {
+  color: #e53e3e;
+  font-size: 0.8rem;
+  margin-top: 5px;
+  font-weight: 500;
+  display: block;
+  width: 100%;
+}
+
+/* Summary section centrado */
+.summary-section {
+  background: #f7fafc;
+  padding: 1.5rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  border: 1px solid #e2e8f0;
+  width: 100%;
+  text-align: center;
+  
+  h4 {
+    color: #2d3748;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+  }
+  
+  p {
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+    
+    strong {
+      color: #2d3748;
+    }
+  }
+}
+
+/* Loading spinner */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-left: 8px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ===== ANIMACIONES DE TRANSICIÃ“N ===== */
+
+/* AnimaciÃ³n de entrada para la pÃ¡gina */
+@keyframes pageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Efecto de entrada desde la derecha */
+@keyframes slideFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Efecto de salida hacia la izquierda */
+@keyframes slideToLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+}
+
+/* TransiciÃ³n suave entre pasos del formulario */
+.form-step {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  
+  &.step-enter {
+    animation: slideFromRight 0.5s ease-out;
+  }
+  
+  &.step-exit {
+    animation: slideToLeft 0.5s ease-out;
+  }
+}
+
+/* Animaciones para transiciÃ³n entre login/registro */
+.fade-transition {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  
+  &.fade-out {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.98);
+  }
+  
+  &.fade-in {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Overlay de transiciÃ³n centrado */
+.transition-loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  text-align: center;
+  
+  .transition-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(102, 126, 234, 0.3);
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+  }
+  
+  .transition-text {
+    margin-top: 15px;
+    color: #2d3748;
+    font-weight: 600;
+    animation: pulse 2s infinite;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* PartÃ­culas de transiciÃ³n */
+.transition-particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+  
+  .particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    animation: floatParticle 1.5s ease-in-out infinite;
+    
+    &:nth-child(1) {
+      top: 20%;
+      left: 10%;
+      animation-delay: 0s;
+    }
+    
+    &:nth-child(2) {
+      top: 60%;
+      left: 80%;
+      animation-delay: 0.3s;
+    }
+    
+    &:nth-child(3) {
+      top: 40%;
+      left: 40%;
+      animation-delay: 0.6s;
+    }
+  }
+}
+
+@keyframes floatParticle {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(-20px) scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* Alert Container centrado */
+.alert-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  max-width: 400px;
+  width: 90%;
+  pointer-events: none;
+}
+
+.alert {
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border: 2px solid transparent;
+  animation: slideInDown 0.3s ease-out;
+  pointer-events: auto;
+  width: 100%;
+  text-align: center;
+  
+  &.alert-success {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: #34d399;
+  }
+  
+  &.alert-error {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border-color: #f87171;
+  }
+  
+  &.alert-info {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border-color: #60a5fa;
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Confetti Canvas */
+#confetti-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Responsive Design mejorado */
+@media (max-width: 768px) {
+  .registro-container {
+    padding: 1rem;
+  }
+  
+  .registro-form {
+    padding: 2rem 1.5rem;
+  }
+  
+  .registro-header h1 {
+    font-size: 2.2rem;
+  }
+  
+  .date-group {
+    flex-direction: column;
+  }
+  
+  .button-container {
+    flex-direction: column;
+  }
+  
+  .btn {
+    width: 100%;
+    margin: 5px 0;
+  }
+  
+  .alert-container {
+    top: 10px;
+    width: 95%;
+  }
+  
+  .transition-loading {
+    .transition-spinner {
+      width: 40px;
+      height: 40px;
+    }
+    
+    .transition-text {
+      font-size: 0.9rem;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .registro-form {
+    padding: 1.5rem 1rem;
+  }
+  
+  .registro-header h1 {
+    font-size: 2rem;
+  }
+  
+  .input-container input, 
+  .input-container select {
+    padding: 10px 40px 10px 12px;
+  }
+}

@@ -1,0 +1,71 @@
+<div class="chat-wrap" [class.floating]="floating"
+     [ngStyle]="floating ? {'left.px': posX(), 'top.px': posY(), 'width.px': width(), 'height.px': height()} : null">
+
+  <!-- Barra superior (draggable) -->
+  <header class="chat-head" (mousedown)="dragStart($event)" (touchstart)="dragStart($event)">
+    <div class="title">
+      <strong>{{ titulo }}</strong>
+      <small *ngIf="alumnoId">Alumno #{{ alumnoId }}</small>
+      <small *ngIf="tutorId">· Tutor #{{ tutorId }}</small>
+    </div>
+
+    <div class="window-actions">
+      <button type="button" class="icon" (click)="toggleCompact()" aria-label="Compactar/expandir">▭</button>
+      <button type="button" class="icon" (click)="toggleMin()" aria-label="Minimizar/Restaurar">
+        {{ minimized() ? '▣' : '▁' }}
+      </button>
+      <button type="button" class="icon danger" (click)="closeWindow()" aria-label="Cerrar">✕</button>
+    </div>
+  </header>
+
+  <!-- Mensajes -->
+  <section class="chat-body" #scroller *ngIf="!minimized()">
+    <div *ngIf="cargando" class="state">Cargando…</div>
+    <div *ngIf="errorMsg" class="state error">{{ errorMsg }}</div>
+
+    <ng-container *ngIf="!cargando && !errorMsg">
+      <div *ngFor="let m of mensajes(); trackBy: trackMsg" class="msg" [class.mine]="m.emisor==='MAESTRO'">
+        <div class="bubble" [class.is-editing]="editingId()===m.id">
+          <div class="meta">
+            <span class="who">{{ m.emisor }}</span>
+            <span class="when">{{ fmtFecha(m.creado_en) }}</span>
+
+            <!-- Acciones del mensaje (aparecen al hover) -->
+            <div class="msg-actions" *ngIf="m.emisor==='MAESTRO' && editingId()!==m.id">
+              <button type="button" class="mini" (click)="beginEdit(m)" title="Editar">✎</button>
+              <button type="button" class="mini danger" (click)="deleteForAll(m)" title="Eliminar para todos">🗑</button>
+            </div>
+          </div>
+
+          <!-- Texto normal -->
+          <div class="text" *ngIf="editingId()!==m.id">{{ m.texto }}</div>
+
+          <!-- Modo edición inline -->
+          <div class="edit-box" *ngIf="editingId()===m.id">
+            <textarea [(ngModel)]="editBuffer" rows="2"></textarea>
+            <div class="edit-actions">
+              <button type="button" class="mini" (click)="saveEdit(m)">Guardar</button>
+              <button type="button" class="mini ghost" (click)="cancelEdit()">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="mensajes().length===0" class="state">No hay mensajes aún.</div>
+    </ng-container>
+  </section>
+
+  <!-- Input / Enviar -->
+  <footer class="chat-foot" *ngIf="!minimized()">
+    <textarea
+      [ngModel]="nuevo()"
+      (ngModelChange)="nuevo.set($event)"
+      rows="2"
+      placeholder="Escribe un mensaje…"
+    ></textarea>
+
+    <button type="button" class="send" [disabled]="enviando || !nuevo().trim()" (click)="enviar()">
+      {{ enviando ? 'Enviando…' : 'Enviar' }}
+    </button>
+  </footer>
+</div>

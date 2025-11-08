@@ -1,0 +1,196 @@
+<section class="tareas-wrapper" [class.loading]="cargando">
+  <div class="tareas-card">
+    <header class="tareas-header">
+      <h1>📚 Mis Tareas</h1>
+      <div class="filtros">
+        <input
+          type="text"
+          placeholder="Buscar por título o descripción…"
+          [(ngModel)]="q"
+        />
+        <select [(ngModel)]="estado">
+          <option value="">Todas</option>
+          <option value="PENDIENTE">Pendientes</option>
+          <option value="ENTREGADA">Entregadas</option>
+          <option value="CALIFICADA">Calificadas</option>
+        </select>
+        <button (click)="cargar()">🔄 Cargar</button>
+      </div>
+    </header>
+
+    <div *ngIf="cargando" class="msg info">Cargando…</div>
+    <div *ngIf="error && !cargando" class="msg error">{{ error }}</div>
+
+    <div class="lista" *ngIf="!cargando && !error">
+      <div class="card" *ngFor="let t of tareas">
+        <div class="head">
+          <h3>{{ t.titulo }}</h3>
+          <span class="badge" [class]="badgeClase(t.estado)">
+            {{ t.estado }}
+          </span>
+        </div>
+
+        <p class="desc" [innerText]="t.descripcion || '—'"></p>
+
+        <div class="meta">
+          <div>
+            <strong>Entrega:</strong> {{ t.fecha_entrega || '—' }}
+            <small>({{ diasRestantes(t.fecha_entrega) }})</small>
+          </div>
+          <div><strong>Maestro:</strong> #{{ t.maestro_id ?? '—' }}</div>
+        </div>
+
+        <!-- =========================
+             BLOQUE: ENTREGAR (PENDIENTE)
+             ========================== -->
+        <div class="entregar" *ngIf="t.estado === 'PENDIENTE'">
+          <h4>Entregar mi tarea</h4>
+
+          <div class="uploader">
+            <label class="btn-file">
+              📎 Adjuntar archivo
+              <input
+                type="file"
+                (change)="seleccionarArchivo(t.id, $event)"
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.zip,.rar"
+              />
+            </label>
+            <span class="file-name">
+              {{ nombreArchivo(t.id) || 'Ningún archivo seleccionado' }}
+            </span>
+          </div>
+
+          <div class="link-row">
+            <input
+              type="url"
+              placeholder="o pega un enlace (Drive, OneDrive, GitHub, etc.)"
+              [value]="linkDe(t.id)"
+              (input)="setLink(t.id, $any($event.target).value)"
+            />
+          </div>
+
+          <textarea
+            rows="2"
+            placeholder="Comentario para el maestro (opcional)"
+            [value]="comentarioDe(t.id)"
+            (input)="setComentario(t.id, $any($event.target).value)"
+          ></textarea>
+
+          <button
+            class="btn-enviar"
+            [disabled]="subiendoId===t.id || (!archivoDe(t.id) && !linkDe(t.id) && !comentarioDe(t.id))"
+            (click)="entregar(t)"
+          >
+            {{ subiendoId===t.id ? 'Enviando…' : 'Enviar' }}
+          </button>
+
+          <small class="nota">
+            Puedes enviar un archivo, un enlace o solo un comentario. Debes incluir al menos uno.
+          </small>
+        </div>
+
+        <!-- =========================
+             BLOQUE: YA ENTREGADA / CALIFICADA
+             ========================== -->
+        <div class="entrega" *ngIf="t.estado !== 'PENDIENTE'">
+          <h4>Detalles de mi entrega</h4>
+          <div><strong>Entregado:</strong> {{ t.entrega.entregado_en || '—' }}</div>
+          <div><strong>Archivo:</strong> {{ t.entrega.archivo || '—' }}</div>
+
+          <div>
+            <strong>Enlace:</strong>
+            <ng-container *ngIf="t.entrega.link_url; else noLink">
+              <a
+                [href]="t.entrega.link_url!"
+                target="_blank"
+                rel="noopener"
+              >
+                {{ t.entrega.link_url }}
+              </a>
+            </ng-container>
+            <ng-template #noLink>—</ng-template>
+          </div>
+
+          <div>
+            <strong>Comentario:</strong>
+            {{ t.entrega.comentario || '—' }}
+          </div>
+          <div><strong>Calificación:</strong> {{ t.entrega.calificacion ?? '—' }}</div>
+          <div>
+            <strong>Retroalimentación:</strong>
+            {{ t.entrega.retroalimentacion || '—' }}
+          </div>
+
+          <!-- ===== Acciones cuando NO está calificada (se puede editar/anular) ===== -->
+          <div class="acciones-entrega" *ngIf="t.estado !== 'CALIFICADA'">
+            <h4>Editar / volver a enviar mi entrega</h4>
+
+            <div class="uploader">
+              <label class="btn-file">
+                📎 Cambiar archivo
+                <input
+                  type="file"
+                  (change)="seleccionarArchivo(t.id, $event)"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.zip,.rar"
+                />
+              </label>
+              <span class="file-name">
+                {{ nombreArchivo(t.id) || t.entrega.archivo || 'Ningún archivo seleccionado' }}
+              </span>
+            </div>
+
+            <div class="link-row">
+              <input
+                type="url"
+                placeholder="Actualizar enlace (opcional)"
+                [value]="linkDe(t.id) || t.entrega.link_url || ''"
+                (input)="setLink(t.id, $any($event.target).value)"
+              />
+            </div>
+
+            <textarea
+              rows="2"
+              placeholder="Actualizar comentario (opcional)"
+              [value]="comentarioDe(t.id) || t.entrega.comentario || ''"
+              (input)="setComentario(t.id, $any($event.target).value)"
+            ></textarea>
+
+            <div class="acciones-botones">
+              <button
+                class="btn-enviar"
+                [disabled]="subiendoId===t.id"
+                (click)="entregar(t)"
+              >
+                {{ subiendoId===t.id ? 'Actualizando…' : 'Actualizar entrega' }}
+              </button>
+
+              <button
+                type="button"
+                class="btn-anular"
+                [disabled]="subiendoId===t.id"
+                (click)="anularEntrega(t)"
+              >
+                🗑 Anular entrega
+              </button>
+            </div>
+
+            <small class="nota">
+              Si anulas la entrega, la tarea volverá a estado <strong>Pendiente</strong>.
+            </small>
+          </div>
+
+          <!-- ===== Cuando ya está CALIFICADA (solo lectura) ===== -->
+          <div class="acciones-entrega" *ngIf="t.estado === 'CALIFICADA'">
+            <small class="nota">
+              Esta tarea ya fue revisada y calificada. No puedes editar ni anular la entrega.
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty" *ngIf="tareas.length === 0">
+        No hay tareas con el filtro seleccionado.
+      </div>
+    </div>
+  </div>
+</section>

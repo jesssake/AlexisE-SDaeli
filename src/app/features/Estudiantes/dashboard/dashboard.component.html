@@ -1,0 +1,154 @@
+<div class="dashboard-container">
+  <!-- Header Compacto -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <h1>Dashboard Premium</h1>
+      <p class="subtitle">Centro de control académico integral</p>
+      <div class="date-display">
+        <i class="fas fa-calendar-alt"></i>
+        <span>{{ currentDate }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Compacto -->
+  <div class="dashboard-content">
+    
+    <!-- Stats Grid Compacto -->
+    <div class="stats-section">
+      <h2 class="section-title">Métricas Principales</h2>
+      <div class="dashboard-grid">
+        
+        <!-- Tareas Pendientes -->
+        <div class="info-card pending-tasks">
+          <div class="card-header">
+            <h3>Tareas Pendientes</h3>
+            <div class="card-badge urgent">Urgente</div>
+          </div>
+          <div class="info-content">
+            <div class="icon-container">
+              <div class="icon tasks">
+                <i class="fas fa-tasks"></i>
+              </div>
+            </div>
+            <div class="details">
+              <div class="count">{{ stats.pendingTasks }}</div>
+              <div class="label">Por revisar</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Asistencia -->
+        <div class="info-card attendance">
+          <div class="card-header">
+            <h3>Asistencia Hoy</h3>
+            <div class="card-badge present">{{ stats.attendance }}</div>
+          </div>
+          <div class="info-content">
+            <div class="icon-container">
+              <div class="icon attendance">
+                <i class="fas fa-user-check"></i>
+              </div>
+            </div>
+            <div class="details">
+              <div class="count">{{ stats.attendancePercentage }}%</div>
+              <div class="label">Estado actual</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tareas Próximas -->
+        <div class="info-card upcoming-tasks">
+          <div class="card-header">
+            <h3>Tareas Próximas</h3>
+            <div class="card-badge warning">3 días</div>
+          </div>
+          <div class="info-content">
+            <div class="icon-container">
+              <div class="icon calendar">
+                <i class="fas fa-calendar-alt"></i>
+              </div>
+            </div>
+            <div class="details">
+              <div class="count">{{ stats.upcomingTasks }}</div>
+              <div class="label">Próximos vencimientos</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Promedio Académico -->
+        <div class="info-card grades">
+          <div class="card-header">
+            <h3>Promedio Académico</h3>
+            <div class="card-badge excellent">Excelente</div>
+          </div>
+          <div class="info-content">
+            <div class="icon-container">
+              <div class="icon grades">
+                <i class="fas fa-chart-line"></i>
+              </div>
+            </div>
+            <div class="details">
+              <div class="count">{{ stats.averageGrade }}/10</div>
+              <div class="label">Rendimiento general</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Anuncios Section Compacto -->
+    <div class="announcements-section">
+      <div class="section-header">
+        <h2 class="section-title">Anuncios Importantes</h2>
+        <div class="announcements-count">{{ announcements.length }} anuncios</div>
+      </div>
+      <div class="announcements-list">
+        <div *ngFor="let announcement of announcements" class="announcement-item" [class]="announcement.type">
+          <div class="announcement-icon">
+            <i [class]="getAnnouncementIcon(announcement.type)"></i>
+          </div>
+          <div class="announcement-content">
+            <div class="announcement-header">
+              <div class="announcement-date">
+                <i class="fas fa-clock"></i>
+                <strong>{{ announcement.date }}</strong>
+              </div>
+              <div class="announcement-type" [class]="announcement.type">
+                {{ getAnnouncementTypeText(announcement.type) }}
+              </div>
+            </div>
+            <div class="announcement-text">
+              {{ announcement.content }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions Compacto -->
+    <div class="quick-actions">
+      <h2 class="section-title">Acciones Rápidas</h2>
+      <div class="actions-grid">
+        <button class="action-btn primary">
+          <i class="fas fa-sync-alt"></i>
+          <span>Actualizar Datos</span>
+        </button>
+        <button class="action-btn secondary">
+          <i class="fas fa-download"></i>
+          <span>Descargar Reporte</span>
+        </button>
+        <button class="action-btn success">
+          <i class="fas fa-check-circle"></i>
+          <span>Marcar Asistencia</span>
+        </button>
+        <button class="action-btn warning">
+          <i class="fas fa-bell"></i>
+          <span>Configurar Alertas</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

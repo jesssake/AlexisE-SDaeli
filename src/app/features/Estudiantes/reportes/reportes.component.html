@@ -1,0 +1,144 @@
+<div class="rep-wrapper" [class.loading]="cargando()">
+  <header class="topbar">
+    <div class="title">
+      <h1>Mis Reportes</h1>
+      <p>Observaciones del maestro sobre tu desempeño y conducta.</p>
+    </div>
+
+    <div class="actions">
+      <button class="btn" (click)="exportar()">Exportar Word</button>
+      <button class="btn ghost" (click)="cargar()">Actualizar</button>
+    </div>
+  </header>
+
+  <section class="filters card">
+    <div class="row">
+      <label>
+        Estado
+        <select
+          [ngModel]="estado()"
+          (ngModelChange)="estado.set($event); cargar()">
+          <option value="">Todos</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="revisado">Revisado</option>
+          <option value="resuelto">Resuelto</option>
+        </select>
+      </label>
+
+      <label>
+        Prioridad
+        <select
+          [ngModel]="prioridad()"
+          (ngModelChange)="prioridad.set($event); cargar()">
+          <option value="">Todas</option>
+          <option value="alta">Alta</option>
+          <option value="media">Media</option>
+          <option value="baja">Baja</option>
+        </select>
+      </label>
+
+      <label class="grow">
+        Buscar
+        <input
+          type="text"
+          placeholder="motivo, descripción, tipo…"
+          [ngModel]="buscar()"
+          (ngModelChange)="buscar.set($event)"
+          (keyup.enter)="cargar()" />
+      </label>
+
+      <button class="btn ghost" (click)="limpiarFiltros()">Limpiar</button>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi">
+        <span class="kpi-num">{{ conteo()?.total ?? 0 }}</span>
+        <span class="kpi-label">Total</span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-num">{{ conteo()?.pendiente ?? 0 }}</span>
+        <span class="kpi-label">Pendientes</span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-num">{{ conteo()?.revisado ?? 0 }}</span>
+        <span class="kpi-label">Revisados</span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-num">{{ conteo()?.resuelto ?? 0 }}</span>
+        <span class="kpi-label">Resueltos</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="alerts" *ngIf="errorMsg() || okMsg()">
+    <div class="alert error" *ngIf="errorMsg()">{{ errorMsg() }}</div>
+    <div class="alert ok" *ngIf="okMsg()">{{ okMsg() }}</div>
+  </div>
+
+  <section class="list card" *ngIf="reportes().length > 0; else noData">
+    <article class="item" *ngFor="let r of reportes()">
+      <div class="avatar">{{ r.alumno_id }}</div>
+
+      <div class="meta">
+        <h3>
+          <span class="tipo">{{ r.tipo | titlecase }}</span>
+          <span class="chip" [class]="badgePrioridad(r.prioridad)">
+            {{ r.prioridad | titlecase }}
+          </span>
+          <span class="badge" [class]="badgeEstado(r.estado)">
+            {{ r.estado | uppercase }}
+          </span>
+        </h3>
+        <p class="motivo">{{ r.motivo }}</p>
+        <p class="desc" *ngIf="r.descripcion">{{ r.descripcion }}</p>
+        <div class="sub">
+          {{ r.fecha }} • Maestro ID: {{ r.maestro_id }}
+          <span *ngIf="r.leido === 1">
+            • Visto: {{ r.visto_en | date: 'short' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="ops">
+        <button class="btn" (click)="verDetalle(r)">Ver</button>
+        <button class="btn ghost" *ngIf="r.leido !== 1" (click)="marcarLeido(r)">
+          Marcar leído
+        </button>
+      </div>
+    </article>
+  </section>
+
+  <ng-template #noData>
+    <div class="empty card">
+      <p>Sin información por ahora.</p>
+    </div>
+  </ng-template>
+
+  <!-- Modal Detalle -->
+  <div class="modal-backdrop" *ngIf="seleccion" (click)="cerrarDetalle()"></div>
+  <div class="modal card" *ngIf="seleccion as sel">
+    <h2>Detalle del Reporte</h2>
+    <p><b>Tipo:</b> {{ sel.tipo | titlecase }}</p>
+    <p><b>Motivo:</b> {{ sel.motivo }}</p>
+    <p><b>Descripción:</b> {{ sel.descripcion || '—' }}</p>
+    <p>
+      <b>Estado:</b>
+      <span class="badge" [class]="badgeEstado(sel.estado)">
+        {{ sel.estado | uppercase }}
+      </span>
+    </p>
+    <p>
+      <b>Prioridad:</b>
+      <span class="chip" [class]="badgePrioridad(sel.prioridad)">
+        {{ sel.prioridad | titlecase }}
+      </span>
+    </p>
+    <p><b>Fecha:</b> {{ sel.fecha }}</p>
+    <div class="modal-actions">
+      <button class="btn" (click)="cerrarDetalle()">Cerrar</button>
+      <button class="btn ghost" *ngIf="sel.leido !== 1" (click)="marcarLeido(sel)">
+        Marcar leído
+      </button>
+    </div>
+  </div>
+</div>

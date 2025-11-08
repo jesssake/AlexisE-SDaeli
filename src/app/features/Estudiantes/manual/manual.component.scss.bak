@@ -1,0 +1,77 @@
+﻿.manual {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+}
+
+/* Panel base */
+.panel {
+  background: #fff;
+  border: 1px solid #e7e7e7;
+  border-radius: 14px;
+  padding: 16px 18px;
+
+  h1, h2, h3 { margin: 0 0 10px; }
+}
+
+/* Hero */
+.hero {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 16px;
+  align-items: center;
+
+  .title p { color: #6b7280; }
+
+  .search {
+    display: flex; gap: 8px;
+    input {
+      flex: 1;
+      border: 1px solid #d9d9d9; border-radius: 10px; padding: 10px 12px; font: inherit;
+      &:focus { border-color: #7aa7ff; box-shadow: 0 0 0 3px rgba(122,167,255,.2); outline: none; }
+    }
+    button {
+      border: none; border-radius: 10px; padding: 10px 12px; cursor: pointer; background: #111827; color: #fff;
+    }
+  }
+}
+
+/* Ãndice */
+.indice .links {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  button {
+    border: 1px solid #e5e7eb; background: #f8fafc; border-radius: 999px; padding: 6px 10px; cursor: pointer;
+  }
+}
+
+/* Secciones */
+.seccion .sec-head {
+  display: flex; justify-content: space-between; align-items: center;
+  .anchor { cursor: pointer; color: #2563eb; text-decoration: underline; }
+}
+
+.bullets {
+  margin: 8px 0 0 0; padding-left: 18px;
+  li { margin: 6px 0; color: #374151; }
+}
+
+/* FAQs */
+.faqs .faq {
+  border: 1px solid #eee; border-radius: 12px; padding: 10px 12px; margin-bottom: 10px;
+  details summary { cursor: pointer; font-weight: 600; }
+  p { margin: 8px 0 0 0; color: #374151; }
+}
+
+.footer .note { color: #6b7280; }
+
+/* Responsive */
+@media (max-width: 1000px) {
+  .hero { grid-template-columns: 1fr; }
+}
+
+/* Print */
+@media print {
+  .no-print { display: none !important; }
+  .manual { padding: 0; gap: 12px; }
+  .panel { border: none; padding: 0; }
+}

@@ -1,0 +1,138 @@
+<div class="grad-wrapper" [class.loading]="cargando">
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="title">
+      <h1>Sistema de Graduación</h1>
+      <p>Gestiona certificados de excelencia y cartas de cierre de ciclo escolar</p>
+    </div>
+    <div class="top-actions">
+      <button class="btn ghost" (click)="exportarCSV()">📤 Exportar Certificados</button>
+      <button class="btn primary" (click)="setTab('excelencia')">🎓 Nuevo Certificado</button>
+    </div>
+  </header>
+
+  <!-- Mensajes -->
+  <div class="alerts" *ngIf="errorMsg || okMsg">
+    <div class="alert error" *ngIf="errorMsg">{{ errorMsg }}</div>
+    <div class="alert ok" *ngIf="okMsg">{{ okMsg }}</div>
+  </div>
+
+  <!-- Resumen -->
+  <section class="card kpis">
+    <div class="kpi">
+      <div class="ico">📄</div>
+      <div>
+        <div class="val">{{ totalCert() }}</div>
+        <div class="lbl">Total Certificados</div>
+      </div>
+    </div>
+    <div class="kpi">
+      <div class="ico">⭐</div>
+      <div>
+        <div class="val">{{ totalExcelencia() }}</div>
+        <div class="lbl">Excelencia</div>
+      </div>
+    </div>
+    <div class="kpi">
+      <div class="ico">🎓</div>
+      <div>
+        <div class="val">{{ totalCierre() }}</div>
+        <div class="lbl">Cierre de Ciclo</div>
+      </div>
+    </div>
+    <div class="kpi">
+      <div class="ico">✉️</div>
+      <div>
+        <div class="val">{{ totalEnviados() }}</div>
+        <div class="lbl">Enviados</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Selector tipo (cards) -->
+  <section class="card selectors">
+    <div class="selector" [class.active]="tab()==='excelencia'" (click)="setTab('excelencia')">
+      <div class="ico">⭐</div>
+      <h3>Certificado de Excelencia</h3>
+    </div>
+    <div class="selector" [class.active]="tab()==='cierre'" (click)="setTab('cierre')">
+      <div class="ico">🎓</div>
+      <h3>Carta de Cierre</h3>
+    </div>
+  </section>
+
+  <!-- Filtros -->
+  <section class="card filtros">
+    <div class="fcol">
+      <label>Tipo:</label>
+      <select [ngModel]="filtroTipo()" (ngModelChange)="filtroTipo.set($event)">
+        <option value="todos">Todos los tipos</option>
+        <option value="excelencia">Excelencia</option>
+        <option value="cierre">Cierre</option>
+      </select>
+    </div>
+    <div class="fcol">
+      <label>Estado:</label>
+      <select [ngModel]="filtroEstado()" (ngModelChange)="filtroEstado.set($event)">
+        <option value="todos">Todos los estados</option>
+        <option value="generado">Generado</option>
+        <option value="enviado">Enviado</option>
+      </select>
+    </div>
+    <div class="fcol">
+      <label>Estudiante:</label>
+      <select [ngModel]="filtroAlumnoId()" (ngModelChange)="setFiltroAlumno($event)">
+        <option [ngValue]="'todos'">Todos los estudiantes</option>
+        <option *ngFor="let a of alumnos()" [ngValue]="a.id">{{ a.nombre }}</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- Lista -->
+  <section class="list">
+    <h2>Certificados Generados <small>{{ certificadosFiltrados().length }} certificados</small></h2>
+
+    <article class="card item" *ngFor="let c of certificadosFiltrados()">
+      <div class="avatar">
+        <!-- Iniciales seguras -->
+        <span>{{ getIniciales(c.alumno?.nombre) }}</span>
+      </div>
+
+      <div class="info">
+        <div class="head">
+          <div class="name">{{ c.alumno!.nombre }}</div>
+          <!-- Formato de fecha correcto -->
+          <div class="date">{{ (c.fecha | date:'d/M/yyyy') || c.fecha }}</div>
+        </div>
+        <div class="sub">
+          <div class="tipo">
+            <span class="badge star" *ngIf="c.tipo==='excelencia'">⭐ Excelencia Académica</span>
+            <span class="badge cap" *ngIf="c.tipo==='cierre'">🎓 Carta de Cierre</span>
+          </div>
+          <div class="estado">
+            <span class="chip ok" *ngIf="c.estado==='enviado'">Enviado</span>
+            <span class="chip warn" *ngIf="c.estado==='generado'">Generado</span>
+          </div>
+        </div>
+
+        <ul class="meta">
+          <li>🎓 <strong>Estudiante:</strong> {{ c.alumno!.nombre }}</li>
+          <li>📅 <strong>Ciclo:</strong> {{ c.ciclo }}</li>
+          <li *ngIf="c.promedio!=null">⭐ <strong>Promedio:</strong> {{ c.promedio }}</li>
+          <li>📧 <strong>Email:</strong> <span class="mono">{{ c.alumno!.email || 'Sin correo' }}</span></li>
+        </ul>
+      </div>
+
+      <div class="actions">
+        <button class="ico" title="Descargar"
+                (click)="descargarDiploma(c.alumno!)"
+                [disabled]="c.tipo!=='excelencia'">⬇️</button>
+        <button class="ico" title="Enviar" (click)="enviarCertificado(c)">📨</button>
+        <button class="ico danger" title="Eliminar" (click)="eliminarCert(c.id)">🗑️</button>
+      </div>
+    </article>
+  </section>
+
+  <!-- Sandbox oculto para render de PDF -->
+  <div id="pdf-sandbox" class="pdf-sandbox" aria-hidden="true"></div>
+</div>

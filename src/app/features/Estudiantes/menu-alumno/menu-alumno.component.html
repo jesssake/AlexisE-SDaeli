@@ -1,0 +1,159 @@
+﻿﻿<div class="layout">
+  <!-- PARTÍCULAS DE FONDO -->
+  <div class="particles" #particlesContainer></div>
+  
+  <!-- BARRA LATERAL PREMIUM MEJORADA -->
+  <aside class="sidebar" [class.colapsada]="sidebarColapsada" [class.mobile]="isMobile">
+    <!-- Encabezado premium mejorado -->
+    <div class="brand" (click)="toggleSidebar()" role="button" tabindex="0" (keyup.enter)="toggleSidebar()">
+      <div class="mascota" aria-hidden="true">🚀</div>
+      <div class="marca">
+        <strong>EduPlatform Pro</strong>
+        <small>Experiencia Premium</small>
+      </div>
+      <button class="toggle" type="button" [attr.aria-label]="sidebarColapsada ? 'Expandir menú' : 'Contraer menú'">
+        {{ sidebarColapsada ? '»' : '«' }}
+      </button>
+    </div>
+
+    <!-- Navegación Principal Premium MEJORADA -->
+    <nav class="nav" aria-label="Navegación principal">
+      <a *ngFor="let item of nav"
+         class="nav-item"
+         [routerLink]="item.link"
+         routerLinkActive="active"
+         [attr.data-tooltip]="sidebarColapsada ? item.titulo : null"
+         [attr.aria-label]="item.titulo"
+         (click)="onItemClick($event)">
+        <span class="ink" #ink></span>
+        <span class="nav-icon" aria-hidden="true">{{ item.icono }}</span>
+        <span class="nav-text">
+          <span class="nav-title">{{ item.titulo }}</span>
+          <small class="nav-desc">{{ item.desc }}</small>
+        </span>
+        <span class="nav-badge" *ngIf="item.key === 'tareas' && getPendingTasks() > 0">
+          {{ getPendingTasks() }}
+        </span>
+      </a>
+    </nav>
+
+    <!-- Pie de página premium -->
+    <div class="footer">
+      <button class="btn salir" (click)="cerrarSesion()" aria-label="Cerrar sesión">
+        <span class="ico">⚡</span>
+        <span class="btn-text">Cerrar Sesión</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- OVERLAY PARA MÓVIL -->
+  <div class="sidebar-overlay" 
+       [class.active]="sidebarColapsada && isMobile" 
+       (click)="toggleSidebar()">
+  </div>
+
+  <!-- CONTENIDO PRINCIPAL PROTEGIDO -->
+  <main class="content" [class.menu-abierto]="sidebarColapsada" role="main">
+    <!-- Tarjeta de Bienvenida Premium -->
+    <article class="bienvenida" *ngIf="datosAlumno && !cargando">
+      <header class="encabezado">
+        <div class="avatar" role="img" aria-label="Avatar del estudiante">
+          <span>{{ getInitials(datosAlumno.alumno_nombre) }}</span>
+        </div>
+        <div class="titulos">
+          <h1>¡Bienvenido, {{ datosAlumno.alumno_nombre }}!</h1>
+          <p class="sub">Tu centro de excelencia académica y desarrollo personal</p>
+        </div>
+      </header>
+
+      <!-- Información del Estudiante Premium -->
+      <ul class="datos" aria-label="Información personal">
+        <li>
+          <b>🎯</b>
+          <span><strong>Rendimiento:</strong> {{ getRendimiento() }}%</span>
+        </li>
+        <li>
+          <b>📅</b>
+          <span><strong>Edad:</strong> {{ calcularEdad(datosAlumno.fecha_nacimiento) }} años</span>
+        </li>
+        <li>
+          <b>🏥</b>
+          <span><strong>Salud:</strong> {{ datosAlumno.condiciones_medicas || 'Excelente estado' }}</span>
+        </li>
+        <li>
+          <b>👨‍👩‍👦</b>
+          <span><strong>Tutor:</strong> {{ datosAlumno.tutor_nombre || 'Por asignar' }}</span>
+        </li>
+        <li>
+          <b>📧</b>
+          <span><strong>Contacto:</strong> {{ datosAlumno.correo_tutor || 'No disponible' }}</span>
+        </li>
+        <li>
+          <b>🎓</b>
+          <span><strong>Grado:</strong> {{ datosAlumno.grado || '10mo' }} - {{ datosAlumno.seccion || 'A' }}</span>
+        </li>
+      </ul>
+
+      <!-- Acciones Rápidas Premium -->
+      <div class="acciones">
+        <button class="btn ghost" (click)="cargarPrefs()" aria-label="Aplicar preferencias guardadas">
+          <span class="ico">✨</span>
+          <span>Aplicar Preferencias</span>
+        </button>
+        <button class="btn ghost" (click)="refreshData()" aria-label="Actualizar datos">
+          <span class="ico">🔄</span>
+          <span>Actualizar Datos</span>
+        </button>
+        <button class="btn ghost" (click)="toggleTema()" aria-label="Cambiar tema">
+          <span class="ico">🌙</span>
+          <span>Modo {{ prefs.tema === 'claro' ? 'Oscuro' : 'Claro' }}</span>
+        </button>
+        <button class="btn ghost" (click)="mostrarEstadisticas()" aria-label="Ver estadísticas">
+          <span class="ico">📊</span>
+          <span>Ver Estadísticas</span>
+        </button>
+      </div>
+    </article>
+
+    <!-- Estados de Carga y Error Premium -->
+    <div *ngIf="cargando" class="alert loading" role="status" aria-live="polite">
+      <span class="ico">⏳</span>
+      <span><strong>Cargando información premium...</strong> Preparando tu experiencia educativa</span>
+    </div>
+    
+    <div *ngIf="error && !cargando" class="alert error" role="alert" aria-live="assertive">
+      <span class="ico">⚠️</span>
+      <span><strong>Atención:</strong> {{ error }}</span>
+    </div>
+
+    <!-- Widgets de Estadísticas Rápidas -->
+    <div class="estadisticas-rapidas" *ngIf="datosAlumno && !cargando">
+      <div class="estadistica-widget">
+        <div class="widget-icon">📚</div>
+        <div class="widget-content">
+          <div class="widget-valor">{{ getTareasPendientes() }}</div>
+          <div class="widget-label">Tareas Pendientes</div>
+        </div>
+      </div>
+      <div class="estadistica-widget">
+        <div class="widget-icon">✅</div>
+        <div class="widget-content">
+          <div class="widget-valor">{{ getAsistencia() }}%</div>
+          <div class="widget-label">Asistencia</div>
+        </div>
+      </div>
+      <div class="estadistica-widget">
+        <div class="widget-icon">🎯</div>
+        <div class="widget-content">
+          <div class="widget-valor">{{ getPromedio() }}%</div>
+          <div class="widget-label">Promedio</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Área de Módulos Premium -->
+    <section class="modulo">
+      <router-outlet></router-outlet>
+    </section>
+  </main>
+</div>

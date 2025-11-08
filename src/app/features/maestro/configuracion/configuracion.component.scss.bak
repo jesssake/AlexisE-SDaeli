@@ -1,0 +1,104 @@
+﻿/* El componente nunca pinta el fondo de la pÃ¡gina */
+:host {
+  display: block;
+  background: transparent !important;
+}
+
+/* Tarjeta de configuraciÃ³n */
+.config-wrapper {
+  width: min(500px, 100%);
+  margin: 2rem auto;
+  padding: 2rem;
+  background: var(--surface);            /* usa superficie global */
+  color: var(--color-texto);
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+  transition: background 0.3s ease, color 0.3s ease;
+
+  h2, h3 {
+    color: var(--color-texto);
+    margin: 0 0 .75rem;
+  }
+
+  label {
+    display: block;
+    margin-top: 1rem;
+    font-weight: 500;
+    color: var(--color-texto);
+
+    input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.25rem;
+      border: 1px solid #d1d5db;        /* gris claro */
+      border-radius: 8px;
+      background: #fff;
+      color: #111827;
+      outline: none;
+      transition: border-color .2s ease, background .2s ease, color .2s ease;
+
+      &:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+      }
+    }
+  }
+
+  .respaldo, .guardar {
+    margin-top: 1.5rem;
+    padding: 0.7rem 1rem;
+    width: 100%;
+    font-weight: 700;
+    background-color: #3b82f6;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform .1s ease;
+
+    &:hover { background-color: #2563eb; }
+    &:active { transform: translateY(1px); }
+  }
+
+  .mensaje {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    background-color: #d1fae5; /* Ã©xito claro */
+    color: #065f46;
+    font-weight: 500;
+  }
+}
+
+/* Tema oscuro: NO cambiamos el fondo de pÃ¡gina, sÃ³lo la tarjeta y campos */
+:host-context(body.dark), 
+:host-context(body.dark-mode) {
+  .config-wrapper {
+    background: var(--surface);   /* superficie oscura global si la definiste */
+    color: var(--color-texto);
+  }
+
+  .config-wrapper label input {
+    background-color: #111827;  /* slate-900 */
+    color: #e5e7eb;
+    border-color: #374151;      /* slate-700 */
+
+    &:focus {
+      border-color: #60a5fa;    /* blue-400 */
+      box-shadow: 0 0 0 3px rgba(96,165,250,.18);
+    }
+  }
+
+  .config-wrapper .mensaje {
+    background-color: #065f46;  /* Ã©xito oscuro */
+    color: #d1fae5;
+  }
+
+  /* Botones en oscuro: puedes mantener el azul o neutralizar */
+  .config-wrapper .respaldo,
+  .config-wrapper .guardar {
+    background-color: #3b82f6;
+
+    &:hover { background-color: #2563eb; }
+  }
+}

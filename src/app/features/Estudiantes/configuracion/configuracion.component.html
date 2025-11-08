@@ -1,0 +1,85 @@
+<div class="configuracion">
+
+  <!-- Header -->
+  <section class="panel head">
+    <div class="user">
+      <div class="avatar">
+        <img *ngIf="avatarPreview(); else noAvatar" [src]="avatarPreview()!" alt="Avatar">
+        <ng-template #noAvatar><div class="placeholder">{{ nombreCorto() | slice:0:1 }}</div></ng-template>
+      </div>
+      <div class="info">
+        <h2>Configuración de la Cuenta</h2>
+        <div class="sub">{{ alumno().nombre }} · {{ alumno().matricula }} · {{ alumno().grupo }}</div>
+      </div>
+    </div>
+    <div class="flash" *ngIf="guardado()">{{ guardadoMsg() }}</div>
+  </section>
+
+  <!-- Perfil -->
+  <section class="panel perfil">
+    <h3>Perfil</h3>
+    <form [formGroup]="perfilForm" (ngSubmit)="guardarPerfil()" class="grid" novalidate>
+      <div class="field">
+        <label>Nombre completo *</label>
+        <input type="text" formControlName="nombre" placeholder="Tu nombre completo">
+        <small class="err" *ngIf="perfilForm.get('nombre')?.touched && perfilForm.get('nombre')?.invalid">Este campo es obligatorio</small>
+      </div>
+
+      <div class="field">
+        <label>Matrícula *</label>
+        <input type="text" formControlName="matricula" placeholder="A0XXXXXX">
+        <small class="err" *ngIf="perfilForm.get('matricula')?.touched && perfilForm.get('matricula')?.invalid">Este campo es obligatorio</small>
+      </div>
+
+      <div class="field">
+        <label>Grupo *</label>
+        <input type="text" formControlName="grupo" placeholder="5°B">
+        <small class="err" *ngIf="perfilForm.get('grupo')?.touched && perfilForm.get('grupo')?.invalid">Este campo es obligatorio</small>
+      </div>
+
+      <div class="field avatarField">
+        <label>Foto de perfil</label>
+        <div class="picker">
+          <input type="file" accept="image/*" (change)="onSelectAvatar($event)">
+          <button type="button" class="ghost" (click)="quitarAvatar()">Quitar foto</button>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit">Guardar perfil</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Cuenta -->
+  <section class="panel cuenta">
+    <h3>Cuenta</h3>
+    <form [formGroup]="cuentaForm" (ngSubmit)="guardarCuenta()" class="grid" novalidate>
+      <div class="field">
+        <label>Email *</label>
+        <input type="email" formControlName="email" placeholder="correo@ejemplo.com">
+        <small class="err" *ngIf="cuentaForm.get('email')?.touched && cuentaForm.get('email')?.invalid">Ingresa un email válido</small>
+      </div>
+
+      <div class="field">
+        <label>Contraseña actual</label>
+        <input type="password" formControlName="actual" placeholder="••••••">
+      </div>
+
+      <div class="field">
+        <label>Nueva contraseña</label>
+        <input type="password" formControlName="nueva" placeholder="••••••">
+      </div>
+
+      <div class="field">
+        <label>Repetir nueva contraseña</label>
+        <input type="password" formControlName="repetir" placeholder="••••••">
+      </div>
+
+      <div class="actions">
+        <button type="submit">Guardar cuenta</button>
+      </div>
+    </form>
+  </section>
+
+</div>

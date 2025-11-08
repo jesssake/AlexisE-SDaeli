@@ -1,0 +1,135 @@
+<div class="grad-wrapper" [class.loading]="cargando">
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="title">
+      <h1>Sistema de Graduación</h1>
+      <p>Gestiona certificados de excelencia y cartas de cierre de ciclo escolar</p>
+    </div>
+    <div class="top-actions">
+      <button class="btn-secondary">📤 Exportar Certificados</button>
+      <button class="btn-primary" (click)="abrirModalNuevo()">➕ Nuevo Certificado</button>
+    </div>
+  </header>
+
+  <!-- Mensajes -->
+  <div class="alerts" *ngIf="errorMsg || okMsg">
+    <div class="alert error" *ngIf="errorMsg">{{ errorMsg }}</div>
+    <div class="alert ok" *ngIf="okMsg">{{ okMsg }}</div>
+  </div>
+
+  <!-- KPIs resumen -->
+  <section class="card kpis">
+    <div class="kpi">
+      <div class="kpi-label">Total certificados</div>
+      <div class="kpi-value">{{ obtenerTotalCertificados() }}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Certificados de excelencia</div>
+      <div class="kpi-value">{{ obtenerCertificadosExcelencia() }}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Cartas de cierre</div>
+      <div class="kpi-value">{{ obtenerCertificadosCierre() }}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Enviados</div>
+      <div class="kpi-value">{{ obtenerCertificadosEnviados() }}</div>
+    </div>
+  </section>
+
+  <!-- Filtros -->
+  <section class="filtros card">
+    <h2>Filtros</h2>
+    <div class="filtro-row">
+      <label>Tipo:</label>
+      <select [ngModel]="filtroTipo()" (ngModelChange)="filtroTipo.set($event)">
+        <option value="todos">Todos</option>
+        <option value="excelencia">Excelencia</option>
+        <option value="cierre">Cierre</option>
+      </select>
+
+      <label>Estado:</label>
+      <select [ngModel]="filtroEstado()" (ngModelChange)="filtroEstado.set($event)">
+        <option value="todos">Todos</option>
+        <option value="enviados">Enviados</option>
+        <option value="pendientes">Pendientes</option>
+      </select>
+
+      <label>Alumno:</label>
+      <select [ngModel]="filtroAlumnoId()" (ngModelChange)="setFiltroAlumno($event)">
+        <option value="todos">Todos</option>
+        <option *ngFor="let a of estudiantes" [ngValue]="a.id">{{ a.nombre }}</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- Tabla de certificados -->
+  <section class="tabla card">
+    <h2>Listado de certificados</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Alumno</th>
+          <th>Promedio</th>
+          <th>Tipo</th>
+          <th>Ciclo</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of certificadosFiltrados()">
+          <td>{{ c.id }}</td>
+          <td>{{ alumnosIndex().get(c.alumno_id)?.nombre }}</td>
+          <td>{{ alumnosIndex().get(c.alumno_id)?.promedio || '—' }}</td>
+          <td>{{ c.tipo | titlecase }}</td>
+          <td>{{ c.ciclo }}</td>
+          <td>{{ formatearFecha(c.fecha) }}</td>
+          <td [class.enviado]="c.enviado === 1">{{ c.enviado === 1 ? 'Enviado' : 'Pendiente' }}</td>
+          <td class="acciones">
+            <button class="btn" (click)="descargarCertificado(c)">⬇️ Descargar</button>
+            <button class="btn" [disabled]="enviando" (click)="enviarCertificado(c)">📧 Enviar</button>
+            <button class="btn danger" (click)="eliminarCertificado(c.id)">🗑️ Eliminar</button>
+          </td>
+        </tr>
+        <tr *ngIf="!certificadosFiltrados().length">
+          <td colspan="8" class="sin-resultados">No hay certificados con estos filtros.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Modal nuevo certificado -->
+  <section class="modal" *ngIf="mostrarFormularioCertificado">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🎓 Nuevo Certificado</h2>
+        <button class="close" (click)="cerrarModal()">✖</button>
+      </div>
+
+      <div class="modal-body">
+        <label>Nombre del estudiante:</label>
+        <input type="text" placeholder="Nombre del estudiante" [(ngModel)]="modalForm.nombre" />
+
+        <label>Ciclo escolar:</label>
+        <input type="text" placeholder="Ciclo escolar (p. ej. 2024-2025)" [(ngModel)]="modalForm.ciclo" />
+
+        <label>Nombre del profesor (firma):</label>
+        <input type="text" placeholder="Ej. Prof. Juan García" [(ngModel)]="modalBrand.teacherName" />
+
+        <label>Logo de la institución:</label>
+        <input type="file" accept="image/*" (change)="onLogoSelectedModal($event)" />
+        <div *ngIf="modalBrand.logoDataUrl" class="logo-preview">
+          <img [src]="modalBrand.logoDataUrl" alt="logo" />
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-primary" (click)="generarPdfDesdeModal()">Generar PDF</button>
+          <button class="btn" (click)="cerrarModal()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
