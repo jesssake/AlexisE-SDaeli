@@ -1,6 +1,11 @@
-// src/app/core/registro.service.ts (o donde lo tengas en tu proyecto)
+// src/app/core/registro.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpErrorResponse,
+  HttpHeaders,
+  HttpParams
+} from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -30,7 +35,8 @@ export interface RegistrarTutorNinoPlanoBody {
   tutor_telefono?: string;
   tutor_password?: string;
   nino_nombre?: string;
-  fecha_nacimiento?: string; // YYYY-MM-DD
+  nino_condiciones?: string;      // 👈 NUEVO: condiciones_medicas
+  fecha_nacimiento?: string;      // YYYY-MM-DD
 }
 
 export interface RegistrarTutorNinoResponse {
@@ -68,7 +74,11 @@ export class RegistroService {
   getMetricas(): Observable<MetricasResponse> {
     return this.http
       .get<MetricasResponse>(this.url('metricas.php'))
-      .pipe(catchError((e) => this.handleError(e, 'No se pudieron obtener las métricas')));
+      .pipe(
+        catchError((e) =>
+          this.handleError(e, 'No se pudieron obtener las métricas')
+        )
+      );
   }
 
   /** Lista de niños activos, con búsqueda opcional por nombre o correo del tutor (estudiantes.php) */
@@ -77,7 +87,11 @@ export class RegistroService {
     if (q && q.trim()) params = params.set('q', q.trim());
     return this.http
       .get<Estudiante[]>(this.url('estudiantes.php'), { params })
-      .pipe(catchError((e) => this.handleError(e, 'No se pudieron obtener los estudiantes')));
+      .pipe(
+        catchError((e) =>
+          this.handleError(e, 'No se pudieron obtener los estudiantes')
+        )
+      );
   }
 
   /** Actualiza parcialmente un niño por id (actualizar_nino.php) */
@@ -92,7 +106,11 @@ export class RegistroService {
     if (patch.tutor_id !== undefined) body.tutor_id = patch.tutor_id;
     return this.http
       .post<ActualizarNinoResponse>(this.url('actualizar_nino.php'), body, this.jsonOpts())
-      .pipe(catchError((e) => this.handleError(e, 'No se pudo actualizar el registro')));
+      .pipe(
+        catchError((e) =>
+          this.handleError(e, 'No se pudo actualizar el registro')
+        )
+      );
   }
 
   /** Soft-delete de niño (eliminar_nino.php) */
@@ -100,14 +118,31 @@ export class RegistroService {
     if (!id || id <= 0) return throwError(() => new Error('Id inválido'));
     return this.http
       .post<EliminarNinoResponse>(this.url('eliminar_nino.php'), { id }, this.jsonOpts())
-      .pipe(catchError((e) => this.handleError(e, 'No se pudo eliminar el registro')));
+      .pipe(
+        catchError((e) =>
+          this.handleError(e, 'No se pudo eliminar el registro')
+        )
+      );
   }
 
-  /** Alta de tutor y, opcionalmente, de niño (register_tutor_nino.php) con CLAVES PLANAS */
-  registrarTutorNinoPlano(body: RegistrarTutorNinoPlanoBody): Observable<RegistrarTutorNinoResponse> {
+  /**
+   * Alta de tutor y, opcionalmente, de niño (Registro/register_tutor_nino.php)
+   * con CLAVES PLANAS.
+   */
+  registrarTutorNinoPlano(
+    body: RegistrarTutorNinoPlanoBody
+  ): Observable<RegistrarTutorNinoResponse> {
     return this.http
-      .post<RegistrarTutorNinoResponse>(this.url('register_tutor_nino.php'), body, this.jsonOpts())
-      .pipe(catchError((e) => this.handleError(e, 'No se pudo registrar el tutor/niño')));
+      .post<RegistrarTutorNinoResponse>(
+        this.url('Registro/register_tutor_nino.php'), // 👈 carpeta Registro
+        body,
+        this.jsonOpts()
+      )
+      .pipe(
+        catchError((e) =>
+          this.handleError(e, 'No se pudo registrar el tutor/niño')
+        )
+      );
   }
 
   /**
@@ -120,14 +155,16 @@ export class RegistroService {
     tutorPhone?: string;
     tutorPassword?: string;
     childName?: string;
-    childBirth?: string; // YYYY-MM-DD
+    childBirth?: string;       // YYYY-MM-DD
+    childCondition?: string;   // condiciones_medicas
   }): Observable<RegistrarTutorNinoResponse> {
     const body: RegistrarTutorNinoPlanoBody = {
-      tutor_nombre: model.tutorName,
-      tutor_email: model.tutorEmail,
-      tutor_telefono: model.tutorPhone,
-      tutor_password: model.tutorPassword,
-      nino_nombre: model.childName,
+      tutor_nombre:     model.tutorName,
+      tutor_email:      model.tutorEmail,
+      tutor_telefono:   model.tutorPhone,
+      tutor_password:   model.tutorPassword,
+      nino_nombre:      model.childName,
+      nino_condiciones: model.childCondition,
       fecha_nacimiento: model.childBirth
     };
     return this.registrarTutorNinoPlano(body);
@@ -145,7 +182,10 @@ export class RegistroService {
     return { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) };
   }
 
-  private handleError(err: HttpErrorResponse, fallbackMsg = 'Error de red'): Observable<never> {
+  private handleError(
+    err: HttpErrorResponse,
+    fallbackMsg = 'Error de red'
+  ): Observable<never> {
     const serverMsg =
       (err.error && (err.error.error || err.error.message)) ||
       (typeof err.error === 'string' ? err.error : null);

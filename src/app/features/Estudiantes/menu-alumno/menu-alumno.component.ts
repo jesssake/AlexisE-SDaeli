@@ -1,4 +1,14 @@
-﻿﻿import { Component, OnInit, ViewChildren, QueryList, ElementRef, AfterViewInit, HostListener } from '@angular/core';
+﻿﻿import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ViewChildren,
+  QueryList,
+  ElementRef,
+  AfterViewInit,
+  HostListener,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
@@ -39,85 +49,86 @@ interface StudentData {
   templateUrl: './menu-alumno.component.html',
   styleUrls: ['./menu-alumno.component.scss'],
 })
-export class MenuAlumnoComponent implements OnInit, AfterViewInit {
+export class MenuAlumnoComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChildren('ink') inkElements!: QueryList<ElementRef<HTMLSpanElement>>;
+  @ViewChild('particlesContainer') particlesContainer?: ElementRef<HTMLDivElement>;
 
   datosAlumno: StudentData | null = null;
   error: string | null = null;
   cargando = false;
 
-  prefs: Prefs = { 
-    mostrarMenuBotones: true, 
-    gridCols: 3, 
+  prefs: Prefs = {
+    mostrarMenuBotones: true,
+    gridCols: 3,
     menuCompacto: false,
     tema: 'claro',
-    animaciones: true
+    animaciones: true,
   };
 
   nav: NavItem[] = [
-    { 
-      key: 'dashboard',      
-      titulo: 'Dashboard',           
-      desc: 'Panel principal interactivo',           
-      icono: '🚀', 
-      link: '/estudiante/dashboard' 
+    {
+      key: 'dashboard',
+      titulo: 'Dashboard',
+      desc: 'Panel principal interactivo',
+      icono: '🚀',
+      link: '/estudiante/dashboard',
     },
-    { 
-      key: 'tareas',         
-      titulo: 'Tareas Inteligentes',           
-      desc: 'Gestión avanzada de actividades',           
-      icono: '📚', 
+    {
+      key: 'tareas',
+      titulo: 'Tareas Inteligentes',
+      desc: 'Gestión avanzada de actividades',
+      icono: '📚',
       link: '/estudiante/tareas',
-      badge: 3
+      badge: 3,
     },
-    { 
-      key: 'asistencia',     
-      titulo: 'Asistencia Pro',       
-      desc: 'Control de presencia en tiempo real',           
-      icono: '✅', 
-      link: '/estudiante/asistencia' 
+    {
+      key: 'asistencia',
+      titulo: 'Asistencia',
+      desc: 'Control de presencia en tiempo real',
+      icono: '✅',
+      link: '/estudiante/asistencia',
     },
-    { 
-      key: 'calificaciones', 
-      titulo: 'Analítica Académica',   
-      desc: 'Métricas y progreso detallado',         
-      icono: '📊', 
-      link: '/estudiante/calificaciones' 
+    {
+      key: 'calificaciones',
+      titulo: 'Calificaciònes',
+      desc: 'Consulta tus calificaciònes',
+      icono: '📊',
+      link: '/estudiante/calificaciones',
     },
-    { 
-      key: 'padres',         
-      titulo: 'Conexión Familiar',           
-      desc: 'Comunicación con tutores',           
-      icono: '👨‍👩‍👦', 
-      link: '/estudiante/padres' 
+    {
+      key: 'padres',
+      titulo: 'Chat con mi Profesor',
+      desc: 'Comunicación con el Profesor',
+      icono: '👨‍👩‍👦',
+      link: '/estudiante/padres',
     },
-    { 
-      key: 'reportes',       
-      titulo: 'Reportes Avanzados',         
-      desc: 'Documentación inteligente',   
-      icono: '📈', 
-      link: '/estudiante/reportes' 
+    {
+      key: 'reportes',
+      titulo: 'Reportes',
+      desc: 'Documentación inteligente',
+      icono: '📈',
+      link: '/estudiante/reportes',
     },
-    { 
-      key: 'graduacion',     
-      titulo: 'Progreso Integral',       
-      desc: 'Seguimiento de metas académicas',       
-      icono: '🎓', 
-      link: '/estudiante/graduacion' 
+    {
+      key: 'graduacion',
+      titulo: 'Fin de curso',
+      desc: 'Seguimiento de metas académicas',
+      icono: '🎓',
+      link: '/estudiante/graduacion',
     },
-    { 
-      key: 'manual',         
-      titulo: 'Centro de Ayuda',           
-      desc: 'Recursos y soporte premium',      
-      icono: '💡', 
-      link: '/estudiante/manual' 
+    {
+      key: 'manual',
+      titulo: 'Centro de Ayuda',
+      desc: 'Recursos y soporte premium',
+      icono: '💡',
+      link: '/estudiante/manual',
     },
-    { 
-      key: 'configuracion',  
-      titulo: 'Configuración Pro',    
-      desc: 'Personalización avanzada',       
-      icono: '⚙️', 
-      link: '/estudiante/configuracion' 
+    {
+      key: 'configuracion',
+      titulo: 'Configuración ',
+      desc: 'Personalización avanzada',
+      icono: '⚙️',
+      link: '/estudiante/configuracion',
     },
   ];
 
@@ -127,6 +138,10 @@ export class MenuAlumnoComponent implements OnInit, AfterViewInit {
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
+    // ⚡ Fondo especial para MENÚ ESTUDIANTE
+    document.body.classList.remove('login-page');
+    document.body.classList.add('estudiante-page');
+
     this.checkMobileView();
     this.cargarDatosAlumno();
     this.cargarPrefs();
@@ -136,6 +151,11 @@ export class MenuAlumnoComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.crearParticulas();
+  }
+
+  ngOnDestroy(): void {
+    // Limpia la clase cuando salgas de este layout
+    document.body.classList.remove('estudiante-page');
   }
 
   @HostListener('window:resize')
@@ -164,22 +184,24 @@ export class MenuAlumnoComponent implements OnInit, AfterViewInit {
     this.cargando = true;
     this.error = null;
 
-    const url = `http://localhost/gestion_e/Estudiantes/detalles.php?correo=${encodeURIComponent(correo)}`;
-    
+    const url = `http://localhost/gestion_e/Estudiantes/detalles.php?correo=${encodeURIComponent(
+      correo
+    )}`;
+
     this.http.get<any>(url).subscribe({
       next: (res) => {
         if (res?.ok && res.datos) {
           this.datosAlumno = {
             ...res.datos,
             promedio: this.generarPromedioAleatorio(),
-            asistencia: this.generarAsistenciaAleatoria()
+            asistencia: this.generarAsistenciaAleatoria(),
           };
         } else {
           this.error = res?.error || 'No se pudieron cargar los datos del estudiante.';
         }
         this.cargando = false;
       },
-      error: (err) => { 
+      error: (err) => {
         this.error = 'Error de conexión con el servidor.';
         this.cargando = false;
         console.error('Error loading student data:', err);
@@ -197,13 +219,13 @@ export class MenuAlumnoComponent implements OnInit, AfterViewInit {
           gridCols: this.clamp(Number(p.gridCols ?? this.prefs.gridCols), 1, 4),
           menuCompacto: !!p.menuCompacto,
           tema: p.tema || 'claro',
-          animaciones: p.animaciones ?? true
+          animaciones: p.animaciones ?? true,
         };
       }
     } catch (error) {
       console.warn('Error loading preferences:', error);
     }
-    
+
     this.aplicarPreferencias();
   }
 
@@ -223,7 +245,10 @@ export class MenuAlumnoComponent implements OnInit, AfterViewInit {
 
   aplicarTema(): void {
     const tema = this.prefs.tema;
-    if (tema === 'oscuro' || (tema === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    if (
+      tema === 'oscuro' ||
+      (tema === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    ) {
       document.documentElement.setAttribute('data-tema', 'oscuro');
     } else {
       document.documentElement.setAttribute('data-tema', 'claro');
@@ -249,23 +274,26 @@ export class MenuAlumnoComponent implements OnInit, AfterViewInit {
   }
 
   crearParticulas(): void {
-    const container = document.querySelector('.particles') as HTMLElement;
+    const container = this.particlesContainer?.nativeElement;
     if (!container) return;
+
+    // Limpia partículas anteriores si se recrea la vista
+    container.innerHTML = '';
 
     for (let i = 0; i < 15; i++) {
       const particle = document.createElement('div');
       particle.className = 'particle';
-      
+
       const size = Math.random() * 6 + 2;
       const posX = Math.random() * 100;
       const delay = Math.random() * 20;
-      
+
       particle.style.width = `${size}px`;
       particle.style.height = `${size}px`;
       particle.style.left = `${posX}%`;
       particle.style.animationDelay = `${delay}s`;
       particle.style.background = `hsl(${Math.random() * 360}, 70%, 60%)`;
-      
+
       container.appendChild(particle);
     }
   }
@@ -274,7 +302,7 @@ export class MenuAlumnoComponent implements OnInit, AfterViewInit {
     if (this.prefs.animaciones) {
       this.crearEfectoRipple(event);
     }
-    
+
     // Cerrar menú en vista móvil después de la selección
     if (this.isMobile && this.sidebarColapsada) {
       setTimeout(() => {
@@ -290,8 +318,12 @@ export class MenuAlumnoComponent implements OnInit, AfterViewInit {
     const radius = diameter / 2;
 
     circle.style.width = circle.style.height = `${diameter}px`;
-    circle.style.left = `${event.clientX - button.getBoundingClientRect().left - radius}px`;
-    circle.style.top = `${event.clientY - button.getBoundingClientRect().top - radius}px`;
+    circle.style.left = `${
+      event.clientX - button.getBoundingClientRect().left - radius
+    }px`;
+    circle.style.top = `${
+      event.clientY - button.getBoundingClientRect().top - radius
+    }px`;
     circle.classList.add('ink');
 
     const existingInk = button.querySelector('.ink');
@@ -307,14 +339,14 @@ export class MenuAlumnoComponent implements OnInit, AfterViewInit {
   }
 
   getPendingTasks(): number {
-    const tareaItem = this.nav.find(item => item.key === 'tareas');
+    const tareaItem = this.nav.find((item) => item.key === 'tareas');
     return tareaItem?.badge || 0;
   }
 
   getInitials(nombre: string): string {
     return nombre
       .split(' ')
-      .map(word => word.charAt(0))
+      .map((word) => word.charAt(0))
       .join('')
       .toUpperCase()
       .substring(0, 2);
@@ -342,11 +374,11 @@ export class MenuAlumnoComponent implements OnInit, AfterViewInit {
     const hoy = new Date();
     let edad = hoy.getFullYear() - nacimiento.getFullYear();
     const mes = hoy.getMonth() - nacimiento.getMonth();
-    
+
     if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
       edad--;
     }
-    
+
     return edad;
   }
 
@@ -354,12 +386,15 @@ export class MenuAlumnoComponent implements OnInit, AfterViewInit {
     this.cargarDatosAlumno();
   }
 
-  toggleSidebar(): void { 
+  toggleSidebar(): void {
     this.sidebarColapsada = !this.sidebarColapsada;
-    
+
     // Forzar reflow para asegurar que las transiciones funcionen
     setTimeout(() => {
-      document.body.classList.toggle('sidebar-open', this.sidebarColapsada && this.isMobile);
+      document.body.classList.toggle(
+        'sidebar-open',
+        this.sidebarColapsada && this.isMobile
+      );
     }, 50);
   }
 
@@ -369,7 +404,11 @@ export class MenuAlumnoComponent implements OnInit, AfterViewInit {
   }
 
   cerrarSesion(): void {
-    if (confirm('¿Estás seguro de que deseas cerrar sesión?\nTu progreso se guardará automáticamente.')) {
+    if (
+      confirm(
+        '¿Estás seguro de que deseas cerrar sesión?\nTu progreso se guardará automáticamente.'
+      )
+    ) {
       localStorage.clear();
       window.location.href = '/login';
     }

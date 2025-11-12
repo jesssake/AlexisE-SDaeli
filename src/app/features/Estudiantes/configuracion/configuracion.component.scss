@@ -1,272 +1,345 @@
-﻿.configuracion {
+﻿/* src/app/features/Estudiantes/configuracion/configuracion.component.scss */
+
+/* Fondo general de la página de configuración */
+.config-page {
+  min-height: 100dvh;
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  padding: 40px 20px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  gap: 25px;
+  gap: 16px;
+
+  background:
+    radial-gradient(800px 480px at 10% 0%, #eef3ff, transparent 60%),
+    radial-gradient(900px 520px at 90% 100%, #ffeef7, transparent 60%),
+    linear-gradient(180deg, #f5f7ff 0%, #f0f4ff 55%, #fff7fb 100%);
+
+  &.loading {
+    opacity: 0.7;
+    pointer-events: none;
+  }
 }
 
+/* Panel genérico (tarjeta) */
 .panel {
-  background: #fff;
-  border-radius: 16px;
-  padding: 25px 30px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-  width: 100%;
-  max-width: 1000px;
-  border: 1px solid #e1e8ed;
-  
-  h2, h3 { 
-    margin: 0 0 20px; 
-    color: #2c3e50;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 18px 20px;
+  box-shadow:
+    0 22px 40px rgba(26, 26, 64, 0.07),
+    0 1px 6px rgba(26, 26, 64, 0.06);
+}
+
+/* HEADER superior */
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  background: linear-gradient(135deg, #ffb5c5, #9fd3ff);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .placeholder {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    font-size: 1.6rem;
     font-weight: 700;
-  }
-  
-  h2 {
-    font-size: 28px;
-    letter-spacing: -0.5px;
-  }
-  
-  h3 {
-    font-size: 20px;
-    border-bottom: 2px solid #f8f9fa;
-    padding-bottom: 12px;
+    color: #ffffff;
   }
 }
 
-.head {
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center;
-  padding: 30px;
+.info {
+  .label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #6b6b90;
+    margin-bottom: 4px;
+  }
 
-  .user { 
-    display: flex; 
-    gap: 20px; 
-    align-items: center; 
+  h1 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1a1a40;
+    margin: 0;
   }
-  
-  .avatar {
-    width: 80px; 
-    height: 80px; 
-    border-radius: 50%; 
-    overflow: hidden; 
-    border: 3px solid #e1e8ed;
-    
-    img { 
-      width: 100%; 
-      height: 100%; 
-      object-fit: cover; 
-    }
-    
-    .placeholder { 
-      width: 100%; 
-      height: 100%; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      background: linear-gradient(135deg, #a8d0ff, #e6f0ff);
-      font-weight: 800; 
-      font-size: 24px;
-      color: #2a3b5a;
-    }
-  }
-  
-  .info {
-    h2 {
-      margin-bottom: 4px;
-    }
-    
-    .sub { 
-      color: #666; 
-      font-size: 15px;
+
+  .sub {
+    margin: 2px 0 4px;
+    font-size: 0.9rem;
+    color: #55557b;
+
+    .email {
       font-weight: 500;
     }
   }
-  
-  .flash { 
-    background: #e8f5e8; 
-    border: 1px solid #4caf50; 
-    padding: 10px 16px; 
-    border-radius: 8px; 
-    color: #2e7d32;
-    font-weight: 600;
-    font-size: 14px;
+
+  .hint {
+    margin-top: 4px;
+    font-size: 0.8rem;
+    color: #b45309;
+    background: #fef3c7;
+    border-radius: 999px;
+    padding: 4px 10px;
+    display: inline-block;
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        'Liberation Mono', 'Courier New', monospace;
+      background: rgba(0, 0, 0, 0.04);
+      padding: 1px 4px;
+      border-radius: 6px;
+    }
   }
 }
 
-/* Formularios */
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-
-  .field { 
-    display: grid; 
-    gap: 8px;
-    
-    label {
-      font-weight: 600;
-      color: #2c3e50;
-      font-size: 14px;
-    }
-  }
-  
-  .avatarField { 
-    grid-column: 1 / -1; 
-  }
-  
-  .picker { 
-    display: flex; 
-    gap: 12px; 
+.status {
+  .chip {
+    display: inline-flex;
     align-items: center;
-    
-    input[type="file"] {
-      padding: 8px;
-      border: 2px dashed #e1e8ed;
-      border-radius: 8px;
-      background: #f8f9fa;
-      width: 100%;
-      max-width: 300px;
-      
-      &:hover {
-        border-color: #3498db;
-      }
-    }
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
 
-  input, select, textarea {
-    border: 2px solid #e1e8ed;
-    border-radius: 8px;
-    padding: 12px 14px;
-    font: inherit;
-    outline: none;
-    font-size: 14px;
-    transition: all 0.3s ease;
-    background: #fff;
-    
-    &:focus {
-      border-color: #3498db;
-      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-    }
-    
-    &::placeholder {
-      color: #999;
-    }
+  .success {
+    background: #ecfdf3;
+    color: #166534;
+    border: 1px solid #bbf7d0;
   }
 
-  .actions {
-    grid-column: 1 / -1;
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-    margin-top: 10px;
-    padding-top: 20px;
-    border-top: 2px solid #f8f9fa;
-    
-    button {
-      border: none;
-      border-radius: 8px;
-      padding: 12px 24px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 14px;
-      transition: all 0.3s ease;
-      font-family: inherit;
-      
-      &[type="submit"] {
-        background: #3498db;
-        color: #fff;
-        
-        &:hover {
-          background: #2980b9;
-          transform: translateY(-1px);
-        }
-      }
-      
-      &.ghost {
-        background: #f8f9fa;
-        color: #2c3e50;
-        border: 2px solid #e1e8ed;
-        
-        &:hover {
-          background: #e9ecef;
-          border-color: #ced4da;
-        }
-      }
-    }
-  }
-
-  .err { 
-    color: #e74c3c; 
-    font-size: 13px;
-    font-weight: 500;
+  .muted {
+    background: #f4f4ff;
+    color: #4b4b7b;
+    border: 1px dashed #d4d4ff;
   }
 }
 
-/* Responsive */
-@media (max-width: 1100px) {
-  .configuracion {
-    padding: 20px 15px;
-    gap: 20px;
+/* Mensajes */
+.messages {
+  .msg {
+    border-radius: 14px;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
   }
-  
-  .panel {
-    max-width: 100%;
-    padding: 20px;
+
+  .error {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
   }
-  
-  .grid { 
-    grid-template-columns: 1fr; 
+
+  .success {
+    background: #ecfdf3;
+    color: #166534;
+    border: 1px solid #bbf7d0;
   }
-  
+}
+
+/* Layout de columnas */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.4fr);
+  gap: 18px;
+}
+
+.column.secondary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Textos reutilizables */
+.muted {
+  font-size: 0.88rem;
+  color: #6b6b90;
+  margin: 0 0 10px;
+}
+
+/* Formulario */
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  &.inline {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+
+    input[type='checkbox'] {
+      width: 16px;
+      height: 16px;
+    }
+
+    span {
+      font-size: 0.9rem;
+      color: #343456;
+    }
+  }
+}
+
+.field-label {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: #6b6b90;
+}
+
+input,
+select {
+  border-radius: 12px;
+  border: 1px solid #dde2ff;
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  outline: none;
+  background: #ffffff;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+
+  &:focus {
+    border-color: #5da8e8;
+    box-shadow: 0 0 0 1px rgba(93, 168, 232, 0.18);
+  }
+}
+
+.field-help {
+  font-size: 0.8rem;
+  color: #8a8ab0;
+}
+
+/* Botones */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s;
+  white-space: nowrap;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+    box-shadow: none;
+    transform: none;
+  }
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, #5da8e8, #7f7df5);
+  color: #ffffff;
+  box-shadow: 0 10px 20px rgba(95, 135, 245, 0.35);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 24px rgba(95, 135, 245, 0.45);
+  }
+}
+
+.btn.ghost {
+  background: #f4f4ff;
+  color: #373772;
+  border: 1px solid #dadaff;
+
+  &:hover:not(:disabled) {
+    background: #eaecff;
+  }
+}
+
+.btn.full {
+  width: 100%;
+}
+
+/* Lista de tips */
+.tips {
+  margin: 10px 0 0;
+  padding-left: 18px;
+
+  li {
+    font-size: 0.88rem;
+    color: #4b4b74;
+    margin-bottom: 4px;
+  }
+}
+
+/* Responsivo */
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .head {
     flex-direction: column;
-    gap: 20px;
-    text-align: center;
-    padding: 25px 20px;
-    
-    .user {
-      flex-direction: column;
-      text-align: center;
-    }
+    align-items: flex-start;
   }
-  
-  .grid .actions {
-    flex-direction: column;
-    
-    button {
-      width: 100%;
-    }
-  }
-  
-  .picker {
-    flex-direction: column;
-    align-items: start !important;
-    
-    input[type="file"] {
-      max-width: 100% !important;
-    }
+
+  .status {
+    align-self: flex-end;
   }
 }
 
-@media (max-width: 480px) {
-  .configuracion {
-    padding: 15px 10px;
+@media (max-width: 640px) {
+  .config-page {
+    padding: 16px;
   }
-  
+
   .panel {
-    padding: 15px;
+    padding: 14px 14px;
   }
-  
-  .head .avatar {
-    width: 60px;
-    height: 60px;
-    
-    .placeholder {
-      font-size: 20px;
-    }
+
+  .avatar {
+    width: 56px;
+    height: 56px;
+  }
+
+  .info h1 {
+    font-size: 1.1rem;
   }
 }

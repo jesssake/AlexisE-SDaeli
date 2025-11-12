@@ -42,23 +42,25 @@
     <h2>Filtros</h2>
     <div class="filtro-row">
       <label>Tipo:</label>
-      <select [ngModel]="filtroTipo()" (ngModelChange)="filtroTipo.set($event)">
+      <select [(ngModel)]="filtroTipo" (ngModelChange)="filtroTipo = $event">
         <option value="todos">Todos</option>
         <option value="excelencia">Excelencia</option>
         <option value="cierre">Cierre</option>
       </select>
 
       <label>Estado:</label>
-      <select [ngModel]="filtroEstado()" (ngModelChange)="filtroEstado.set($event)">
+      <select [(ngModel)]="filtroEstado" (ngModelChange)="filtroEstado = $event">
         <option value="todos">Todos</option>
         <option value="enviados">Enviados</option>
         <option value="pendientes">Pendientes</option>
       </select>
 
       <label>Alumno:</label>
-      <select [ngModel]="filtroAlumnoId()" (ngModelChange)="setFiltroAlumno($event)">
+      <select [(ngModel)]="filtroAlumnoId" (ngModelChange)="setFiltroAlumno($event)">
         <option value="todos">Todos</option>
-        <option *ngFor="let a of estudiantes" [ngValue]="a.id">{{ a.nombre }}</option>
+        <option *ngFor="let a of estudiantes" [ngValue]="a.id">
+          {{ a.nombre }}
+        </option>
       </select>
     </div>
   </section>
@@ -81,21 +83,33 @@
       </thead>
       <tbody>
         <tr *ngFor="let c of certificadosFiltrados()">
-          <td>{{ c.id }}</td>
-          <td>{{ alumnosIndex().get(c.alumno_id)?.nombre }}</td>
-          <td>{{ alumnosIndex().get(c.alumno_id)?.promedio || '—' }}</td>
-          <td>{{ c.tipo | titlecase }}</td>
-          <td>{{ c.ciclo }}</td>
-          <td>{{ formatearFecha(c.fecha) }}</td>
-          <td [class.enviado]="c.enviado === 1">{{ c.enviado === 1 ? 'Enviado' : 'Pendiente' }}</td>
-          <td class="acciones">
+          <td data-label="ID">{{ c.id }}</td>
+          <td data-label="Alumno">
+            {{ alumnosIndex().get(c.alumno_id)?.nombre }}
+          </td>
+          <td data-label="Promedio">
+            {{ alumnosIndex().get(c.alumno_id)?.promedio ?? '—' }}
+          </td>
+          <td data-label="Tipo">{{ c.tipo | titlecase }}</td>
+          <td data-label="Ciclo">{{ c.ciclo }}</td>
+          <td data-label="Fecha">{{ formatearFecha(c.fecha) }}</td>
+          <td data-label="Estado" [class.enviado]="c.enviado === 1">
+            {{ c.enviado === 1 ? 'Enviado' : 'Pendiente' }}
+          </td>
+          <td data-label="Acciones" class="acciones">
             <button class="btn" (click)="descargarCertificado(c)">⬇️ Descargar</button>
-            <button class="btn" [disabled]="enviando" (click)="enviarCertificado(c)">📧 Enviar</button>
-            <button class="btn danger" (click)="eliminarCertificado(c.id)">🗑️ Eliminar</button>
+            <button class="btn" [disabled]="enviando" (click)="enviarCertificado(c)">
+              📧 Enviar
+            </button>
+            <button class="btn danger" (click)="eliminarCertificado(c.id)">
+              🗑️ Eliminar
+            </button>
           </td>
         </tr>
         <tr *ngIf="!certificadosFiltrados().length">
-          <td colspan="8" class="sin-resultados">No hay certificados con estos filtros.</td>
+          <td colspan="8" class="sin-resultados">
+            No hay certificados con estos filtros.
+          </td>
         </tr>
       </tbody>
     </table>
@@ -110,14 +124,49 @@
       </div>
 
       <div class="modal-body">
+        <!-- Alumno desde la BD -->
+        <label>Alumno:</label>
+        <select
+          [(ngModel)]="modalForm.alumnoId"
+          (ngModelChange)="onAlumnoSeleccionado($event)"
+        >
+          <option [ngValue]="null">-- Selecciona un alumno --</option>
+          <option *ngFor="let a of estudiantes" [ngValue]="a.id">
+            {{ a.nombre }} ({{ a.promedio }})
+          </option>
+        </select>
+
         <label>Nombre del estudiante:</label>
-        <input type="text" placeholder="Nombre del estudiante" [(ngModel)]="modalForm.nombre" />
+        <input
+          type="text"
+          placeholder="Nombre del estudiante"
+          [(ngModel)]="modalForm.nombre"
+          readonly
+        />
+
+        <label>Promedio:</label>
+        <input
+          type="number"
+          step="0.1"
+          min="0"
+          max="10"
+          [(ngModel)]="modalForm.promedio"
+          readonly
+        />
 
         <label>Ciclo escolar:</label>
-        <input type="text" placeholder="Ciclo escolar (p. ej. 2024-2025)" [(ngModel)]="modalForm.ciclo" />
+        <input
+          type="text"
+          placeholder="Ciclo escolar (p. ej. 2024-2025)"
+          [(ngModel)]="modalForm.ciclo"
+        />
 
         <label>Nombre del profesor (firma):</label>
-        <input type="text" placeholder="Ej. Prof. Juan García" [(ngModel)]="modalBrand.teacherName" />
+        <input
+          type="text"
+          placeholder="Ej. Prof. Juan García"
+          [(ngModel)]="modalBrand.teacherName"
+        />
 
         <label>Logo de la institución:</label>
         <input type="file" accept="image/*" (change)="onLogoSelectedModal($event)" />
@@ -126,7 +175,9 @@
         </div>
 
         <div class="modal-actions">
-          <button class="btn-primary" (click)="generarPdfDesdeModal()">Generar PDF</button>
+          <button class="btn-primary" (click)="generarPdfDesdeModal()">
+            Generar PDF
+          </button>
           <button class="btn" (click)="cerrarModal()">Cancelar</button>
         </div>
       </div>

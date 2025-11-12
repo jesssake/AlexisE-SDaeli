@@ -1,5 +1,4 @@
-﻿// src/app/app.routes.ts
-import { Routes } from '@angular/router';
+﻿import { Routes } from '@angular/router';
 import { authGuard, canMatchAuth } from './core/guards/auth-guard';
 
 // Auth
@@ -20,7 +19,7 @@ import { ConfiguracionComponent } from './features/maestro/configuracion/configu
 
 // Estudiante
 import { MenuAlumnoComponent } from './features/Estudiantes/menu-alumno/menu-alumno.component';
-import { DashboardComponent as DashboardAlumnoComponent } from './features/Estudiantes/dashboard/dashboard.component';
+import { EstudiantesDashboardComponent as DashboardAlumnoComponent } from './features/Estudiantes/dashboard/dashboard.component';
 import { TareasComponent as TareasAlumnoComponent } from './features/Estudiantes/tareas/tareas.component';
 import { EstudianteAsistenciaComponent as AsistenciaAlumnoComponent } from './features/Estudiantes/asistencia/asistencia.component';
 import { CalificacionesComponent as CalificacionesAlumnoComponent } from './features/Estudiantes/calificaciones/calificaciones.component';
@@ -29,6 +28,7 @@ import { GraduacionComponent as GraduacionAlumnoComponent } from './features/Est
 import { ManualComponent as ManualAlumnoComponent } from './features/Estudiantes/manual/manual.component';
 import { ConfiguracionComponent as ConfiguracionAlumnoComponent } from './features/Estudiantes/configuracion/configuracion.component';
 
+// Rutas principales
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'auth/login' },
 
@@ -36,10 +36,16 @@ export const routes: Routes = [
   {
     path: 'auth/login',
     loadComponent: () =>
-      import('./features/auth/login/login.component').then(m => m.LoginComponent),
+      import('./features/auth/login/login.component').then(
+        (m) => m.LoginComponent,
+      ),
     canMatch: [canMatchAuth],
   },
-  { path: 'auth/registro', component: RegistroComponent, canMatch: [canMatchAuth] },
+  {
+    path: 'auth/registro',
+    component: RegistroComponent,
+    canMatch: [canMatchAuth],
+  },
 
   // Maestro
   {
@@ -68,25 +74,33 @@ export const routes: Routes = [
     component: MenuAlumnoComponent,
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+
       { path: 'dashboard', component: DashboardAlumnoComponent },
       { path: 'tareas', component: TareasAlumnoComponent },
       { path: 'asistencia', component: AsistenciaAlumnoComponent },
       { path: 'calificaciones', component: CalificacionesAlumnoComponent },
 
-      // ✅ Chat de padres para el alumno (lazy load del componente de Estudiantes)
+      // Chat padres (lazy)
       {
         path: 'padres',
         loadComponent: () =>
-          import('./features/Estudiantes/padres/padres.component')
-            .then(m => m.PadresComponent),
+          import('./features/Estudiantes/padres/padres.component').then(
+            (m) => m.PadresComponent,
+          ),
       },
 
       { path: 'reportes', component: ReportesAlumnoComponent },
       { path: 'graduacion', component: GraduacionAlumnoComponent },
       { path: 'manual', component: ManualAlumnoComponent },
-      { path: 'configuracion', component: ConfiguracionAlumnoComponent },
+
+      // ✅ Configuración alumno usando import normal
+      {
+        path: 'configuracion',
+        component: ConfiguracionAlumnoComponent,
+      },
     ],
   },
 
+  // Ruta por defecto para cualquier ruta no definida
   { path: '**', redirectTo: 'auth/login' },
 ];

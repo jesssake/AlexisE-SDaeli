@@ -1,85 +1,319 @@
-<div class="configuracion">
-
-  <!-- Header -->
+<section class="config-page" [class.loading]="cargando()">
+  <!-- HEADER -->
   <section class="panel head">
     <div class="user">
       <div class="avatar">
-        <img *ngIf="avatarPreview(); else noAvatar" [src]="avatarPreview()!" alt="Avatar">
-        <ng-template #noAvatar><div class="placeholder">{{ nombreCorto() | slice:0:1 }}</div></ng-template>
+        <img
+          *ngIf="avatarPreview(); else noAvatar"
+          [src]="avatarPreview()!"
+          alt="Foto de perfil"
+        />
+        <ng-template #noAvatar>
+          <div class="placeholder">
+            {{ nombreCorto() | slice : 0 : 1 }}
+          </div>
+        </ng-template>
       </div>
+
       <div class="info">
-        <h2>Configuración de la Cuenta</h2>
-        <div class="sub">{{ alumno().nombre }} · {{ alumno().matricula }} · {{ alumno().grupo }}</div>
+        <p class="label">Configuración de la cuenta</p>
+        <h1>{{ alumno()?.nombre || 'Alumno' }}</h1>
+        <p class="sub">
+          <span *ngIf="alumno()?.rol">Rol: {{ alumno()?.rol }}</span>
+          <span *ngIf="alumno()?.tipo"> · Tipo: {{ alumno()?.tipo }}</span>
+          <span *ngIf="alumno()?.email" class="email">
+            · {{ alumno()?.email }}
+          </span>
+        </p>
+
+        <!-- aviso de que no se detectó sesión -->
+        <p class="hint" *ngIf="!alumnoId && !alumnoEmail">
+          ⚠️ No se detectó tu sesión de alumno. Esta pantalla necesita un
+          <code>alumno_id</code> o <code>alumno_email</code> desde el menú.
+        </p>
       </div>
     </div>
-    <div class="flash" *ngIf="guardado()">{{ guardadoMsg() }}</div>
+
+    <div class="status">
+      <span class="chip success" *ngIf="alumno() && !cargando()">
+        PERFIL CARGADO
+      </span>
+      <span class="chip muted" *ngIf="cargando()">Cargando...</span>
+    </div>
   </section>
 
-  <!-- Perfil -->
-  <section class="panel perfil">
-    <h3>Perfil</h3>
-    <form [formGroup]="perfilForm" (ngSubmit)="guardarPerfil()" class="grid" novalidate>
-      <div class="field">
-        <label>Nombre completo *</label>
-        <input type="text" formControlName="nombre" placeholder="Tu nombre completo">
-        <small class="err" *ngIf="perfilForm.get('nombre')?.touched && perfilForm.get('nombre')?.invalid">Este campo es obligatorio</small>
-      </div>
+  <!-- MENSAJES GENERALES -->
+  <section class="messages">
+    <div class="msg error" *ngIf="error()">
+      {{ error() }}
+    </div>
+    <div class="msg success" *ngIf="exito()">
+      {{ exito() }}
+    </div>
+  </section>
 
-      <div class="field">
-        <label>Matrícula *</label>
-        <input type="text" formControlName="matricula" placeholder="A0XXXXXX">
-        <small class="err" *ngIf="perfilForm.get('matricula')?.touched && perfilForm.get('matricula')?.invalid">Este campo es obligatorio</small>
-      </div>
-
-      <div class="field">
-        <label>Grupo *</label>
-        <input type="text" formControlName="grupo" placeholder="5°B">
-        <small class="err" *ngIf="perfilForm.get('grupo')?.touched && perfilForm.get('grupo')?.invalid">Este campo es obligatorio</small>
-      </div>
-
-      <div class="field avatarField">
-        <label>Foto de perfil</label>
-        <div class="picker">
-          <input type="file" accept="image/*" (change)="onSelectAvatar($event)">
-          <button type="button" class="ghost" (click)="quitarAvatar()">Quitar foto</button>
+  <!-- CONTENIDO PRINCIPAL -->
+  <section class="layout">
+    <!-- Columna izquierda: datos de la cuenta -->
+    <div class="column">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>Datos de la cuenta</h2>
+          <button
+            type="button"
+            class="btn ghost"
+            *ngIf="alumno() && !editando()"
+            (click)="activarEdicion()"
+          >
+            Editar datos
+          </button>
+          <span class="hint-blocked" *ngIf="alumno() && !editando()">
+            Tus datos están bloqueados. Haz clic en
+            <strong>“Editar datos”</strong> para modificarlos.
+          </span>
         </div>
-      </div>
 
-      <div class="actions">
-        <button type="submit">Guardar perfil</button>
+        <form
+          #datosForm="ngForm"
+          (ngSubmit)="guardarCambios(datosForm)"
+          class="form-grid"
+        >
+          <!-- NOMBRE -->
+          <label class="field">
+            <span class="field-label">Nombre completo</span>
+            <input
+              type="text"
+              [(ngModel)]="form.nombre"
+              name="nombre"
+              required
+              maxlength="120"
+              [readonly]="!editando()"
+            />
+          </label>
+
+          <!-- EMAIL -->
+          <label class="field">
+            <span class="field-label">Correo electrónico</span>
+            <input
+              type="email"
+              [(ngModel)]="form.email"
+              name="email"
+              required
+              maxlength="120"
+              [readonly]="!editando()"
+            />
+          </label>
+
+          <!-- TIPO -->
+          <label class="field">
+            <span class="field-label">Tipo de alumno</span>
+            <select
+              [(ngModel)]="form.tipo"
+              name="tipo"
+              [disabled]="!editando()"
+            >
+              <option value="">Sin especificar</option>
+              <option value="REGULAR">Regular</option>
+              <option value="RECURSADOR">Recursador</option>
+              <option value="IRREGULAR">Irregular</option>
+              <option value="Tutor">Tutor</option>
+            </select>
+          </label>
+
+          <!-- FECHA NACIMIENTO -->
+          <label class="field">
+            <span class="field-label">Fecha de nacimiento</span>
+            <input
+              type="date"
+              [(ngModel)]="form.fecha_nacimiento"
+              name="fecha_nacimiento"
+              [readonly]="!editando()"
+              [disabled]="!editando()"
+            />
+          </label>
+
+          <!-- CONDICIONES MÉDICAS -->
+          <label class="field">
+            <span class="field-label">Condiciones médicas</span>
+            <textarea
+              [(ngModel)]="form.condiciones_medicas"
+              name="condiciones_medicas"
+              rows="3"
+              [readonly]="!editando()"
+            ></textarea>
+          </label>
+
+          <!-- AVATAR URL -->
+          <label class="field">
+            <span class="field-label">Foto de perfil (URL opcional)</span>
+            <input
+              type="url"
+              [(ngModel)]="form.avatar_url"
+              name="avatar_url"
+              placeholder="https://..."
+              [readonly]="!editando()"
+            />
+            <span class="field-help">
+              Puedes pegar un enlace de imagen (Drive, Imgur, etc.) o dejarlo
+              vacío para usar tu inicial.
+            </span>
+          </label>
+
+          <!-- AVATAR ARCHIVO -->
+          <label class="field">
+            <span class="field-label">O subir foto desde tu dispositivo</span>
+            <input
+              type="file"
+              accept="image/*"
+              (change)="onAvatarFileSelected($event)"
+              [disabled]="!editando() || subiendoAvatar()"
+            />
+            <span class="field-help">
+              Se subirá la imagen al servidor y se guardará la URL
+              automáticamente.
+            </span>
+          </label>
+
+          <!-- NOTIFICACIONES -->
+          <label class="field inline">
+            <input
+              type="checkbox"
+              [(ngModel)]="form.notificaciones"
+              name="notificaciones"
+              [disabled]="!editando()"
+            />
+            <span>Recibir notificaciones por correo</span>
+          </label>
+
+          <!-- mensajes avatar -->
+          <div class="messages small">
+            <div class="msg error" *ngIf="errorAvatar()">
+              {{ errorAvatar() }}
+            </div>
+            <div class="msg success" *ngIf="exitoAvatar()">
+              {{ exitoAvatar() }}
+            </div>
+          </div>
+
+          <!-- BOTONES -->
+          <div class="actions">
+            <button
+              type="button"
+              class="btn ghost"
+              *ngIf="editando()"
+              (click)="cancelarEdicion()"
+              [disabled]="guardando()"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="submit"
+              class="btn primary"
+              *ngIf="editando()"
+              [disabled]="guardando() || datosForm.invalid"
+            >
+              <span *ngIf="!guardando()">Guardar cambios</span>
+              <span *ngIf="guardando()">Guardando...</span>
+            </button>
+          </div>
+        </form>
       </div>
-    </form>
+    </div>
+
+    <!-- Columna derecha: contraseña -->
+    <div class="column secondary">
+      <div class="panel">
+        <h2>Contraseña</h2>
+
+        <!-- mensajes pass -->
+        <div class="messages small">
+          <div class="msg error" *ngIf="errorPass()">
+            {{ errorPass() }}
+          </div>
+          <div class="msg success" *ngIf="exitoPass()">
+            {{ exitoPass() }}
+          </div>
+        </div>
+
+        <!-- Vista compacta -->
+        <div *ngIf="!cambiandoPass()">
+          <p class="muted">
+            Puedes cambiar tu contraseña actual. Se recomienda que sea fácil de
+            recordar para ti y difícil de adivinar para otros.
+          </p>
+          <button
+            type="button"
+            class="btn primary full"
+            (click)="abrirCambioPass()"
+          >
+            CAMBIAR CONTRASEÑA
+          </button>
+        </div>
+
+        <!-- Formulario cambio pass -->
+        <form
+          *ngIf="cambiandoPass()"
+          #passFormNg="ngForm"
+          (ngSubmit)="guardarNuevaPass(passFormNg)"
+          class="form-grid"
+        >
+          <label class="field">
+            <span class="field-label">Contraseña actual</span>
+            <input
+              type="password"
+              [(ngModel)]="passForm.actual"
+              name="pass_actual"
+              required
+              [disabled]="guardandoPass()"
+            />
+          </label>
+
+          <label class="field">
+            <span class="field-label">Nueva contraseña</span>
+            <input
+              type="password"
+              [(ngModel)]="passForm.nueva"
+              name="pass_nueva"
+              required
+              minlength="8"
+              [disabled]="guardandoPass()"
+            />
+          </label>
+
+          <label class="field">
+            <span class="field-label">Confirmar nueva contraseña</span>
+            <input
+              type="password"
+              [(ngModel)]="passForm.confirmar"
+              name="pass_confirmar"
+              required
+              minlength="8"
+              [disabled]="guardandoPass()"
+            />
+          </label>
+
+          <div class="actions">
+            <button
+              type="button"
+              class="btn ghost"
+              (click)="cancelarCambioPass()"
+              [disabled]="guardandoPass()"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="submit"
+              class="btn primary"
+              [disabled]="guardandoPass() || passFormNg.invalid"
+            >
+              <span *ngIf="!guardandoPass()">Guardar nueva contraseña</span>
+              <span *ngIf="guardandoPass()">Guardando...</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </section>
-
-  <!-- Cuenta -->
-  <section class="panel cuenta">
-    <h3>Cuenta</h3>
-    <form [formGroup]="cuentaForm" (ngSubmit)="guardarCuenta()" class="grid" novalidate>
-      <div class="field">
-        <label>Email *</label>
-        <input type="email" formControlName="email" placeholder="correo@ejemplo.com">
-        <small class="err" *ngIf="cuentaForm.get('email')?.touched && cuentaForm.get('email')?.invalid">Ingresa un email válido</small>
-      </div>
-
-      <div class="field">
-        <label>Contraseña actual</label>
-        <input type="password" formControlName="actual" placeholder="••••••">
-      </div>
-
-      <div class="field">
-        <label>Nueva contraseña</label>
-        <input type="password" formControlName="nueva" placeholder="••••••">
-      </div>
-
-      <div class="field">
-        <label>Repetir nueva contraseña</label>
-        <input type="password" formControlName="repetir" placeholder="••••••">
-      </div>
-
-      <div class="actions">
-        <button type="submit">Guardar cuenta</button>
-      </div>
-    </form>
-  </section>
-
-</div>
+</section>

@@ -1,93 +1,94 @@
-// C:\Codigos\HTml\gestion-educativa\frontend\src\app\features\Estudiantes\reportes\reportes-alumno.service.ts
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+
+export type Estado = 'pendiente' | 'revisado' | 'resuelto';
+export type Prioridad = 'baja' | 'media' | 'alta';
 
 export interface ReporteAlumno {
   id: number;
-  alumno_id: number;
-  tipo: 'academico' | 'conducta' | 'asistencia' | 'personal';
+  estudianteId: number;           // = nino_id
+  estudianteNombre: string;
+  tipo: string;
   motivo: string;
-  descripcion: string | null;
-  estado: 'pendiente' | 'revisado' | 'resuelto';
-  prioridad: 'baja' | 'media' | 'alta';
-  acciones: string | null;       // acciones_tomadas en backend → mapeado a 'acciones'
-  fecha: string;                 // YYYY-MM-DD
-  maestro_id: number;
-  leido?: 0 | 1;
-  visto_en?: string | null;
-  folio?: string | null;         // opcional si lo quieres mostrar
-}
-
-export interface ConteoReportes {
-  total: number;
-  pendiente: number;
-  revisado: number;
-  resuelto: number;
-  alta: number;
-  media: number;
-  baja: number;
-}
-
-export interface ListaResponse {
-  ok: boolean;
-  alumno_id: number;
-  conteo: ConteoReportes;
-  reportes: ReporteAlumno[];
-  error?: string;
-  message?: string;
-}
-
-export interface VerResponse {
-  ok: boolean;
-  alumno_id: number;
-  reporte?: ReporteAlumno;
-  error?: string;
-  message?: string;
+  descripcion: string;
+  prioridad: Prioridad;
+  estado: Estado;
+  folio: string;
+  fecha: string;                  // ISO
 }
 
 @Injectable({ providedIn: 'root' })
 export class ReportesAlumnoService {
   private http = inject(HttpClient);
 
-  /** Cambia si mueves la carpeta PHP */
-  private base = 'http://localhost/gestion_e/ReportesAlumno';
+  // Ajusta si cambias el prefijo
+  private base = 'http://localhost/gestion_e/reportes';
+  private listaUrl = `${this.base}/lista.php`;
+  private wordUrl  = `${this.base}/export_word.php`;
+  private estUrl   = `${this.base}/estudiantes.php`;
 
-  listar(opts: {
-    alumno_id?: number;
-    correo?: string;
-    estado?: 'pendiente' | 'revisado' | 'resuelto';
-    prioridad?: 'baja' | 'media' | 'alta';
-  }): Observable<ListaResponse> {
-    let params = new HttpParams();
-    if (opts.alumno_id) params = params.set('alumno_id', String(opts.alumno_id));
-    if (opts.correo)    params = params.set('correo', opts.correo);
-    if (opts.estado)    params = params.set('estado', opts.estado);
-    if (opts.prioridad) params = params.set('prioridad', opts.prioridad);
-    return this.http.get<ListaResponse>(`${this.base}/lista.php`, { params });
+  /** Utilidad: normaliza cualquier respuesta (array plano o {ok/data} o {success/data}) */
+  private takeArray(resp: any): any[] {
+    if (Array.isArray(resp)) return resp;
+    if (resp && Array.isArray(resp.data)) return resp.data;
+    if (resp && Array.isArray(resp.rows)) return resp.rows;
+    return [];
   }
 
-  ver(alumno_id: number, reporte_id: number): Observable<VerResponse> {
-    const params = new HttpParams()
-      .set('alumno_id', String(alumno_id))
-      .set('reporte_id', String(reporte_id));
-    return this.http.get<VerResponse>(`${this.base}/ver.php`, { params });
+  /** Trae reportes por ID de alumno (ninos.id) */
+  async getPorAlumnoId(alumnoId: number): Promise<ReporteAlumno[]> {
+    const url = `${this.listaUrl}?nino_id=${alumnoId}`;
+    const resp = await firstValueFrom(this.http.get<any>(url));
+    return this.mapear(this.takeArray(resp));
   }
 
-  marcarLeido(alumno_id: number, reporte_id: number): Observable<{ ok: boolean; message?: string }> {
-    const headers = new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' });
-    const body = new URLSearchParams();
-    body.set('alumno_id', String(alumno_id));
-    body.set('reporte_id', String(reporte_id));
-    return this.http.post<{ ok: boolean; message?: string }>(`${this.base}/marcar_leido.php`, body.toString(), { headers });
+  /** Fallback por email (si tu PHP lo soporta) */
+  async getPorEmail(email: string): Promise<ReporteAlumno[]> {
+    const url = `${this.listaUrl}?email=${encodeURIComponent(email)}`;
+    const resp = await firstValueFrom(this.http.get<any>(url));
+    return this.mapear(this.takeArray(resp));
   }
 
-  exportarWord(alumno_id: number, estado?: string, prioridad?: string): void {
-    const url = new URL(`${this.base}/export_word.php`);
-    url.searchParams.set('alumno_id', String(alumno_id));
-    if (estado) url.searchParams.set('estado', estado);
-    if (prioridad) url.searchParams.set('prioridad', prioridad);
-    // abre descarga
-    window.open(url.toString(), '_blank');
+  /** Lista hijos de un tutor (tu PHP regresa array plano) */
+  async getHijosDeTutor(tutorId: number): Promise<Array<{id:number; nombre:string}>> {
+    const url = `${this.estUrl}?tutor_id=${tutorId}`;
+    const resp = await firstValueFrom(this.http.get<any>(url));
+    const rows = this.takeArray(resp);
+    return rows.map((r:any)=>({ id: Number(r.id), nombre: String(r.nombre) }));
+  }
+
+  /** Fallback: obtiene reportes del tutor y arma lista de alumnos únicos */
+  async getReportesPorTutor(tutorId: number) {
+    const url = `${this.listaUrl}?tutor_id=${tutorId}`;
+    const resp = await firstValueFrom(this.http.get<any>(url));
+    const rows = this.mapear(this.takeArray(resp));
+    const mapa = new Map<number, string>();
+    rows.forEach(r => mapa.set(r.estudianteId, r.estudianteNombre));
+    const hijos = Array.from(mapa.entries()).map(([id, nombre]) => ({ id, nombre }));
+    return { hijos, reportes: rows };
+  }
+
+  descargarWord(id: number) {
+    const a = document.createElement('a');
+    a.href = `${this.wordUrl}?id=${id}`;
+    a.target = '_blank';
+    a.click();
+    a.remove();
+  }
+
+  private mapear(rows: any[]): ReporteAlumno[] {
+    return rows.map((x: any) => ({
+      id: Number(x.id || x.reporteId || 0),
+      estudianteId: Number(x.nino_id || x.estudianteId || 0),
+      estudianteNombre: String(x.estudianteNombre || x.nombre || ''),
+      tipo: String(x.tipo || ''),
+      motivo: String(x.motivo || ''),
+      descripcion: String(x.descripcion || ''),
+      prioridad: (String(x.prioridad || 'media') as any),
+      estado: (String(x.estado || 'pendiente') as any),
+      folio: String(x.folio || '—'),
+      fecha: String(x.fecha || x.created_at || new Date().toISOString()),
+    }));
   }
 }

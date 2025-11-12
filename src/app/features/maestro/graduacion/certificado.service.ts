@@ -1,53 +1,103 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CertificadoService {
+  private apiEnviar = 'http://localhost/gestion_e/Certificados/enviar_certificado.php';
+
   constructor(private http: HttpClient) {}
 
-  // Genera un PDF a partir de la plantilla y escribe el nombre
-  async generarPDFConNombre(nombre: string): Promise<Uint8Array> {
-    const pdfUrl = 'assets/Certificado Graduación Moderno Dorado.pdf';
+  // Genera un PDF a partir de la plantilla y escribe nombre + promedio
+  async generarPDF(nombre: string, promedio: number): Promise<Uint8Array> {
+    const pdfUrl = 'assets/certificado-graduacion.pdf';
 
-    // Cargar el PDF base desde assets
-    const existingPdfBytes = await this.http
-      .get(pdfUrl, { responseType: 'arraybuffer' })
-      .toPromise();
+    const baseBytes = await firstValueFrom(
+      this.http.get(pdfUrl, { responseType: 'arraybuffer' })
+    );
 
-    const pdfDoc = await PDFDocument.load(existingPdfBytes!);
-    const pages = pdfDoc.getPages();
-    const primeraPagina = pages[0];
+    const pdfDoc = await PDFDocument.load(baseBytes);
+    const [page] = pdfDoc.getPages();
+    const { width } = page.getSize();
 
-    // Fuente embebida
-    const helveticaFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const fontNombre = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const fontProm = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-    // Dibuja el nombre en el PDF
-    primeraPagina.drawText(nombre, {
-      x: 200, // ajusta según el diseño del PDF
-      y: 280, // ajusta según el diseño del PDF
-      size: 28,
-      font: helveticaFont,
-      color: rgb(0.2, 0.2, 0.2),
+    const nombreSize = 28;
+    const textoNombre = nombre.toUpperCase();
+    const nombreWidth = fontNombre.widthOfTextAtSize(textoNombre, nombreSize);
+    const xNombre = (width - nombreWidth) / 2;
+    const yNombre = 340;
+
+    page.drawText(textoNombre, {
+      x: xNombre,
+      y: yNombre,
+      size: nombreSize,
+      font: fontNombre,
+      color: rgb(0.1, 0.1, 0.1),
     });
 
-    const pdfBytes = await pdfDoc.save();
-    return pdfBytes;
+    const promSize = 16;
+    const promText = `Promedio: ${promedio.toFixed(1)}`;
+    const promWidth = fontProm.widthOfTextAtSize(promText, promSize);
+    const xProm = (width - promWidth) / 2;
+    const yProm = yNombre - 40;
+
+    page.drawText(promText, {
+      x: xProm,
+      y: yProm,
+      size: promSize,
+      font: fontProm,
+      color: rgb(0.25, 0.25, 0.25),
+    });
+
+    const bytes = await pdfDoc.save();
+    return bytes;
   }
 
-  // Descarga el PDF generado
-  
-descargarPDF(pdfBytes: Uint8Array, nombreArchivo: string) {
-  const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
-  const url = window.URL.createObjectURL(blob);
+  descargarPDF(bytes: Uint8Array, nombreArchivo: string) {
+    const blobPart: BlobPart = bytes as unknown as BlobPart;
+    const blob = new Blob([blobPart], { type: 'application/pdf' });
 
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = nombreArchivo;
-  link.click();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nombreArchivo;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
-  window.URL.revokeObjectURL(url);
-}
+  // Convierte Uint8Array → base64
+  private uint8ToBase64(bytes: Uint8Array): string {
+    let binary = '';
+    bytes.forEach((b) => (binary += String.fromCharCode(b)));
+    return btoa(binary);
+  }
+
+  // Genera pdf y lo manda al PHP para enviarlo por correo
+  async enviarPorCorreo(
+    estudianteId: number,
+    nombre: string,
+    promedio: number
+  ): Promise<{ success: boolean; message: string }> {
+    const pdfBytes = await this.generarPDF(nombre, promedio);
+    const pdfBase64 = this.uint8ToBase64(pdfBytes);
+
+    const body = {
+      estudianteId,
+      nombreAlumno: nombre,
+      promedio,
+      pdfBase64,
+    };
+
+    return await firstValueFrom(
+      this.http.post<{ success: boolean; message: string }>(
+        this.apiEnviar,
+        body
+      )
+    );
+  }
 }

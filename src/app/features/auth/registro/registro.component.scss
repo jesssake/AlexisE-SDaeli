@@ -1,6 +1,4 @@
-﻿/* registro.component.scss - VersiÃ³n Sin Fondo */
-
-@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@300;400;700&family=Nunito:wght@300;400;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap');
+﻿/* registro.component.scss - sin fondo propio, usa el del body */
 
 :host {
   display: flex;
@@ -11,7 +9,7 @@
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  background: transparent;
+  background: transparent; /* 👈 importante */
 }
 
 /* Contenedor principal con centrado perfecto */
@@ -62,7 +60,7 @@
   width: 100%;
 }
 
-/* Grupos de formulario con alineaciÃ³n mejorada */
+/* Grupos de formulario con alineación mejorada */
 .form-group {
   margin-bottom: 1.5rem;
   width: 100%;
@@ -84,7 +82,8 @@
   position: relative;
   width: 100%;
   
-  input, select {
+  input,
+  select {
     width: 100%;
     padding: 12px 45px 12px 15px;
     border: 2px solid #e2e8f0;
@@ -271,9 +270,8 @@
   100% { transform: rotate(360deg); }
 }
 
-/* ===== ANIMACIONES DE TRANSICIÃ“N ===== */
+/* ===== ANIMACIONES ===== */
 
-/* AnimaciÃ³n de entrada para la pÃ¡gina */
 @keyframes pageSlideIn {
   from {
     opacity: 0;
@@ -285,7 +283,6 @@
   }
 }
 
-/* Efecto de entrada desde la derecha */
 @keyframes slideFromRight {
   from {
     opacity: 0;
@@ -297,7 +294,6 @@
   }
 }
 
-/* Efecto de salida hacia la izquierda */
 @keyframes slideToLeft {
   from {
     opacity: 1;
@@ -309,7 +305,6 @@
   }
 }
 
-/* TransiciÃ³n suave entre pasos del formulario */
 .form-step {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
@@ -320,107 +315,6 @@
   
   &.step-exit {
     animation: slideToLeft 0.5s ease-out;
-  }
-}
-
-/* Animaciones para transiciÃ³n entre login/registro */
-.fade-transition {
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  width: 100%;
-  
-  &.fade-out {
-    opacity: 0;
-    transform: translateY(-20px) scale(0.98);
-  }
-  
-  &.fade-in {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* Overlay de transiciÃ³n centrado */
-.transition-loading {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 9999;
-  text-align: center;
-  
-  .transition-spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid rgba(102, 126, 234, 0.3);
-    border-top: 4px solid #667eea;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
-  }
-  
-  .transition-text {
-    margin-top: 15px;
-    color: #2d3748;
-    font-weight: 600;
-    animation: pulse 2s infinite;
-  }
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 0.7;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-/* PartÃ­culas de transiciÃ³n */
-.transition-particles {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1000;
-  
-  .particle {
-    position: absolute;
-    width: 6px;
-    height: 6px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    border-radius: 50%;
-    animation: floatParticle 1.5s ease-in-out infinite;
-    
-    &:nth-child(1) {
-      top: 20%;
-      left: 10%;
-      animation-delay: 0s;
-    }
-    
-    &:nth-child(2) {
-      top: 60%;
-      left: 80%;
-      animation-delay: 0.3s;
-    }
-    
-    &:nth-child(3) {
-      top: 40%;
-      left: 40%;
-      animation-delay: 0.6s;
-    }
-  }
-}
-
-@keyframes floatParticle {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-    opacity: 0.7;
-  }
-  50% {
-    transform: translateY(-20px) scale(1.2);
-    opacity: 1;
   }
 }
 
@@ -518,17 +412,6 @@
   .alert-container {
     top: 10px;
     width: 95%;
-  }
-  
-  .transition-loading {
-    .transition-spinner {
-      width: 40px;
-      height: 40px;
-    }
-    
-    .transition-text {
-      font-size: 0.9rem;
-    }
   }
 }
 

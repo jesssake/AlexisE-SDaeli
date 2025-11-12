@@ -1,4 +1,7 @@
+// src/app/features/Estudiantes/configuracion/configuracion.component.spec.ts
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+
 import { ConfiguracionComponent } from './configuracion.component';
 
 describe('ConfiguracionComponent', () => {
@@ -7,7 +10,10 @@ describe('ConfiguracionComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ConfiguracionComponent]
+      imports: [
+        ConfiguracionComponent,   // componente standalone
+        HttpClientTestingModule,  // para el HttpClient interno
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ConfiguracionComponent);
@@ -15,7 +21,7 @@ describe('ConfiguracionComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it('debería crearse', () => {
     expect(component).toBeTruthy();
   });
 });

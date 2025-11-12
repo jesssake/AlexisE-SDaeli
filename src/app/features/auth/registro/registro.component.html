@@ -1,169 +1,351 @@
-<!-- AGREGA ESTO AL INICIO DEL BODY -->
-<div id="alert-container" class="alert-container"></div>
+<!-- Contenedor principal (lo usa goToLogin para la animación) -->
+<div class="registro-container fade-transition">
+  <!-- Alertas flotantes -->
+  <div id="alert-container" class="alert-container"></div>
 
-<!-- …cabecera y burbujas igual… -->
+  <!-- Canvas para confetti (si lo usas luego) -->
+  <canvas #confettiCanvas id="confetti-canvas"></canvas>
 
-<canvas #confettiCanvas id="confetti-canvas"></canvas>
-
-<form id="register-form" autocomplete="on">
-  <!-- Paso 1 -->
-  <div [style.display]="step===1 ? 'block':'none'" id="form-step1">
-    <!-- Nombre -->
-    <div class="form-group">
-      <label for="tutor-name">Nombre del Tutor</label>
-      <div class="input-container">
-        <input id="tutor-name" type="text" [(ngModel)]="form.tutorName" name="tutorName"
-               placeholder="Tu nombre" required aria-describedby="tutor-name-error" autocomplete="name" />
-        <i class="fas fa-user"></i>
+  <!-- FORMULARIO -->
+  <form id="register-form" autocomplete="on">
+    <!-- Paso 1 -->
+    <div [style.display]="step === 1 ? 'block' : 'none'" id="form-step1">
+      <!-- Nombre -->
+      <div class="form-group">
+        <label for="tutor-name">Nombre del Tutor</label>
+        <div class="input-container">
+          <input
+            id="tutor-name"
+            type="text"
+            [(ngModel)]="form.tutorName"
+            name="tutorName"
+            placeholder="Tu nombre"
+            required
+            aria-describedby="tutor-name-error"
+            autocomplete="name"
+          />
+          <i class="fas fa-user"></i>
+        </div>
+        <p
+          id="tutor-name-error"
+          class="error-message"
+          *ngIf="errors['tutorName']"
+        >
+          {{ errors['tutorName'] }}
+        </p>
       </div>
-      <p id="tutor-name-error" class="error-message" *ngIf="errors['tutorName']">{{ errors['tutorName'] }}</p>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label for="tutor-email">Correo Electrónico</label>
+        <div class="input-container">
+          <input
+            id="tutor-email"
+            type="email"
+            [(ngModel)]="form.tutorEmail"
+            name="tutorEmail"
+            placeholder="Tu correo"
+            required
+            aria-describedby="tutor-email-error"
+            autocomplete="email"
+          />
+          <i class="fas fa-envelope"></i>
+        </div>
+        <p
+          id="tutor-email-error"
+          class="error-message"
+          *ngIf="errors['tutorEmail']"
+        >
+          {{ errors['tutorEmail'] }}
+        </p>
+      </div>
+
+      <!-- Teléfono -->
+      <div class="form-group">
+        <label for="tutor-phone">Teléfono</label>
+        <div class="input-container">
+          <input
+            id="tutor-phone"
+            type="tel"
+            [(ngModel)]="form.tutorPhone"
+            name="tutorPhone"
+            placeholder="+52 555 1234 5678"
+            required
+            aria-describedby="tutor-phone-error"
+            autocomplete="tel"
+          />
+          <i class="fas fa-phone"></i>
+        </div>
+        <p
+          id="tutor-phone-error"
+          class="error-message"
+          *ngIf="errors['tutorPhone']"
+        >
+          {{ errors['tutorPhone'] }}
+        </p>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label for="tutor-password">Contraseña</label>
+        <div class="input-container">
+          <input
+            id="tutor-password"
+            [type]="showPass1 ? 'text' : 'password'"
+            [(ngModel)]="form.tutorPassword"
+            name="tutorPassword"
+            placeholder="Contraseña"
+            required
+            aria-describedby="tutor-password-error"
+            autocomplete="new-password"
+          />
+          <i
+            class="fas"
+            [class.fa-eye]="!showPass1"
+            [class.fa-eye-slash]="showPass1"
+            (click)="showPass1 = !showPass1"
+            role="button"
+            tabindex="0"
+          ></i>
+        </div>
+        <p
+          id="tutor-password-error"
+          class="error-message"
+          *ngIf="errors['tutorPassword']"
+        >
+          {{ errors['tutorPassword'] }}
+        </p>
+      </div>
+
+      <!-- Confirm -->
+      <div class="form-group">
+        <label for="tutor-confirm-password">Confirmar Contraseña</label>
+        <div class="input-container">
+          <input
+            id="tutor-confirm-password"
+            [type]="showPass2 ? 'text' : 'password'"
+            [(ngModel)]="confirmPassword"
+            name="tutorConfirmPassword"
+            placeholder="Confirma tu contraseña"
+            required
+            aria-describedby="tutor-confirm-password-error"
+            autocomplete="new-password"
+          />
+          <i
+            class="fas"
+            [class.fa-eye]="!showPass2"
+            [class.fa-eye-slash]="showPass2"
+            (click)="showPass2 = !showPass2"
+            role="button"
+            tabindex="0"
+          ></i>
+        </div>
+        <p
+          id="tutor-confirm-password-error"
+          class="error-message"
+          *ngIf="errors['confirmPassword']"
+        >
+          {{ errors['confirmPassword'] }}
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        id="next-step1"
+        (click)="nextFromStep1()"
+        [disabled]="loading"
+      >
+        Siguiente <span class="spinner" *ngIf="loading"></span>
+      </button>
+
+      <div class="form-toggle">
+        ¿Ya tienes cuenta?
+        <a
+          class="toggle-btn"
+          (click)="goToLogin()"
+          style="cursor: pointer;"
+          id="show-login"
+          >Inicia Sesión</a
+        >
+      </div>
     </div>
 
-    <!-- Email -->
-    <div class="form-group">
-      <label for="tutor-email">Correo Electrónico</label>
-      <div class="input-container">
-        <input id="tutor-email" type="email" [(ngModel)]="form.tutorEmail" name="tutorEmail"
-               placeholder="Tu correo" required aria-describedby="tutor-email-error" autocomplete="email" />
-        <i class="fas fa-envelope"></i>
+    <!-- Paso 2 -->
+    <div [style.display]="step === 2 ? 'block' : 'none'" id="form-step2">
+      <div class="form-group">
+        <label for="child-name">Nombre del Niño/a</label>
+        <div class="input-container">
+          <input
+            id="child-name"
+            type="text"
+            [(ngModel)]="form.childName"
+            name="childName"
+            placeholder="Nombre del niño/a"
+            required
+            aria-describedby="child-name-error"
+            autocomplete="off"
+          />
+          <i class="fas fa-child"></i>
+        </div>
+        <p
+          id="child-name-error"
+          class="error-message"
+          *ngIf="errors['childName']"
+        >
+          {{ errors['childName'] }}
+        </p>
       </div>
-      <p id="tutor-email-error" class="error-message" *ngIf="errors['tutorEmail']">{{ errors['tutorEmail'] }}</p>
+
+      <!-- FECHA DE NACIMIENTO CON CALENDARIO -->
+      <div class="form-group">
+        <label for="childBirth">Fecha de nacimiento</label>
+        <div class="input-container date-input-container">
+          <i class="fas fa-calendar-alt"></i>
+          <input
+            id="childBirth"
+            type="date"
+            name="childBirth"
+            [(ngModel)]="form.childBirth"
+            [min]="minBirthDate"
+            [max]="maxBirthDate"
+            required
+            aria-describedby="child-birthdate-error"
+          />
+        </div>
+        <p
+          id="child-birthdate-error"
+          class="error-message"
+          *ngIf="errors['childBirth']"
+        >
+          {{ errors['childBirth'] }}
+        </p>
+      </div>
+
+      <div class="form-group">
+        <label for="child-cond">Condiciones Médicas (Opcional)</label>
+        <div class="input-container">
+          <input
+            id="child-cond"
+            type="text"
+            [(ngModel)]="form.childCondition"
+            name="childCondition"
+            placeholder="Ej. Alergias, ninguna"
+            autocomplete="off"
+          />
+          <i class="fas fa-notes-medical"></i>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="btn btn-secondary"
+        id="prev-step2"
+        (click)="step = 1"
+      >
+        Atrás
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary"
+        id="next-step2"
+        (click)="nextFromStep2()"
+        [disabled]="loading"
+      >
+        Siguiente <span class="spinner" *ngIf="loading"></span>
+      </button>
     </div>
 
-    <!-- Teléfono -->
-    <div class="form-group">
-      <label for="tutor-phone">Teléfono</label>
-      <div class="input-container">
-        <input id="tutor-phone" type="tel" [(ngModel)]="form.tutorPhone" name="tutorPhone"
-               placeholder="+52 555 1234 5678" required aria-describedby="tutor-phone-error" autocomplete="tel" />
-        <i class="fas fa-phone"></i>
+    <!-- Paso 3 (preguntas) -->
+    <div [style.display]="step === 3 ? 'block' : 'none'" id="form-step3">
+      <div
+        class="form-group"
+        *ngFor="let q of recoveryQuestions; let i = index"
+      >
+        <label [for]="'recovery-question' + (i + 1)"
+          >Pregunta {{ i + 1 }}: {{ q }}</label
+        >
+        <div class="input-container">
+          <input
+            [id]="'recovery-question' + (i + 1)"
+            type="text"
+            [(ngModel)]="form.security[i]"
+            [name]="'security' + i"
+            placeholder="Respuesta"
+            required
+            [attr.aria-describedby]="'rq-err-' + i"
+            autocomplete="off"
+          />
+          <i class="fas fa-question-circle"></i>
+        </div>
+        <p
+          class="error-message"
+          [id]="'rq-err-' + i"
+          *ngIf="errors['security' + i]"
+        >
+          {{ errors['security' + i] }}
+        </p>
       </div>
-      <p id="tutor-phone-error" class="error-message" *ngIf="errors['tutorPhone']">{{ errors['tutorPhone'] }}</p>
+
+      <button
+        type="button"
+        class="btn btn-secondary"
+        id="prev-step3"
+        (click)="step = 2"
+      >
+        Atrás
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary"
+        id="next-step3"
+        (click)="toSummary()"
+        [disabled]="loading"
+      >
+        Siguiente <span class="spinner" *ngIf="loading"></span>
+      </button>
     </div>
 
-    <!-- Password -->
-    <div class="form-group">
-      <label for="tutor-password">Contraseña</label>
-      <div class="input-container">
-        <input id="tutor-password" [type]="showPass1 ? 'text':'password'" [(ngModel)]="form.tutorPassword"
-               name="tutorPassword" placeholder="Contraseña" required
-               aria-describedby="tutor-password-error" autocomplete="new-password" />
-        <i class="fas" [class.fa-eye]="!showPass1" [class.fa-eye-slash]="showPass1"
-           (click)="showPass1=!showPass1" role="button" tabindex="0"></i>
+    <!-- Paso 4 (resumen) -->
+    <div [style.display]="step === 4 ? 'block' : 'none'" id="form-step4">
+      <div id="confirmation-summary">
+        <div class="summary-section">
+          <h4>Datos del Tutor</h4>
+          <p><strong>Nombre:</strong> {{ form.tutorName }}</p>
+          <p><strong>Email:</strong> {{ form.tutorEmail }}</p>
+          <p><strong>Teléfono:</strong> {{ form.tutorPhone }}</p>
+        </div>
+        <div class="summary-section">
+          <h4>Datos del Niño/a</h4>
+          <p><strong>Nombre:</strong> {{ form.childName }}</p>
+          <p>
+            <strong>Fecha de Nacimiento:</strong>
+            {{ form.childBirth | date: 'dd/MM/yyyy' }}
+          </p>
+          <p>
+            <strong>Condiciones:</strong>
+            {{ form.childCondition || 'Ninguna' }}
+          </p>
+        </div>
       </div>
-      <p id="tutor-password-error" class="error-message" *ngIf="errors['tutorPassword']">{{ errors['tutorPassword'] }}</p>
+
+      <button
+        type="button"
+        class="btn btn-secondary"
+        id="prev-step4"
+        (click)="step = 3"
+      >
+        Atrás
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary"
+        id="submit-form"
+        (click)="submit()"
+        [disabled]="loading"
+      >
+        Enviar Registro <span class="spinner" *ngIf="loading"></span>
+      </button>
     </div>
-
-    <!-- Confirm -->
-    <div class="form-group">
-      <label for="tutor-confirm-password">Confirmar Contraseña</label>
-      <div class="input-container">
-        <input id="tutor-confirm-password" [type]="showPass2 ? 'text':'password'" [(ngModel)]="confirmPassword"
-               name="tutorConfirmPassword" placeholder="Confirma tu contraseña" required
-               aria-describedby="tutor-confirm-password-error" autocomplete="new-password" />
-        <i class="fas" [class.fa-eye]="!showPass2" [class.fa-eye-slash]="showPass2"
-           (click)="showPass2=!showPass2" role="button" tabindex="0"></i>
-      </div>
-      <p id="tutor-confirm-password-error" class="error-message" *ngIf="errors['confirmPassword']">
-        {{ errors['confirmPassword'] }}
-      </p>
-    </div>
-
-    <button type="button" class="btn btn-primary" id="next-step1" (click)="nextFromStep1()" [disabled]="loading">
-      Siguiente <span class="spinner" *ngIf="loading"></span>
-    </button>
-
-    <!-- En registro.component.html -->
-<div class="form-toggle">
-  ¿Ya tienes cuenta?
-  <a class="toggle-btn" (click)="goToLogin()" style="cursor: pointer;" id="show-login">Inicia Sesión</a>
+  </form>
 </div>
-  </div>
-
-  <!-- Paso 2 -->
-  <div [style.display]="step===2 ? 'block':'none'" id="form-step2">
-    <div class="form-group">
-      <label for="child-name">Nombre del Niño/a</label>
-      <div class="input-container">
-        <input id="child-name" type="text" [(ngModel)]="form.childName" name="childName"
-               placeholder="Nombre del niño/a" required aria-describedby="child-name-error" autocomplete="off" />
-        <i class="fas fa-child"></i>
-      </div>
-      <p id="child-name-error" class="error-message" *ngIf="errors['childName']">{{ errors['childName'] }}</p>
-    </div>
-
-    <div class="form-group">
-      <label>Fecha de Nacimiento</label>
-      <div class="input-container date-group">
-        <select id="child-day" [(ngModel)]="birth.day" name="day" required aria-label="Día de nacimiento">
-          <option value="">Día</option>
-          <option *ngFor="let d of days" [value]="d">{{ d | number:'2.0' }}</option>
-        </select>
-        <select id="child-month" [(ngModel)]="birth.month" name="month" required aria-label="Mes de nacimiento">
-          <option value="">Mes</option>
-          <option *ngFor="let m of months" [value]="m">{{ m | number:'2.0' }}</option>
-        </select>
-        <select id="child-year" [(ngModel)]="birth.year" name="year" required aria-label="Año de nacimiento">
-          <option value="">Año</option>
-          <option *ngFor="let y of years" [value]="y">{{ y }}</option>
-        </select>
-      </div>
-      <p id="child-birthdate-error" class="error-message" *ngIf="errors['birth']">{{ errors['birth'] }}</p>
-    </div>
-
-    <div class="form-group">
-      <label for="child-cond">Condiciones Médicas (Opcional)</label>
-      <div class="input-container">
-        <input id="child-cond" type="text" [(ngModel)]="form.childCondition" name="childCondition"
-               placeholder="Ej. Alergias, ninguna" autocomplete="off" />
-        <i class="fas fa-heartbeat"></i>
-      </div>
-    </div>
-
-    <button type="button" class="btn btn-secondary" id="prev-step2" (click)="step=1">Atrás</button>
-    <button type="button" class="btn btn-primary" id="next-step2" (click)="nextFromStep2()" [disabled]="loading">
-      Siguiente <span class="spinner" *ngIf="loading"></span>
-    </button>
-  </div>
-
-  <!-- Paso 3 (preguntas) -->
-  <div [style.display]="step===3 ? 'block':'none'" id="form-step3">
-    <div class="form-group" *ngFor="let q of recoveryQuestions; let i = index">
-      <label [for]="'recovery-question'+(i+1)">Pregunta {{ i+1 }}: {{ q }}</label>
-      <div class="input-container">
-        <input [id]="'recovery-question'+(i+1)" type="text" [(ngModel)]="form.security[i]" [name]="'security'+i"
-               placeholder="Respuesta" required [attr.aria-describedby]="'rq-err-'+i" autocomplete="off" />
-        <i class="fas fa-question-circle"></i>
-      </div>
-      <p class="error-message" [id]="'rq-err-'+i" *ngIf="errors['security'+i]">{{ errors['security'+i] }}</p>
-    </div>
-
-    <button type="button" class="btn btn-secondary" id="prev-step3" (click)="step=2">Atrás</button>
-    <button type="button" class="btn btn-primary" id="next-step3" (click)="toSummary()" [disabled]="loading">
-      Siguiente <span class="spinner" *ngIf="loading"></span>
-    </button>
-  </div>
-
-  <!-- Paso 4 (resumen) -->
-  <div [style.display]="step===4 ? 'block':'none'" id="form-step4">
-    <div id="confirmation-summary">
-      <div class="summary-section">
-        <h4>Datos del Tutor</h4>
-        <p><strong>Nombre:</strong> {{ form.tutorName }}</p>
-        <p><strong>Email:</strong> {{ form.tutorEmail }}</p>
-        <p><strong>Teléfono:</strong> {{ form.tutorPhone }}</p>
-      </div>
-      <div class="summary-section">
-        <h4>Datos del Niño/a</h4>
-        <p><strong>Nombre:</strong> {{ form.childName }}</p>
-        <p><strong>Fecha de Nacimiento:</strong> {{ birth.day }}/{{ birth.month }}/{{ birth.year }}</p>
-        <p><strong>Condiciones:</strong> {{ form.childCondition || 'Ninguna' }}</p>
-      </div>
-    </div>
-
-    <button type="button" class="btn btn-secondary" id="prev-step4" (click)="step=3">Atrás</button>
-    <button type="button" class="btn btn-primary" id="submit-form" (click)="submit()" [disabled]="loading">
-      Enviar Registro <span class="spinner" *ngIf="loading"></span>
-    </button>
-  </div>
-</form>

@@ -1,13 +1,10 @@
-// C:\Codigos\HTml\gestion-educativa\frontend\src\app\features\Estudiantes\reportes\reportes.component.ts
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {
-  ReportesAlumnoService,
-  ReporteAlumno,
-  ListaResponse,
-} from './reportes-alumno.service';
 import { HttpClientModule } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
+import { AuthService, AlumnoLight } from './auth.service';
+import { ReportesAlumnoService, ReporteAlumno } from './reportes-alumno.service';
 
 @Component({
   selector: 'app-reportes-alumno',
@@ -17,132 +14,113 @@ import { HttpClientModule } from '@angular/common/http';
   styleUrls: ['./reportes.component.scss'],
 })
 export class ReportesAlumnoComponent implements OnInit {
-  // TODO: reemplazar por datos reales del alumno logeado (AuthService)
-  alumnoIdDefault = 2;                 // <- usa el id cuando ya lo tengas
-  alumnoCorreoDefault = '';            // o correo del tutor para resolver alumno_id
+  private route = inject(ActivatedRoute);
+  private auth  = inject(AuthService);
+  private srv   = inject(ReportesAlumnoService);
 
-  cargando = signal<boolean>(false);
+  cargando = signal(false);
   errorMsg = signal<string | null>(null);
-  okMsg = signal<string | null>(null);
+  okMsg    = signal<string | null>(null);
 
-  // filtros
-  estado = signal<'' | 'pendiente' | 'revisado' | 'resuelto'>('');
-  prioridad = signal<'' | 'baja' | 'media' | 'alta'>('');
-  buscar = signal<string>('');
-
-  // datos
-  alumnoId = signal<number>(this.alumnoIdDefault);
-  conteo = signal<ListaResponse['conteo'] | null>(null);
+  alumno = signal<AlumnoLight | null>(null);
   reportes = signal<ReporteAlumno[]>([]);
-  seleccion: ReporteAlumno | null = null;
 
-  totalFiltrados = computed(() => this.reportes().length);
+  hijos = signal<Array<{id:number; nombre:string}>>([]);
+  hijoSeleccionado = signal<number | null>(null);
 
-  constructor(private srv: ReportesAlumnoService) {}
+  filtroEstado = signal<'todos' | 'pendiente' | 'revisado' | 'resuelto'>('todos');
+  filtroPrioridad = signal<'todas' | 'baja' | 'media' | 'alta'>('todas');
 
-  ngOnInit(): void {
-    this.cargar();
-  }
-
-  cargar(): void {
-    this.cargando.set(true);
-    this.errorMsg.set(null);
-    this.okMsg.set(null);
-
-    this.srv
-      .listar({
-        alumno_id: this.alumnoId(),
-        correo: this.alumnoCorreoDefault || undefined,
-        estado: this.estado() || undefined,
-        prioridad: this.prioridad() || undefined,
-      })
-      .subscribe({
-        next: (resp) => {
-          if (!resp.ok) {
-            this.errorMsg.set('No se pudieron cargar los reportes.');
-            this.reportes.set([]);
-            this.conteo.set(null);
-          } else {
-            // Mapea acciones_tomadas→acciones si viniera en ver.php
-            const list = (resp.reportes || []).map(r => ({
-              ...r,
-              acciones: (r as any).acciones_tomadas ?? r.acciones ?? null,
-            }));
-            // Filtro local adicional por texto
-            const q = (this.buscar() || '').toLowerCase();
-            const f =
-              q.length > 0
-                ? list.filter(
-                    (r) =>
-                      r.motivo.toLowerCase().includes(q) ||
-                      (r.descripcion || '').toLowerCase().includes(q) ||
-                      r.tipo.toLowerCase().includes(q)
-                  )
-                : list;
-
-            this.reportes.set(f);
-            this.conteo.set(resp.conteo);
-          }
-          this.cargando.set(false);
-        },
-        error: () => {
-          this.errorMsg.set('Error de red al cargar reportes.');
-          this.reportes.set([]);
-          this.conteo.set(null);
-          this.cargando.set(false);
-        },
-      });
-  }
-
-  limpiarFiltros(): void {
-    this.estado.set('');
-    this.prioridad.set('');
-    this.buscar.set('');
-    this.cargar();
-  }
-
-  verDetalle(rep: ReporteAlumno): void {
-    this.seleccion = rep;
-  }
-
-  cerrarDetalle(): void {
-    this.seleccion = null;
-  }
-
-  marcarLeido(rep: ReporteAlumno): void {
-    this.srv.marcarLeido(this.alumnoId(), rep.id).subscribe({
-      next: (r) => {
-        if (r.ok) {
-          this.okMsg.set('Marcado como leído ✔');
-          // reflectir en UI sin recargar todo
-          this.reportes.update(arr =>
-            arr.map(x => (x.id === rep.id ? { ...x, leido: 1, visto_en: new Date().toISOString() } : x))
-          );
-        } else {
-          this.errorMsg.set('No se pudo marcar como leído.');
-        }
-      },
-      error: () => this.errorMsg.set('Error al marcar como leído.'),
+  filtrados = computed(() => {
+    const E = this.filtroEstado(); const P = this.filtroPrioridad();
+    return this.reportes().filter(r => {
+      if (E !== 'todos' && r.estado !== E) return false;
+      if (P !== 'todas' && r.prioridad !== P) return false;
+      return true;
     });
+  });
+
+  kpiTotal = computed(() => this.reportes().length);
+  kpiPend  = computed(() => this.reportes().filter(r => r.estado==='pendiente').length);
+  kpiRev   = computed(() => this.reportes().filter(r => r.estado==='revisado').length);
+  kpiRes   = computed(() => this.reportes().filter(r => r.estado==='resuelto').length);
+  kpiAlta  = computed(() => this.reportes().filter(r => r.prioridad==='alta').length);
+
+  async ngOnInit() {
+    // 1) Forzado por URL (para pruebas rápidas)
+    const qId = Number(this.route.snapshot.queryParamMap.get('alumno_id') || 0);
+    if (qId > 0) {
+      this.alumno.set({ id: qId, nombre: 'Alumno' });
+      await this.cargar(qId);
+      return;
+    }
+
+    // 2) Desde el menú/localStorage (puede ser ALUMNO o TUTOR)
+    const u = this.auth.alumnoActual();
+    if (u) {
+      const rol = u.rol?.toUpperCase() || u.tipo?.toUpperCase() || '';
+      if (rol === 'TUTOR') {
+        // TUTOR: listar hijos
+        this.cargando.set(true);
+        try {
+          const hijos = await this.srv.getHijosDeTutor(Number((u as any).id));
+          this.hijos.set(hijos);
+          if (hijos.length === 1) {
+            const h = hijos[0];
+            this.hijoSeleccionado.set(h.id);
+            this.alumno.set({ id: h.id, nombre: h.nombre });
+            await this.cargar(h.id);
+          } else if (hijos.length > 1) {
+            this.ok('Selecciona un alumno.');
+          } else {
+            this.error('Este tutor no tiene alumnos vinculados.');
+          }
+        } catch {
+          this.error('No se pudieron cargar los alumnos del tutor.');
+        } finally {
+          this.cargando.set(false);
+        }
+        return;
+      }
+
+      // ALUMNO directo
+      this.alumno.set(u);
+      await this.cargar(u.id, u.email || undefined);
+      return;
+    }
+
+    this.error('No se detectó alumno. Abre desde el menú autenticado o pasa ?alumno_id=');
   }
 
-  exportar(): void {
-    this.srv.exportarWord(this.alumnoId(), this.estado() || undefined, this.prioridad() || undefined);
+  async onSeleccionHijo(idStr: string) {
+    const id = Number(idStr);
+    this.hijoSeleccionado.set(id);
+    const h = this.hijos().find(x => x.id === id);
+    if (h) {
+      this.alumno.set({ id: h.id, nombre: h.nombre });
+      await this.cargar(h.id);
+    }
   }
 
-  badgeEstado(est: ReporteAlumno['estado']): string {
-    return {
-      pendiente: 'badge warn',
-      revisado: 'badge info',
-      resuelto: 'badge success',
-    }[est];
+  async cargar(alumnoId: number, email?: string) {
+    try {
+      this.cargando.set(true);
+      let data = await this.srv.getPorAlumnoId(alumnoId);
+      if ((!data || !data.length) && email) {
+        data = await this.srv.getPorEmail(email);
+      }
+      this.reportes.set(data);
+      if (!data.length) this.ok('No hay reportes para mostrar.');
+    } catch {
+      this.error('No se pudieron cargar tus reportes.');
+    } finally {
+      this.cargando.set(false);
+    }
   }
 
-  badgePrioridad(p: ReporteAlumno['prioridad']): string {
-    return {
-      baja: 'chip low',
-      media: 'chip med',
-      alta: 'chip high',
-    }[p];
-  }
+  descargarWord(id: number){ this.srv.descargarWord(id); }
+  formatearFecha(iso: string){ try { return new Date(iso).toLocaleDateString('es-MX'); } catch { return iso; } }
+
+  private ok(m:string){ this.okMsg.set(m); setTimeout(()=>this.okMsg.set(null), 2200); }
+  private error(m:string){ this.errorMsg.set(m); setTimeout(()=>this.errorMsg.set(null), 3200); }
 }
