@@ -1,11 +1,14 @@
 {
   "name": "gestion-educativa",
   "version": "0.0.0",
+  "private": true,
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --proxy-config proxy.conf.js --port 4201 --open",
+    "start": "ng serve --proxy-config proxy.conf.json --port 4201 --open",
     "start:clean": "powershell -ExecutionPolicy Bypass -File .\\scripts\\start-clean.ps1",
     "build": "ng build",
+    "build:pages": "ng build --configuration production --base-href \"/AlexisE-SDaeli/\"",
+    "deploy:pages": "npm run build:pages && ngh --dir=dist/gestion-educativa/browser",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:gestion-educativa": "node dist/gestion-educativa/server/server.mjs",
@@ -33,7 +36,6 @@
       }
     ]
   },
-  "private": true,
   "dependencies": {
     "@angular/common": "^20.3.7",
     "@angular/compiler": "^20.3.0",
@@ -60,12 +62,14 @@
     "zone.js": "^0.15.1"
   },
   "devDependencies": {
+    "@angular-devkit/build-angular": "^20.3.7",
     "@angular/build": "^20.3.7",
     "@angular/cli": "^20.3.7",
     "@angular/compiler-cli": "^20.3.0",
     "@types/express": "^5.0.1",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^20.17.19",
+    "angular-cli-ghpages": "^2.0.3",
     "concurrently": "^7.6.0",
     "jasmine-core": "~5.9.0",
     "karma": "~6.4.0",

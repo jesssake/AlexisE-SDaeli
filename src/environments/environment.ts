@@ -1,1 +1,4 @@
-﻿export const environment = { production: false, API_URL: '/api' };
+﻿export const environment = {
+  production: false,
+  apiBase: 'http://localhost/gestion_e' // URL para desarrollo local
+};

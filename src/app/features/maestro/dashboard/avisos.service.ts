@@ -1,4 +1,3 @@
-// src/app/features/maestro/dashboard/avisos.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 // OJO con la ruta al environment (desde .../features/maestro/dashboard → ../../../../)
@@ -28,7 +27,7 @@ export class AvisosService {
   private http = inject(HttpClient);
 
   /** Base API: '/api' con proxy; si algún día cambias, ajústalo en environment */
-  private readonly base = (environment.API_URL || '/api').replace(/\/+$/, '');
+  private readonly base = (environment.apiBase || '/api').replace(/\/+$/, '');  // Ajustado para usar apiBase
   private url(p: string) { return `${this.base}/${p.replace(/^\/+/, '')}`; }
 
   /** GET /api/avisos.php → lista completa */

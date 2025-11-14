@@ -6,9 +6,7 @@
     "gestion-educativa": {
       "projectType": "application",
       "schematics": {
-        "@schematics/angular:component": {
-          "style": "scss"
-        }
+        "@schematics/angular:component": { "style": "scss" }
       },
       "root": "",
       "sourceRoot": "src",
@@ -25,15 +23,8 @@
             "inlineStyleLanguage": "scss",
             "assets": [
               "src/assets",
-              {
-                "glob": "**/*",
-                "input": "public"
-              },
-              {
-                "glob": "**/*",
-                "input": "servers",
-                "output": "/servers"
-              }
+              { "glob": "**/*", "input": "public" },
+              { "glob": "**/*", "input": "servers", "output": "/servers" }
             ],
             "styles": ["src/styles.scss"],
             "scripts": []
@@ -41,31 +32,24 @@
           "configurations": {
             "production": {
               "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "2mb",
-                  "maximumError": "3mb"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "15kb",
-                  "maximumError": "20kb"
-                }
+                { "type": "initial", "maximumWarning": "2mb", "maximumError": "3mb" },
+                { "type": "anyComponentStyle", "maximumWarning": "15kb", "maximumError": "30kb" },
+                { "type": "bundle", "name": "main", "maximumWarning": "1.5mb", "maximumError": "2mb" },
+                { "type": "bundle", "name": "polyfills", "maximumWarning": "300kb", "maximumError": "500kb" },
+                { "type": "bundle", "name": "styles", "maximumWarning": "300kb", "maximumError": "500kb" },
+                { "type": "any", "name": "scripts", "maximumWarning": "2mb", "maximumError": "3mb" }
               ],
+              "optimization": {
+                "scripts": true,
+                "styles": true,
+                "fonts": { "inline": false }
+              },
               "outputHashing": "all"
             },
             "development": {
               "budgets": [
-                {
-                  "type": "initial",
-                  "maximumWarning": "4mb",
-                  "maximumError": "6mb"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "20kb",
-                  "maximumError": "30kb"
-                }
+                { "type": "initial", "maximumWarning": "6mb", "maximumError": "8mb" },
+                { "type": "anyComponentStyle", "maximumWarning": "40kb", "maximumError": "60kb" }
               ],
               "optimization": false,
               "extractLicenses": false,
@@ -75,9 +59,10 @@
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@angular/build:dev-server",
+          "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "proxyConfig": "proxy.conf.json"
+            "proxyConfig": "proxy.conf.js",  
+            "port": 4201
           },
           "configurations": {
             "production": {
@@ -103,15 +88,8 @@
             "inlineStyleLanguage": "scss",
             "assets": [
               "src/assets",
-              {
-                "glob": "**/*",
-                "input": "public"
-              },
-              {
-                "glob": "**/*",
-                "input": "servers",
-                "output": "/servers"
-              }
+              { "glob": "**/*", "input": "public" },
+              { "glob": "**/*", "input": "servers", "output": "/servers" }
             ],
             "styles": ["src/styles.scss"],
             "scripts": []

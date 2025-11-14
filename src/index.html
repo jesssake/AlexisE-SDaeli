@@ -1,29 +1,36 @@
-﻿<!doctype html>
-<html lang="en">
+﻿<!-- src/index.html -->
+<!doctype html>
+<html lang="es">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   <title>GestionEducativa</title>
-  <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
 
-  <!-- DEV: Fuerza ir a /auth/login siempre -->
+  <!-- En desarrollo siempre raíz. 
+       En producción (GitHub Pages) el baseHref se inyecta desde angular.json: "/AlexisE-SDaeli/" -->
+  <base href="/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b1220" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+  <!-- (Opcional) Redirigir siempre al login respetando el <base> actual -->
   <script>
     (function () {
       try {
-        // Si NO estás ya en /auth/* => limpia y manda a login
-        if (!location.pathname.startsWith('/auth/')) {
-          localStorage.clear();
-          sessionStorage.clear();
-          // Usa replace para evitar volver con "Atrás"
-          location.replace('/auth/login');
+        var base = (document.querySelector('base')?.getAttribute('href') || '/').replace(/\/+$/, '/') ;
+        var loginPath = base + 'auth/login';
+        // Si no estamos ya en /auth/* dentro del base actual, redirige al login
+        if (!location.pathname.startsWith(new URL(loginPath, location.origin).pathname)) {
+          // Limpieza opcional (comenta si no quieres "logout" duro):
+          // localStorage.clear(); sessionStorage.clear();
+          location.replace(loginPath);
         }
-      } catch (e) { /* no-op */ }
+      } catch (_) { /* no-op */ }
     })();
   </script>
 </head>
 <body>
+  <noscript>Necesitas habilitar JavaScript para usar esta aplicación.</noscript>
   <app-root></app-root>
 </body>
 </html>
-

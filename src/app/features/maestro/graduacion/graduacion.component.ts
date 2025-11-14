@@ -1,22 +1,29 @@
+// src/app/features/maestro/graduacion/graduacion.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { CertificadoService } from './certificado.service';
+import { HttpClient, HttpClientModule, HttpParams } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+
+type TipoCertificado = 'cierre' | 'excelencia';
+
+interface Alumno {
+  id: number;
+  nombre: string;
+}
 
 interface Certificado {
   id: number;
-  alumno_id: number;
-  tipo: 'excelencia' | 'cierre';
-  ciclo: string;
-  fecha: string;
-  enviado: number;
-}
-
-interface Estudiante {
-  id: number;
-  nombre: string;
+  id_nino: number;
+  alumno: string | null;
   promedio: number;
+  tipo: string;         // 'cierre' | 'excelencia'
+  ciclo: string;
+  creado_en: string;    // datetime en string
+  estado: string;       // 'enviado' | 'pendiente' | etc.
+  archivo_path: string | null;
+  nombre_archivo: string | null;
 }
 
 @Component({
@@ -27,277 +34,503 @@ interface Estudiante {
   styleUrls: ['./graduacion.component.scss'],
 })
 export class GraduacionComponent implements OnInit {
+
+  // Base para tus endpoints PHP usando el proxy /api
+  private apiBase = '/api/Certificados/';
+
   cargando = false;
-  enviando = false;
-  mostrarFormularioCertificado = false;
 
-  okMsg: string | null = null;
-  errorMsg: string | null = null;
-
+  alumnos: Alumno[] = [];
   certificados: Certificado[] = [];
-  estudiantes: Estudiante[] = [];
 
-  // 👇 datos del formulario del modal
-  modalForm = {
-    alumnoId: null as number | null,
-    nombre: '',
-    ciclo: '',
-    promedio: 0,
+  // Totales para las tarjetas
+  stats = {
+    total: 0,
+    excelencia: 0,
+    cierre: 0,
+    enviados: 0,
   };
 
-  modalBrand = {
+  // Filtros de la parte de arriba
+  filtros = {
+    tipo: 'todos',   // 'todos' | 'cierre' | 'excelencia'
+    estado: 'todos', // 'todos' | 'enviado' | 'pendiente'
+    alumnoId: 0,     // 0 = todos
+  };
+
+  // Estado del modal
+  mostrarFormularioCertificado = false;
+  usarUltimo = true;
+
+  // Formulario del modal
+  form = {
+    alumnoId: 0,
+    nombreAlumno: '',
+    promedio: 10,
+    cicloEscolar: '2025-2026',
+    tipo: 'cierre' as TipoCertificado,
     teacherName: '',
-    logoDataUrl: '',
   };
 
-  // filtros
-  filtroTipo: 'todos' | 'excelencia' | 'cierre' = 'todos';  // Se cambia a variable
-  filtroEstado: 'todos' | 'enviados' | 'pendientes' = 'todos';  // Se cambia a variable
-  filtroAlumnoId: 'todos' | number = 'todos';  // Se cambia a variable
+  // Logo en memoria
+  logoFile: File | null = null;
+  logoPreview: string | null = null;
 
-  // URL ABSOLUTA (CORS habilitado en certificados.php)
-  private apiCertificados =
-    'http://localhost/gestion_e/Certificados/certificados.php';
-
-  constructor(
-    private certificadoService: CertificadoService,
-    private http: HttpClient
-  ) {}
+  constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-    this.cargarDatos();
+    this.cargarAlumnos();
+    this.cargarCertificados();
   }
 
-  // =====================
-  // CARGA INICIAL DESDE PHP
-  // =====================
-  cargarDatos() {
-    this.cargando = true;
+  // =======================================
+  // CARGAR ALUMNOS (para selects)
+  // =======================================
+  cargarAlumnos(): void {
+    const url = `${this.apiBase}alumnos_listar.php`;
+    this.http.get<any>(url).subscribe({
+      next: (resp) => {
+        console.log('Respuesta cargar alumnos:', resp);
 
-    this.http
-      .get<{ success: boolean; data: any[] }>(this.apiCertificados)
-      .subscribe({
-        next: (resp) => {
-          console.log('certificados.php resp =>', resp);
-
-          if (!resp.success) {
-            this.mostrarError('No se pudieron cargar los alumnos.');
-            this.cargando = false;
-            return;
-          }
-
-          // alumnos
-          this.estudiantes = resp.data.map((row) => ({
-            id: Number(row.estudianteId),
-            nombre: String(row.nombre),
-            promedio: Number(row.promedio ?? 0),
-          }));
-
-          // certificados base (uno por alumno)
-          this.certificados = resp.data.map((row, index) => ({
-            id: index + 1,
-            alumno_id: Number(row.estudianteId),
-            tipo: (row.tipo ?? 'cierre') as 'excelencia' | 'cierre',
-            ciclo: String(row.cicloEscolar ?? ''),
-            fecha: new Date().toISOString().substring(0, 10),
-            enviado: row.estado === 'enviado' ? 1 : 0,
-          }));
-
-          this.cargando = false;
-        },
-        error: (err) => {
-          console.error('Error HTTP certificados.php =>', err);
-          this.mostrarError('Error de conexión al cargar datos.');
-          this.cargando = false;
-        },
-      });
-  }
-
-  // índice rápido por id
-  alumnosIndex() {
-    return new Map(this.estudiantes.map((a) => [a.id, a]));
-  }
-
-  // =====================
-  // FILTROS
-  // =====================
-  certificadosFiltrados() {
-    return this.certificados.filter((c) => {
-      if (this.filtroTipo !== 'todos' && c.tipo !== this.filtroTipo) {
-        return false;
+        if (resp && resp.ok && Array.isArray(resp.data)) {
+          this.alumnos = resp.data as Alumno[];
+        } else {
+          console.warn('Formato inesperado al cargar alumnos', resp);
+          this.alumnos = [];
+        }
+      },
+      error: (err) => {
+        console.error('❌ Error HTTP al cargar alumnos:', err);
+        this.alumnos = [];
       }
-
-      if (this.filtroEstado !== 'todos') {
-        const esEnviado = c.enviado === 1;
-        if (this.filtroEstado === 'enviados' && !esEnviado) return false;
-        if (this.filtroEstado === 'pendientes' && esEnviado) return false;
-      }
-
-      if (
-        this.filtroAlumnoId !== 'todos' &&
-        c.alumno_id !== Number(this.filtroAlumnoId)
-      ) {
-        return false;
-      }
-
-      return true;
     });
   }
 
-  obtenerTotalCertificados() {
-    return this.certificados.length;
-  }
-  obtenerCertificadosExcelencia() {
-    return this.certificados.filter((c) => c.tipo === 'excelencia').length;
-  }
-  obtenerCertificadosCierre() {
-    return this.certificados.filter((c) => c.tipo === 'cierre').length;
-  }
-  obtenerCertificadosEnviados() {
-    return this.certificados.filter((c) => c.enviado === 1).length;
+  // =======================================
+  // CARGAR CERTIFICADOS (tabla principal)
+  // =======================================
+  cargarCertificados(): void {
+    const url = `${this.apiBase}certificados_listar.php`;
+    this.cargando = true;
+
+    let params = new HttpParams();
+    if (this.filtros.tipo !== 'todos') {
+      params = params.set('tipo', this.filtros.tipo);
+    }
+    if (this.filtros.estado !== 'todos') {
+      params = params.set('estado', this.filtros.estado);
+    }
+    if (this.filtros.alumnoId > 0) {
+      params = params.set('alumnoId', String(this.filtros.alumnoId));
+    }
+
+    this.http.get<any>(url, { params }).subscribe({
+      next: (resp) => {
+        console.log('Respuesta cargar certificados:', resp);
+
+        if (resp && resp.ok && Array.isArray(resp.data)) {
+          this.certificados = (resp.data as any[]).map((c) => {
+            const promedioNum = Number(c.promedio);
+            return {
+              id: Number(c.id),
+              id_nino: Number(c.id_nino),
+              alumno: c.alumno ?? null,
+              promedio: isNaN(promedioNum) ? 0 : promedioNum,
+              tipo: c.tipo ?? 'cierre',
+              ciclo: c.ciclo ?? '',
+              creado_en: c.creado_en ?? '',
+              estado: c.estado ?? 'pendiente',
+              archivo_path: c.archivo_path ?? null,
+              nombre_archivo: c.nombre_archivo ?? null,
+            } as Certificado;
+          });
+        } else {
+          console.warn('Formato inesperado en certificados_listar.php', resp);
+          this.certificados = [];
+        }
+
+        this.actualizarStats();
+        this.cargando = false;
+      },
+      error: (err) => {
+        console.error('❌ Error HTTP al cargar certificados:', err);
+        this.certificados = [];
+        this.actualizarStats();
+        this.cargando = false;
+      }
+    });
   }
 
-  formatearFecha(fecha: string) {
-    return new Date(fecha).toLocaleDateString('es-MX');
+  // =======================================
+  // STATS
+  // =======================================
+  private actualizarStats(): void {
+    this.stats.total = this.certificados.length;
+    this.stats.excelencia = this.certificados.filter(
+      (x) => x.tipo === 'excelencia'
+    ).length;
+    this.stats.cierre = this.certificados.filter(
+      (x) => x.tipo === 'cierre'
+    ).length;
+    this.stats.enviados = this.certificados.filter(
+      (x) => x.estado === 'enviado'
+    ).length;
   }
 
-  setFiltroAlumno(event: any) {
-    this.filtroAlumnoId = event;
-  }
-
-  // =====================
-  // MODAL
-  // =====================
-  abrirModalNuevo() {
+  // =======================================
+  // MODAL NUEVO CERTIFICADO
+  // =======================================
+  abrirModalNuevo(): void {
     this.mostrarFormularioCertificado = true;
-    this.modalForm = {
-      alumnoId: null,
-      nombre: '',
-      ciclo: '',
-      promedio: 0,
+
+    // Valores por defecto razonables
+    this.form = {
+      alumnoId: 0,
+      nombreAlumno: '',
+      promedio: 10,
+      cicloEscolar: '2025-2026',
+      tipo: 'cierre',
+      teacherName: '',
     };
-    this.modalBrand = { teacherName: '', logoDataUrl: '' };
+    this.logoFile = null;
+    this.logoPreview = null;
   }
 
-  cerrarModal() {
+  cerrarModal(): void {
     this.mostrarFormularioCertificado = false;
   }
 
-  onLogoSelectedModal(event: Event) {
+  cambiarCheckUsarUltimo(): void {
+    console.log('usarUltimo:', this.usarUltimo);
+    // Aquí podrías cargar del backend la última config (ciclo, maestro, logo), etc.
+  }
+
+  // Cuando eliges un alumno del select
+  cuandoSeleccionaAlumno(): void {
+    const seleccionado = this.alumnos.find(a => a.id === this.form.alumnoId);
+    this.form.nombreAlumno = seleccionado ? seleccionado.nombre : '';
+  }
+
+  // Cargar logo localmente para previsualizarlo
+  cargarLogo(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.modalBrand.logoDataUrl = reader.result as string;
-      };
-      reader.readAsDataURL(input.files[0]);
-    }
-  }
-
-  // cuando seleccionas un alumno en el modal
-  onAlumnoSeleccionado(id: number | null) {
-    this.modalForm.alumnoId = id;
-    if (id == null) {
-      this.modalForm.nombre = '';
-      this.modalForm.promedio = 0;
+    if (!input.files || input.files.length === 0) {
+      this.logoFile = null;
+      this.logoPreview = null;
       return;
     }
 
-    const alumno = this.alumnosIndex().get(id);
-    if (alumno) {
-      this.modalForm.nombre = alumno.nombre;
-      this.modalForm.promedio = alumno.promedio;
-    }
+    this.logoFile = input.files[0];
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.logoPreview = reader.result as string;
+    };
+    reader.readAsDataURL(this.logoFile);
   }
 
-  // =====================
-  // GENERAR PDF DESDE MODAL
-  // =====================
-  async generarPdfDesdeModal() {
-    let nombre = this.modalForm.nombre.trim();
-    let promedio = Number(this.modalForm.promedio);
+  // =======================================
+  // GENERAR CERTIFICADO (llama a PHP y genera PDF con pdf-lib)
+  // =======================================
+  generarCertificado(): void {
+    if (this.cargando) return;
 
-    // si eligió un alumno, usamos sus datos de la BD
-    if (this.modalForm.alumnoId != null) {
-      const a = this.alumnosIndex().get(this.modalForm.alumnoId);
-      if (a) {
-        nombre = a.nombre;
-        promedio = a.promedio;
+    // Validaciones rápidas
+    if (!this.form.alumnoId) {
+      alert('Selecciona un alumno primero.');
+      return;
+    }
+    if (!this.form.cicloEscolar.trim()) {
+      alert('Escribe el ciclo escolar.');
+      return;
+    }
+    if (!this.form.teacherName.trim()) {
+      alert('Escribe el nombre del profesor (firma).');
+      return;
+    }
+
+    const url = `${this.apiBase}generar_certificado.php`;
+
+    // Enviamos todo con FormData (incluye el logo si hay)
+    const fd = new FormData();
+    fd.append('alumnoId', String(this.form.alumnoId));
+    fd.append('promedio', String(this.form.promedio));
+    fd.append('cicloEscolar', this.form.cicloEscolar.trim());
+    fd.append('tipo', this.form.tipo);
+    fd.append('teacherName', this.form.teacherName.trim());
+
+    if (this.logoFile) {
+      fd.append('logo', this.logoFile, this.logoFile.name);
+    }
+
+    this.cargando = true;
+
+    this.http.post<any>(url, fd).subscribe({
+      next: async (resp) => {
+        console.log('Respuesta generar_certificado:', resp);
+
+        if (resp && resp.ok) {
+          alert('✅ Certificado generado correctamente.');
+
+          // Generar y descargar el PDF personalizado con pdf-lib
+          await this.crearYDescargarPdfCertificado(
+            this.form.nombreAlumno,
+            this.form.promedio,
+            this.form.cicloEscolar,
+            this.form.teacherName
+          );
+
+          this.cerrarModal();
+          this.cargarCertificados();   // refresca la tabla
+        } else {
+          alert(resp?.message || 'No se pudo generar el certificado (revisa el backend).');
+        }
+
+        this.cargando = false;
+      },
+      error: (err) => {
+        console.error('❌ Error HTTP al generar certificado:', err);
+        alert('Error HTTP al generar el certificado.');
+        this.cargando = false;
       }
-    }
+    });
+  }
 
-    if (!nombre) {
-      this.mostrarError('Selecciona un alumno o escribe un nombre.');
-      return;
-    }
+  // =======================================
+  // ACCIONES DE LA TABLA
+  // =======================================
+  descargar(id: number): void {
+    const url = `${this.apiBase}descargar.php?id=${id}`;
+    window.open(url, '_blank');
+  }
 
-    try {
-      const bytes = await this.certificadoService.generarPDF(
-        nombre,
-        promedio || 0
+  enviar(id: number): void {
+    const confirmado = confirm('¿Marcar este certificado como ENVIADO?');
+    if (!confirmado) return;
+
+    const url = `${this.apiBase}certificados_cambiar_estado.php`;
+
+    let body = new HttpParams()
+      .set('id', String(id))
+      .set('estado', 'enviado');
+
+    this.http.post<any>(url, body.toString(), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    }).subscribe({
+      next: (resp) => {
+        console.log('Respuesta cambiar estado:', resp);
+
+        if (resp && resp.ok) {
+          const cert = this.certificados.find(c => c.id === id);
+          if (cert) {
+            cert.estado = 'enviado';
+          }
+          this.actualizarStats();
+        } else {
+          alert(resp?.message || 'No se pudo cambiar el estado (revisa el backend).');
+        }
+      },
+      error: (err) => {
+        console.error('❌ Error HTTP al cambiar estado:', err);
+        alert('Error HTTP al cambiar el estado del certificado.');
+      }
+    });
+  }
+
+  eliminar(id: number): void {
+  const confirmado = confirm('¿Seguro que quieres eliminar este certificado?');
+  if (!confirmado) return;
+
+  const url = `${this.apiBase}certificados_eliminar.php`;
+
+  const body = new HttpParams().set('id', String(id));
+
+  this.http.post<string>(url, body.toString(), {
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    // truco: pedimos 'text' pero se lo declaramos como 'json' para que compile
+    responseType: 'text' as 'json',
+  }).subscribe({
+    next: (raw) => {
+      console.log('Respuesta cruda eliminar certificado:', raw);
+
+      let resp: any;
+      try {
+        resp = JSON.parse(raw as unknown as string);
+      } catch (e) {
+        console.error('No se pudo parsear el JSON de certificados_eliminar.php:', e);
+        alert('Respuesta no válida del servidor al eliminar el certificado.');
+        return;
+      }
+
+      console.log('Respuesta parseada eliminar certificado:', resp);
+
+      if (resp && resp.success) {
+        this.certificados = this.certificados.filter(c => c.id !== id);
+        this.actualizarStats();
+      } else {
+        alert(resp?.message || 'No se pudo eliminar el certificado (revisa el backend).');
+      }
+    },
+    error: (err) => {
+      console.error(
+        '❌ Error HTTP al eliminar certificado:',
+        'status=', err.status,
+        'url=', err.url,
+        'message=', err.message,
+        'body=', err.error
       );
-      this.certificadoService.descargarPDF(
-        bytes,
-        `Certificado_${nombre}.pdf`
-      );
-      this.mostrarOk('Certificado generado.');
-      this.cerrarModal();
-    } catch (e) {
-      console.error(e);
-      this.mostrarError('Error al generar el certificado.');
+      alert('Error HTTP al eliminar el certificado.');
     }
+  });
+}
+
+
+  // =======================================
+  // EXPORTAR (opcional)
+  // =======================================
+  exportarCertificados(): void {
+    const url = `${this.apiBase}exportar.php`;
+    window.open(url, '_blank');
   }
 
-  // =====================
-  // DESCARGAR DESDE LA TABLA
-  // =====================
-  async descargarCertificado(c: Certificado) {
-    const alumno = this.alumnosIndex().get(c.alumno_id);
-    if (!alumno) {
-      this.mostrarError('No se encontró información del alumno.');
-      return;
-    }
+  // =======================================
+  // PDF LOCAL CON DATOS DEL ALUMNO (pdf-lib)
+  // =======================================
+  private async crearYDescargarPdfCertificado(
+  nombreAlumno: string,
+  promedio: number,
+  cicloEscolar: string,
+  nombreMaestro: string
+): Promise<void> {
+  try {
+    const templateUrl = 'assets/certificado-graduacion.pdf';
 
-    try {
-      const bytes = await this.certificadoService.generarPDF(
-        alumno.nombre,
-        alumno.promedio
-      );
-      this.certificadoService.descargarPDF(
-        bytes,
-        `Certificado_${alumno.nombre}.pdf`
-      );
-      this.mostrarOk(`Certificado descargado para ${alumno.nombre}`);
-    } catch (e) {
-      console.error(e);
-      this.mostrarError('Error al descargar el PDF.');
-    }
-  }
+    // Cargar plantilla como ArrayBuffer
+    const response = await firstValueFrom(
+      this.http.get(templateUrl, { responseType: 'arraybuffer' as 'json' })
+    );
+    const arrayBuffer = response as ArrayBuffer;
 
-  enviarCertificado(c: Certificado) {
-    this.enviando = true;
-    setTimeout(() => {
-      c.enviado = 1;
-      this.enviando = false;
-      this.mostrarOk('Certificado marcado como enviado.');
-    }, 1200);
-  }
+    const pdfDoc = await PDFDocument.load(arrayBuffer);
+    const pages = pdfDoc.getPages();
+    const page = pages[0];
 
-  eliminarCertificado(id: number) {
-    this.certificados = this.certificados.filter((c) => c.id !== id);
-    this.mostrarOk('Certificado eliminado.');
-  }
+    const { width } = page.getSize();
+    const centerX = width / 2;
 
-  // =====================
-  // MENSAJES
-  // =====================
-  private mostrarOk(msg: string) {
-    this.okMsg = msg;
-    setTimeout(() => (this.okMsg = null), 2500);
-  }
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-  private mostrarError(msg: string) {
-    this.errorMsg = msg;
-    setTimeout(() => (this.errorMsg = null), 3000);
+    const fontSizeNombre = 22;
+    const fontSizeTexto = 12;
+
+    // =============================
+    // 1) Nombre del alumno
+    //    (bajarlo un poco para que quede sobre la línea)
+    // =============================
+    const textNombre = nombreAlumno || 'Alumno';
+    const textWidthNombre = fontBold.widthOfTextAtSize(
+      textNombre,
+      fontSizeNombre
+    );
+
+    // Antes ~340 → lo bajamos un poco
+    const yNombre = 325;
+
+    page.drawText(textNombre, {
+      x: centerX - textWidthNombre / 2,
+      y: yNombre,
+      size: fontSizeNombre,
+      font: fontBold,
+      color: rgb(0, 0, 0),
+    });
+
+    // =============================
+    // 2) Promedio (solo número)
+    //    moverlo a la derecha, sobre la línea izquierda
+    // =============================
+    const textoPromedio = promedio.toFixed(1);
+    const textWidthPromedio = font.widthOfTextAtSize(
+      textoPromedio,
+      fontSizeTexto
+    );
+
+    // Antes x=210 → muy sobre la foto.
+    // Lo movemos hacia el centro del certificado.
+    const xPromedio = 380;
+    const yPromedio = 225; // misma altura que el maestro
+
+    page.drawText(textoPromedio, {
+      x: xPromedio - textWidthPromedio / 2,
+      y: yPromedio,
+      size: fontSizeTexto,
+      font,
+      color: rgb(0, 0, 0),
+    });
+
+    // =============================
+    // 3) Nombre del maestro
+    //    (esto ya estaba bien, lo dejamos igual)
+    // =============================
+    const textoMaestro = nombreMaestro || '';
+    const textWidthMaestro = font.widthOfTextAtSize(
+      textoMaestro,
+      fontSizeTexto
+    );
+
+    const xMaestro = width - 210; // línea derecha
+    const yMaestro = 225;
+
+    page.drawText(textoMaestro, {
+      x: xMaestro - textWidthMaestro / 2,
+      y: yMaestro,
+      size: fontSizeTexto,
+      font,
+      color: rgb(0, 0, 0),
+    });
+
+    // =============================
+    // 4) Ciclo escolar
+    //    bajarlo para que quede en la línea encima de "Ciclo escolar"
+    // =============================
+    const textoCiclo = cicloEscolar;
+    const textWidthCiclo = font.widthOfTextAtSize(
+      textoCiclo,
+      fontSizeTexto
+    );
+
+    // Antes 165 → estaba sobre los birretes
+    const yCiclo = 135;
+
+    page.drawText(textoCiclo, {
+      x: centerX - textWidthCiclo / 2,
+      y: yCiclo,
+      size: fontSizeTexto,
+      font,
+      color: rgb(0, 0, 0),
+    });
+
+    // =============================
+    // 5) Guardar y descargar
+    // =============================
+    const pdfBytes = await pdfDoc.save();
+
+    const blob = new Blob(
+      [pdfBytes as unknown as BlobPart],
+      { type: 'application/pdf' }
+    );
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `certificado_${(nombreAlumno || 'alumno').replace(/\s+/g, '_')}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Error al generar PDF con pdf-lib:', error);
   }
+}
+
 }

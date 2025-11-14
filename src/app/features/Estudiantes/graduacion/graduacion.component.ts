@@ -1,39 +1,73 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';  // Necesario para *ngIf y *ngFor
-import { DatePipe } from '@angular/common';  // Necesario para la tubería 'date'
+import { Component, OnInit, signal, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
+
+interface Certificado {
+  id: number;
+  tipo: string;
+  ciclo: string;
+  promedio: string | null;
+  estado: string;
+  fecha_emision: string;
+  archivo_path: string | null;
+  nombre_archivo: string | null;
+  alumno: string;
+}
 
 @Component({
-  selector: 'app-graduacion',
+  selector: 'app-graduacion-estudiante',
+  standalone: true,
+  imports: [CommonModule, HttpClientModule],
   templateUrl: './graduacion.component.html',
   styleUrls: ['./graduacion.component.scss'],
-  imports: [CommonModule]  // Necesario para usar *ngIf y *ngFor
 })
 export class GraduacionComponent implements OnInit {
-  errorMsg: string | null = null;
-  successMsg: string | null = null;
-  certificados: any[] = [];  // Aquí deberías almacenar los certificados
+  private apiBase = environment.apiBase + '/Certificados';
 
-  constructor(private datePipe: DatePipe) {}
+  cargando = signal(false);
+  errorMsg = signal<string | null>(null);
+  certificados = signal<Certificado[]>([]);
+
+  // Por ahora fijo al id del niño que probaste (Pedro = 3)
+  alumnoId = 3;
+
+  tieneCertificados = computed(() => this.certificados().length > 0);
+
+  constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-    // Código de inicialización si lo necesitas, por ejemplo, obtener los certificados de una API
+    this.cargarCertificados();
   }
 
-  // Método para ver el certificado (abre el archivo en una nueva pestaña)
-  verCertificado(certificado: any) {
-    window.open(certificado.archivo, '_blank');
+  cargarCertificados(): void {
+    this.cargando.set(true);
+    this.errorMsg.set(null);
+
+    const url = `${this.apiBase}/certificados_estudiante.php`;
+    const params = { alumnoId: this.alumnoId.toString() };
+
+    this.http
+      .get<{ success: boolean; data: Certificado[]; message?: string }>(url, { params })
+      .subscribe({
+        next: (res) => {
+          if (res.success) {
+            this.certificados.set(res.data ?? []);
+          } else {
+            this.errorMsg.set(res.message || 'No se pudieron cargar los certificados.');
+          }
+          this.cargando.set(false);
+        },
+        error: (err) => {
+          console.error('Error al cargar certificados', err);
+          this.errorMsg.set('Ocurrió un error al cargar los certificados.');
+          this.cargando.set(false);
+        },
+      });
   }
 
-  // Método para descargar el certificado
-  descargarCertificado(certificado: any) {
-    const link = document.createElement('a');
-    link.href = certificado.archivo;
-    link.download = certificado.nombre + '.pdf';  // Descargar el archivo como .pdf
-    link.click();
-  }
-
-  // Método para filtrar los certificados (ajustar según tus necesidades)
-  certificadosFiltrados() {
-    return this.certificados;
+  abrirCertificado(ruta: string | null): void {
+    if (!ruta) return;
+    window.open(ruta, '_blank');
   }
 }

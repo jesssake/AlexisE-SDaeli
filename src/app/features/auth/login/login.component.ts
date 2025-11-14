@@ -13,7 +13,7 @@ import { AuthService, Usuario } from '../../../core/auth.service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, OnDestroy {
   model = { email: '', password: '' };
   loading = false;
   showPass = false;
@@ -31,16 +31,13 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-            try { document?.body?.classList?.add("login-page"); } catch {}try { document?.body?.classList?.add("login-page"); } catch {}this.auth.loadFromStorage();
-    if (this.auth.isLoggedIn()) {
-      const u = this.auth.currentUser;
-      const rol = (u?.rol || '').toUpperCase();
-      const destino = ['ADMIN','COORDINADOR','MAESTRO','PROFESOR'].includes(rol)
-        ? '/maestro/dashboard'
-        : '/estudiante/dashboard';
-      this.router.navigateByUrl(destino, { replaceUrl: true });
-      return;
-    }
+    try { document?.body?.classList?.add('login-page'); } catch {}
+
+    // 🔹 Solo cargamos por si quieres mostrar algo, pero NO redirigimos
+    this.auth.loadFromStorage();
+
+    // ❌ QUITAMOS esto:
+    // if (this.auth.isLoggedIn()) { ... navigate ... return; }
 
     setTimeout(() => this.showMonkeyMessage('¡Hola! Soy tu amigo mono 🐵'), 1000);
     setTimeout(() => document.querySelector<HTMLInputElement>('#email')?.focus(), 500);
@@ -92,23 +89,17 @@ export class LoginComponent implements OnInit {
 
       const user: Usuario = resp.user;
 
-      // ✅ Guardar ID y correo del usuario
-      if (user.id) {
-        localStorage.setItem('id', String(user.id));
-      }
-      if (user.email) {
-        localStorage.setItem('correo', user.email); // ✅ Necesario para el menú alumno
-      }
+      // Guardar ID y correo del usuario
+      if (user.id) localStorage.setItem('id', String(user.id));
+      if (user.email) localStorage.setItem('correo', user.email);
 
-      // AuthService guarda la sesión
-      if (!this.auth.isLoggedIn()) {
-        if (resp.token || user.token) {
-          this.auth.setUser(user);
-          this.auth.setToken(resp.token || (user.token as string));
-        } else {
-          this.auth.setUser(user);
-          this.auth.setToken('dev-session');
-        }
+      // Guardar sesión en AuthService
+      if (resp.token || user.token) {
+        this.auth.setUser(user);
+        this.auth.setToken(resp.token || (user.token as string));
+      } else {
+        this.auth.setUser(user);
+        this.auth.setToken('dev-session');
       }
 
       this.showMonkeyMessage('¡Éxito! Redirigiendo... 🎉');
@@ -119,14 +110,11 @@ export class LoginComponent implements OnInit {
       await this.delay(250);
 
       const rol = (user.rol || '').toUpperCase();
-      const destino = ['ADMIN','COORDINADOR','MAESTRO','PROFESOR'].includes(rol)
+      const destino = ['ADMIN', 'COORDINADOR', 'MAESTRO', 'PROFESOR'].includes(rol)
         ? '/maestro/dashboard'
         : '/estudiante/dashboard';
 
       await this.router.navigateByUrl(destino, { replaceUrl: true }).catch(() => {});
-      if (!location.pathname.startsWith('/maestro') && !location.pathname.startsWith('/estudiante')) {
-        window.location.assign(destino);
-      }
     } catch (err) {
       console.error('login error:', err);
       this.errors['general'] = 'Error al iniciar sesión';
@@ -171,6 +159,6 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnDestroy(): void {
-        try { document?.body?.classList?.remove("login-page","dark","dark-mode"); } catch {}try { document?.body?.classList?.remove("login-page","dark","dark-mode"); } catch {}
+    try { document?.body?.classList?.remove('login-page','dark','dark-mode'); } catch {}
   }
 }

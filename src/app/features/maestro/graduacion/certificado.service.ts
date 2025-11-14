@@ -11,85 +11,138 @@ export class CertificadoService {
 
   constructor(private http: HttpClient) {}
 
-  // Genera un PDF a partir de la plantilla y escribe nombre + promedio
-  async generarPDF(nombre: string, promedio: number): Promise<Uint8Array> {
-    const pdfUrl = 'assets/certificado-graduacion.pdf';
-
-    const baseBytes = await firstValueFrom(
-      this.http.get(pdfUrl, { responseType: 'arraybuffer' })
-    );
-
-    const pdfDoc = await PDFDocument.load(baseBytes);
-    const [page] = pdfDoc.getPages();
-    const { width } = page.getSize();
-
-    const fontNombre = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    const fontProm = await pdfDoc.embedFont(StandardFonts.Helvetica);
-
-    const nombreSize = 28;
-    const textoNombre = nombre.toUpperCase();
-    const nombreWidth = fontNombre.widthOfTextAtSize(textoNombre, nombreSize);
-    const xNombre = (width - nombreWidth) / 2;
-    const yNombre = 340;
-
-    page.drawText(textoNombre, {
-      x: xNombre,
-      y: yNombre,
-      size: nombreSize,
-      font: fontNombre,
-      color: rgb(0.1, 0.1, 0.1),
-    });
-
-    const promSize = 16;
-    const promText = `Promedio: ${promedio.toFixed(1)}`;
-    const promWidth = fontProm.widthOfTextAtSize(promText, promSize);
-    const xProm = (width - promWidth) / 2;
-    const yProm = yNombre - 40;
-
-    page.drawText(promText, {
-      x: xProm,
-      y: yProm,
-      size: promSize,
-      font: fontProm,
-      color: rgb(0.25, 0.25, 0.25),
-    });
-
-    const bytes = await pdfDoc.save();
+  // dataURL (base64) → Uint8Array
+  private dataUrlToUint8Array(dataUrl: string): Uint8Array {
+    const [, base64] = dataUrl.split(',');
+    const binary = atob(base64 || '');
+    const len = binary.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
     return bytes;
   }
 
-  descargarPDF(bytes: Uint8Array, nombreArchivo: string) {
-    const blobPart: BlobPart = bytes as unknown as BlobPart;
-    const blob = new Blob([blobPart], { type: 'application/pdf' });
+  // ================== Generar PDF ==================
+  async generarPDF(
+    nombre: string,
+    promedio: number,
+    ciclo?: string,
+    teacherName?: string,
+    logoDataUrl?: string | null
+  ): Promise<Uint8Array> {
+    const pdfUrl = 'assets/certificado-graduacion.pdf';
 
+    const existingPdfBytes = await fetch(pdfUrl).then((res) => res.arrayBuffer());
+    const pdfDoc = await PDFDocument.load(existingPdfBytes);
+    const page = pdfDoc.getPage(0);
+
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+    // Nombre
+    page.drawText(nombre.toUpperCase(), {
+      x: 210,
+      y: 360,
+      size: 26,
+      font: fontBold,
+      color: rgb(0, 0, 0),
+    });
+
+    // Promedio
+    page.drawText(`Promedio: ${promedio.toFixed(1)}`, {
+      x: 270,
+      y: 320,
+      size: 14,
+      font,
+      color: rgb(0, 0, 0),
+    });
+
+    // Ciclo
+    if (ciclo) {
+      page.drawText(ciclo, {
+        x: 270,
+        y: 300,
+        size: 12,
+        font,
+        color: rgb(0, 0, 0),
+      });
+    }
+
+    // Maestro
+    if (teacherName) {
+      page.drawText(teacherName, {
+        x: 210,
+        y: 210,
+        size: 11,
+        font,
+        color: rgb(0, 0, 0),
+      });
+    }
+
+    // Logo
+    if (logoDataUrl) {
+      try {
+        const imgBytes = this.dataUrlToUint8Array(logoDataUrl);
+        let img;
+        try {
+          img = await pdfDoc.embedPng(imgBytes);
+        } catch {
+          img = await pdfDoc.embedJpg(imgBytes);
+        }
+        const scaled = img.scale(0.18);
+
+        page.drawImage(img, {
+          x: 90,
+          y: 470,
+          width: scaled.width,
+          height: scaled.height,
+        });
+      } catch (e) {
+        console.warn('No se pudo incrustar el logo en el PDF', e);
+      }
+    }
+
+    return await pdfDoc.save();
+  }
+
+  // Descargar PDF
+  descargarPDF(bytes: Uint8Array, fileName: string): void {
+    const blob = new Blob([bytes as unknown as BlobPart], {
+      type: 'application/pdf',
+    });
     const url = URL.createObjectURL(blob);
+
     const a = document.createElement('a');
     a.href = url;
-    a.download = nombreArchivo;
+    a.download = fileName;
     a.click();
+
     URL.revokeObjectURL(url);
   }
 
-  // Convierte Uint8Array → base64
-  private uint8ToBase64(bytes: Uint8Array): string {
-    let binary = '';
-    bytes.forEach((b) => (binary += String.fromCharCode(b)));
-    return btoa(binary);
-  }
-
-  // Genera pdf y lo manda al PHP para enviarlo por correo
-  async enviarPorCorreo(
+  // ================== Enviar al servidor ==================
+  async enviarAlServidor(
     estudianteId: number,
     nombre: string,
-    promedio: number
+    promedio: number,
+    ciclo: string,
+    tipo: string,
+    pdfBytes: Uint8Array
   ): Promise<{ success: boolean; message: string }> {
-    const pdfBytes = await this.generarPDF(nombre, promedio);
-    const pdfBase64 = this.uint8ToBase64(pdfBytes);
+    // Uint8Array → base64
+    let binary = '';
+    for (let i = 0; i < pdfBytes.length; i++) {
+      binary += String.fromCharCode(pdfBytes[i]);
+    }
+    const pdfBase64 = btoa(binary);
 
     const body = {
       estudianteId,
       nombreAlumno: nombre,
       promedio,
+      ciclo,
+      tipo,
       pdfBase64,
     };
 
