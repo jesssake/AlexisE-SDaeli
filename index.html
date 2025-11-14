@@ -1,40 +1,36 @@
+<!-- src/index.html -->
 <!doctype html>
 <html lang="es" data-beasties-container>
 <head>
   <meta charset="utf-8">
   <title>GestionEducativa</title>
 
-  <!-- Importante: subcarpeta del repo en GitHub Pages -->
+  <!-- En desarrollo siempre raíz. 
+       En producción (GitHub Pages) el baseHref se inyecta desde angular.json: "/AlexisE-SDaeli/" -->
   <base href="/AlexisE-SDaeli/">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1220">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 
-  <!-- Redirigir SIEMPRE al login antes de que arranque Angular -->
+  <!-- (Opcional) Redirigir siempre al login respetando el <base> actual -->
   <script>
     (function () {
       try {
-        // base normalizado con una sola barra al final
         var base = (document.querySelector('base')?.getAttribute('href') || '/').replace(/\/+$/, '/') ;
-
-        // ¿Usas hash routing? (URLs tipo #/algo)
-        var isHashMode = !!(location.hash && location.hash.startsWith('#/'));
-
-        // ¿Ya estamos en /auth/* ?
-        var alreadyInAuth = isHashMode
-          ? location.hash.startsWith('#/auth/')
-          : location.pathname.startsWith(base + 'auth/');
-
-        if (!alreadyInAuth) {
-          var target = isHashMode ? (base + '#/auth/login') : (base + 'auth/login');
-          // Evita volver con "Atrás"
-          location.replace(target);
+        var loginPath = base + 'auth/login';
+        // Si no estamos ya en /auth/* dentro del base actual, redirige al login
+        if (!location.pathname.startsWith(new URL(loginPath, location.origin).pathname)) {
+          // Limpieza opcional (comenta si no quieres "logout" duro):
+          // localStorage.clear(); sessionStorage.clear();
+          location.replace(loginPath);
         }
-      } catch (e) { /* no-op */ }
+      } catch (_) { /* no-op */ }
     })();
   </script>
 <style>:root{--color-primario:#F4A8A0;--color-secundario:#5DA8E8;--color-terciario:#F7B578;--color-acento:#FFEA80;--color-texto:#1A1A40;--color-blanco:#FFFFFF;--color-sombra:rgba(0, 0, 0, .15);--color-exito:#2A9D8F;--color-error:#E63946;--app-bg:#f6f8fb;--surface:#ffffff;--radius-lg:24px;--radius-md:16px;--radius-sm:8px;--transition-fast:.3s ease;--transition-slow:.5s ease}*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}body{font-family:"Baloo 2",cursive;color:var(--color-texto);min-height:100vh;background:linear-gradient(135deg,#f4a8a066,#5da8e866,#f7b57866),url(https://res.cloudinary.com/ds757fmhk/image/upload/v1762290966/7c29043c-eaa1-4b0d-bb51-7943e794f444_gxzyay.jpg) center center/cover no-repeat fixed}body:not(.login-page):not(.estudiante-page) app-root{min-height:100dvh;background:transparent}</style><link rel="stylesheet" href="styles-FKX72662.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="styles-FKX72662.css"></noscript></head>
 <body>
+  <noscript>Necesitas habilitar JavaScript para usar esta aplicación.</noscript>
   <app-root></app-root>
-<link rel="modulepreload" href="chunk-OTJEW5YE.js"><link rel="modulepreload" href="chunk-SQW5QAAD.js"><link rel="modulepreload" href="chunk-SB32BB4B.js"><script src="polyfills-5FDKUQTZ.js" type="module"></script><script src="main-VEYA322Y.js" type="module"></script></body>
+<link rel="modulepreload" href="chunk-OTJEW5YE.js"><link rel="modulepreload" href="chunk-SQW5QAAD.js"><link rel="modulepreload" href="chunk-SB32BB4B.js"><script src="polyfills-5FDKUQTZ.js" type="module"></script><script src="main-VIAFF7OF.js" type="module"></script></body>
 </html>
