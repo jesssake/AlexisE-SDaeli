@@ -1,0 +1,5 @@
+﻿/* Respaldo mínimo por si necesitas revertir rápido */
+:host { display:block; }
+.wrap { display:grid; gap:16px; }
+.grid { display:grid; grid-template-columns: 320px 1fr; gap:16px; }
+.panel { background:#111827; color:#e5e7eb; border-radius:12px; padding:12px; }

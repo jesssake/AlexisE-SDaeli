@@ -1,0 +1,111 @@
+﻿{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "gestion-educativa": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": { "style": "scss" }
+      },
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "outputPath": "dist/gestion-educativa",
+            "index": "src/index.html",
+            "browser": "src/main.ts",
+            "polyfills": ["src/polyfills.ts"],
+            "tsConfig": "tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              "src/assets",
+              { "glob": "**/*", "input": "public" },
+              { "glob": "**/*", "input": "servers", "output": "/servers" }
+            ],
+            "styles": ["src/styles.scss"],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                { "type": "initial", "maximumWarning": "2mb", "maximumError": "3mb" },
+                { "type": "anyComponentStyle", "maximumWarning": "15kb", "maximumError": "30kb" },
+                { "type": "bundle", "name": "main", "maximumWarning": "1.5mb", "maximumError": "2mb" },
+                { "type": "bundle", "name": "polyfills", "maximumWarning": "300kb", "maximumError": "500kb" },
+                { "type": "bundle", "name": "styles", "maximumWarning": "300kb", "maximumError": "500kb" },
+                { "type": "any", "name": "scripts", "maximumWarning": "2mb", "maximumError": "3mb" }
+              ],
+              "optimization": {
+                "scripts": true,
+                "styles": true,
+                "fonts": { "inline": false }
+              },
+              "outputHashing": "all"
+            },
+            "development": {
+              "budgets": [
+                { "type": "initial", "maximumWarning": "6mb", "maximumError": "8mb" },
+                { "type": "anyComponentStyle", "maximumWarning": "40kb", "maximumError": "60kb" }
+              ],
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "proxyConfig": "proxy.conf.js",  
+            "port": 4201
+          },
+          "configurations": {
+            "production": {
+              "buildTarget": "gestion-educativa:build:production"
+            },
+            "development": {
+              "buildTarget": "gestion-educativa:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "builder": "@angular/build:extract-i18n",
+          "options": {
+            "buildTarget": "gestion-educativa:build"
+          }
+        },
+        "test": {
+          "builder": "@angular/build:karma",
+          "options": {
+            "polyfills": ["src/polyfills.ts"],
+            "tsConfig": "tsconfig.spec.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              "src/assets",
+              { "glob": "**/*", "input": "public" },
+              { "glob": "**/*", "input": "servers", "output": "/servers" }
+            ],
+            "styles": ["src/styles.scss"],
+            "scripts": []
+          }
+        },
+        "server": {
+          "builder": "@angular/build:application",
+          "options": {
+            "server": "src/main.server.ts",
+            "prerender": true
+          }
+        }
+      }
+    }
+  },
+  "cli": {
+    "analytics": "668f5ad8-c889-480d-a713-049cd3b58f65"
+  }
+}

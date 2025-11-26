@@ -1,0 +1,99 @@
+<section class="asist-wrapper" [class.loading]="cargando">
+  <!-- SECCIÓN SUPERIOR - FILTROS -->
+  <header class="top">
+    <h1>Mi Asistencia</h1>
+    <p>Consulta tus asistencias, faltas y justificantes. Solo tú puedes ver estos datos.</p>
+
+    <div class="filtros">
+      <div class="grupo">
+        <label>Modo de Consulta</label>
+        <select [(ngModel)]="modo">
+          <option value="mes">Por mes</option>
+          <option value="rango">Rango de fechas</option>
+        </select>
+      </div>
+
+      <div class="grupo" *ngIf="modo === 'mes'">
+        <label>Mes</label>
+        <select [(ngModel)]="mes">
+          <option *ngFor="let m of [1,2,3,4,5,6,7,8,9,10,11,12]" [ngValue]="m">{{ m | number:'2.0' }}</option>
+        </select>
+      </div>
+
+      <div class="grupo" *ngIf="modo === 'mes'">
+        <label>Año</label>
+        <input type="number" [(ngModel)]="anio" min="2000" max="2100">
+      </div>
+
+      <div class="grupo" *ngIf="modo === 'rango'">
+        <label>Fecha Inicial</label>
+        <input type="date" [(ngModel)]="desde">
+      </div>
+
+      <div class="grupo" *ngIf="modo === 'rango'">
+        <label>Fecha Final</label>
+        <input type="date" [(ngModel)]="hasta">
+      </div>
+
+      <div class="acciones">
+        <button (click)="cargarHistorial()">Actualizar</button>
+        <button *ngIf="modo === 'mes'" (click)="verMesActual()">Mes Actual</button>
+      </div>
+    </div>
+  </header>
+
+  <div *ngIf="cargando" class="msg info">Cargando información de asistencia…</div>
+  <div *ngIf="error && !cargando" class="msg error">{{ error }}</div>
+
+  <!-- SECCIÓN INFERIOR - ESTADÍSTICAS Y TABLA -->
+  <section *ngIf="!cargando && !error" class="stats-section">
+    <div class="stats-main">
+      <h2>Resumen de Asistencia</h2>
+      <div class="attendance-percentage">{{ asistenciaPct() }}%</div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card present">
+        <span class="stat-label">Presentes</span>
+        <span class="stat-value present">{{ totales.PRESENTE }}</span>
+      </div>
+      <div class="stat-card justified">
+        <span class="stat-label">Justificados</span>
+        <span class="stat-value justified">{{ totales.JUSTIFICADO }}</span>
+      </div>
+      <div class="stat-card absent">
+        <span class="stat-label">Ausentes</span>
+        <span class="stat-value absent">{{ totales.AUSENTE }}</span>
+      </div>
+    </div>
+
+    <div class="table-section">
+      <div class="table-header">
+        <h3>Registros de Asistencia</h3>
+        <p>Detalle de registros en el período seleccionado</p>
+      </div>
+
+      <div class="tabla">
+        <div class="head">
+          <div>Fecha</div>
+          <div>Hora</div>
+          <div>Estado</div>
+          <div>Comentario</div>
+          <div>Maestro</div>
+        </div>
+
+        <div class="row" *ngFor="let r of registros; let i = index">
+          <div>{{ r.fecha }}</div>
+          <div>{{ r.hora }}</div>
+          <div><span class="badge" [class]="badgeClase(r.estado)">{{ r.estado || '—' }}</span></div>
+          <div class="coment">{{ r.comentario || '—' }}</div>
+          <div>#{{ r.maestro_id }}</div>
+        </div>
+
+        <div class="row empty" *ngIf="registros.length === 0">
+          <div class="full">No hay registros de asistencia en el período seleccionado</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</section>

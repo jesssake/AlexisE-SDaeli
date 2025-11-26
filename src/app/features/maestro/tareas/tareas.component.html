@@ -1,0 +1,332 @@
+<div class="page-wrap">
+  <h1 class="page-title">Tareas del Maestro</h1>
+
+  <!-- ===================== LISTA DE TAREAS ===================== -->
+  <section class="card">
+
+    <div class="card-header">
+      <div>
+        <h2 class="card-title">Mis Tareas Publicadas</h2>
+        <p class="card-desc">
+          Aquí ves todas las tareas creadas. Selecciona una para ver quién ya entregó.
+        </p>
+      </div>
+
+      <div class="actions-right">
+        <button class="btn btn-neutral" (click)="recargarTodo()">
+          <span class="emoji">🔄</span> Recargar
+        </button>
+
+        <button class="btn btn-primary" (click)="abrirModalNuevaTarea()">
+          <span class="emoji">➕</span> Nueva Tarea
+        </button>
+
+        <button class="btn btn-warning"
+                [disabled]="!tareaSeleccionada"
+                (click)="abrirModalEditarTarea()">
+          <span class="emoji">✏️</span> Editar Tarea
+        </button>
+
+        <button class="btn btn-danger"
+                [disabled]="!tareaSeleccionada"
+                (click)="eliminarTareaActual()">
+          <span class="emoji">🗑</span> Eliminar Tarea
+        </button>
+      </div>
+    </div>
+
+    <!-- Estado de carga / error -->
+    <div class="estado-carga" *ngIf="loadingTareas">Cargando tareas...</div>
+    <div class="estado-error" *ngIf="errorTareas">{{ errorTareas }}</div>
+
+    <!-- Tabla de tareas -->
+    <table class="tabla" *ngIf="!loadingTareas && tareas.length > 0">
+      <thead>
+        <tr>
+          <th>Título</th>
+          <th>Fecha límite</th>
+          <th>Entrega tarde</th>
+          <th>Estado</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let t of tareas"
+            [class.row-activa]="tareaSeleccionada?.id_tarea === t.id_tarea">
+          <td class="titulo-col">
+            <div class="titulo">{{ t.titulo }}</div>
+            <div class="instrucciones">
+              {{ t.instrucciones || 'Sin instrucciones' }}
+            </div>
+          </td>
+
+          <td>{{ t.fecha_cierre | date:'short' }}</td>
+
+          <td>{{ permitidoTardeText(t) }}</td>
+
+          <td>
+            <span class="badge"
+                  [class.activa]="t.activa === 1"
+                  [class.inactiva]="t.activa === 0">
+              {{ activaText(t) }}
+            </span>
+          </td>
+
+          <td>
+            <button class="btn btn-ver"
+                    (click)="seleccionarTarea(t)">
+              <span class="emoji">👀</span> Ver entregas
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="estado-vacio" *ngIf="!loadingTareas && tareas.length === 0">
+      No hay tareas registradas todavía.
+    </div>
+  </section>
+
+
+  <!-- ===================== DETALLE DE LA TAREA SELECCIONADA ===================== -->
+  <section class="card detalle" *ngIf="tareaSeleccionada">
+    <div class="card-header">
+      <div>
+        <h2 class="card-title">
+          Entregas de: {{ tareaSeleccionada.titulo }}
+        </h2>
+        <p class="card-desc">
+          Fecha límite:
+          <strong>{{ tareaSeleccionada.fecha_cierre | date:'short' }}</strong>
+          · Acepta tarde:
+          <strong>{{ permitidoTardeText(tareaSeleccionada) }}</strong>
+        </p>
+      </div>
+
+      <div class="rubrica-badge" *ngIf="tareaSeleccionada.rubrica">
+        Rúbrica definida
+      </div>
+    </div>
+
+    <div class="rubrica-box" *ngIf="tareaSeleccionada.rubrica">
+      <strong>Rúbrica:</strong>
+      <pre>{{ tareaSeleccionada.rubrica }}</pre>
+    </div>
+
+    <div class="estado-carga" *ngIf="loadingEntregas">Cargando entregas...</div>
+    <div class="estado-error" *ngIf="errorEntregas">{{ errorEntregas }}</div>
+
+    <table class="tabla tabla-entregas"
+           *ngIf="!loadingEntregas && entregas.length > 0">
+
+      <thead>
+        <tr>
+          <th>Alumno</th>
+          <th>Estado</th>
+          <th>Fecha entrega</th>
+          <th>Calificación</th>
+          <th>Comentario alumno</th>
+          <th>Archivo</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let e of entregas">
+          <!-- Alumno -->
+          <td>
+            <div class="alumno-nombre">
+              {{ e.nombre_alumno || ('ID ' + e.id_nino) }}
+            </div>
+            <div class="alumno-id">#{{ e.id_entrega }}</div>
+          </td>
+
+          <!-- Estado -->
+          <td>
+            <span [class]="estadoClass(e.estado)">
+              {{ e.estado }}
+            </span>
+          </td>
+
+          <!-- Fecha de entrega -->
+          <td>
+            <ng-container *ngIf="e.fecha_entrega; else sinFecha">
+              {{ e.fecha_entrega | date:'short' }}
+            </ng-container>
+            <ng-template #sinFecha>—</ng-template>
+          </td>
+
+          <!-- Calificación -->
+          <td>
+            <ng-container *ngIf="e.calificacion !== null; else sinCalif">
+              {{ e.calificacion }}
+            </ng-container>
+            <ng-template #sinCalif>—</ng-template>
+          </td>
+
+          <!-- Comentario del alumno -->
+          <td class="comentario-alumno">
+            {{ e.comentario_alumno || 'Sin comentario' }}
+          </td>
+
+          <!-- Archivo enviado -->
+          <td class="archivo-entrega">
+            <ng-container *ngIf="fileUrl(e.contenido_archivo) as url; else noArchivo">
+              <a class="btn-archivo"
+                 [href]="url"
+                 target="_blank"
+                 rel="noopener noreferrer">
+                📂 Ver archivo
+              </a>
+            </ng-container>
+            <ng-template #noArchivo>—</ng-template>
+          </td>
+
+          <!-- Acción Calificar -->
+          <td>
+            <button class="btn btn-calificar"
+                    (click)="abrirModalCalificar(e)">
+              ✍️ Calificar / Editar
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="estado-vacio" *ngIf="!loadingEntregas && entregas.length === 0">
+      Nadie ha entregado todavía.
+    </div>
+  </section>
+
+
+  <!-- ===================== MODAL CALIFICAR ENTREGA ===================== -->
+  <div class="modal-backdrop" *ngIf="modalCalificarAbierto">
+    <div class="modal-card">
+      <h3 class="modal-title">
+        Calificar a
+        <span class="strong">
+          {{ entregaEditando?.nombre_alumno || ('ID ' + entregaEditando?.id_nino) }}
+        </span>
+      </h3>
+
+      <div class="modal-body">
+
+        <label class="label">Calificación (0-10)</label>
+        <input class="input"
+               type="number"
+               min="0"
+               max="10"
+               step="0.1"
+               [(ngModel)]="notaTemp">
+
+        <label class="label">Comentario para el alumno</label>
+        <textarea class="textarea"
+                  rows="4"
+                  [(ngModel)]="comentarioTemp"
+                  placeholder="Buen trabajo, recuerda mejorar la presentación..."></textarea>
+
+        <div class="info-previa" *ngIf="entregaEditando?.comentario_alumno">
+          <div class="mini-titulo">Comentario del alumno:</div>
+          <div class="mini-box">{{ entregaEditando?.comentario_alumno }}</div>
+        </div>
+
+        <div class="info-previa"
+             *ngIf="entregaEditando?.contenido_archivo">
+          <div class="mini-titulo">Archivo enviado:</div>
+
+          <div class="mini-box ruta-archivo">
+            <div class="file-name">
+              {{ entregaEditando?.contenido_archivo }}
+            </div>
+
+            <ng-container *ngIf="fileUrl(entregaEditando?.contenido_archivo) as url2">
+              <a class="btn-archivo"
+                 [href]="url2"
+                 target="_blank"
+                 rel="noopener noreferrer">
+                📂 Abrir archivo
+              </a>
+            </ng-container>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-guardar" (click)="guardarCalificacion()">
+          💾 Guardar
+        </button>
+
+        <button class="btn btn-cancelar" (click)="cerrarModalCalificar()">
+          ✖ Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ===================== MODAL CREAR / EDITAR TAREA ===================== -->
+  <div class="modal-backdrop" *ngIf="modalTareaAbierto">
+    <div class="modal-card">
+      <h3 class="modal-title">
+        {{ editandoTarea ? 'Editar Tarea' : 'Nueva Tarea' }}
+      </h3>
+
+      <div class="modal-body">
+        <label class="label">Título *</label>
+        <input class="input"
+               type="text"
+               [(ngModel)]="formTarea.titulo"
+               placeholder="Tarea: Sumas con llevadas">
+
+        <label class="label">Instrucciones</label>
+        <textarea class="textarea"
+                  rows="3"
+                  [(ngModel)]="formTarea.instrucciones"
+                  placeholder="Resuelve las páginas 10 y 11 y sube una foto clara."></textarea>
+
+        <label class="label">Fecha límite *</label>
+        <input class="input"
+               type="text"
+               [(ngModel)]="formTarea.fecha_cierre"
+               placeholder="2025-11-02 23:59:00">
+
+        <label class="check-row">
+          <input type="checkbox"
+                 [(ngModel)]="formTarea.permitir_entrega_tarde">
+          Aceptar entrega tarde
+        </label>
+
+        <label class="check-row">
+          <input type="checkbox"
+                 [(ngModel)]="formTarea.activa">
+          Activa (visible para alumnos)
+        </label>
+
+        <label class="label">Rúbrica (opcional)</label>
+        <textarea class="textarea"
+                  rows="3"
+                  [(ngModel)]="formTarea.rubrica"
+          placeholder="Presentación(20%) | Procedimiento(40%) | Resultado(40%)"></textarea>
+
+        <div class="estado-error" *ngIf="errorModalTarea">{{ errorModalTarea }}</div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-guardar"
+                [disabled]="guardandoTarea"
+                (click)="guardarTarea()">
+          💾 Guardar
+        </button>
+
+        <button class="btn btn-cancelar"
+                [disabled]="guardandoTarea"
+                (click)="cerrarModalTarea()">
+          ✖ Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

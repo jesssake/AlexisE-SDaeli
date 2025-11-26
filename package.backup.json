@@ -1,0 +1,74 @@
+{
+  "name": "gestion-educativa",
+  "version": "0.0.0",
+  "scripts": {
+    "server": "node server.js",
+    "server:dev": "nodemon server.js",
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "serve:ssr:gestion-educativa": "node dist/gestion-educativa/server/server.mjs",
+    "servers": "node server.js",
+    "servers:dev": "nodemon server.js",
+    "servers:maestro": "node servers/maestro-server.js",
+    "servers:ninos": "node servers/ninos-server.js",
+    "servers:all": "concurrently \"node server.js\" \"node servers/maestro-server.js\" \"node servers/ninos-server.js\"",
+    "dev": "concurrently \"npm run servers:dev\" \"npm start\"",
+    "dev:all": "concurrently \"npm run servers:all\" \"npm start\"",
+    "setup:servers": "node scripts/setup-servers.js",
+    "health:check": "node scripts/health-check.js"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
+    ]
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/common": "^20.3.0",
+    "@angular/compiler": "^20.3.0",
+    "@angular/core": "^20.3.0",
+    "@angular/forms": "^20.3.0",
+    "@angular/platform-browser": "^20.3.0",
+    "@angular/platform-server": "^20.3.0",
+    "@angular/router": "^20.3.0",
+    "@angular/ssr": "^20.3.3",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.15.2",
+    "nodemailer": "^7.0.9",
+    "rxjs": "~7.8.0",
+    "socket.io-client": "^4.8.1",
+    "tslib": "^2.3.0",
+    "zone.js": "^0.15.1"
+  },
+  "devDependencies": {
+    "@angular/build": "^20.3.3",
+    "@angular/cli": "^20.3.3",
+    "@angular/compiler-cli": "^20.3.0",
+    "@types/express": "^5.0.1",
+    "@types/jasmine": "~5.1.0",
+    "@types/node": "^20.17.19",
+    "concurrently": "^7.6.0",
+    "jasmine-core": "~5.9.0",
+    "karma": "~6.4.0",
+    "karma-chrome-launcher": "~3.2.0",
+    "karma-coverage": "~2.2.0",
+    "karma-jasmine": "~5.1.0",
+    "karma-jasmine-html-reporter": "~2.1.0",
+    "nodemon": "^3.1.10",
+    "typescript": "~5.9.2"
+  }
+}
