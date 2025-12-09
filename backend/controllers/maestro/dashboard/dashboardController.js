@@ -1,106 +1,91 @@
-// C:\Codigos\HTml\gestion-educativa\backend\controllers\maestro\dashboard\dashboardController.js
-const db = require('../../../config/dbConfig');
+const db = require('../../../config/dbConfig'); // <-- apunta a tu dbConfig.js
 
-// =======================================================
-// 🔹 OBTENER TODOS LOS AVISOS
-// =======================================================
-exports.getAvisos = async (req, res) => {
-    try {
-        const [rows] = await db.query("SELECT * FROM avisos ORDER BY fecha_creacion DESC;");
-        return res.json({ success: true, avisos: rows });
-    } catch (error) {
-        console.error("Error en getAvisos:", error);
-        return res.status(500).json({ success: false, message: "Error interno del servidor" });
-    }
+// ================= GET TODOS LOS AVISOS =================
+exports.getTodosAvisos = async (req, res) => {
+  try {
+    const [avisos] = await db.execute('SELECT * FROM avisos ORDER BY fecha_creacion DESC');
+    res.json({ success: true, avisos });
+  } catch (error) {
+    console.error('Error obteniendo todos los avisos:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
 
-// =======================================================
-// 🔹 OBTENER SOLO AVISOS ACTIVOS
-// =======================================================
+// ================= GET AVISOS ACTIVOS =================
 exports.getAvisosActivos = async (req, res) => {
-    try {
-        const [rows] = await db.query("SELECT * FROM avisos WHERE activo = 1 ORDER BY fecha_creacion DESC;");
-        return res.json({ success: true, avisos: rows });
-    } catch (error) {
-        console.error("Error en getAvisosActivos:", error);
-        return res.status(500).json({ success: false, message: "Error interno del servidor" });
-    }
+  try {
+    const [avisos] = await db.execute('SELECT * FROM avisos WHERE activo = 1 ORDER BY fecha_creacion DESC');
+    res.json({ success: true, avisos });
+  } catch (error) {
+    console.error('Error obteniendo avisos activos:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
 
-// =======================================================
-// 🔹 CREAR AVISO
-// =======================================================
-exports.crearAviso = async (req, res) => {
-    try {
-        const { titulo, contenido, prioridad } = req.body;
-
-        const sql = `
-            INSERT INTO avisos (titulo, contenido, prioridad, activo)
-            VALUES (?, ?, ?, 1)
-        `;
-        await db.query(sql, [titulo, contenido, prioridad]);
-
-        return res.json({ success: true, message: "Aviso creado correctamente." });
-
-    } catch (error) {
-        console.error("Error en crearAviso:", error);
-        return res.status(500).json({ success: false, message: "Error al crear aviso" });
-    }
-};
-
-// =======================================================
-// 🔹 ACTUALIZAR AVISO
-// =======================================================
-exports.actualizarAviso = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { titulo, contenido, prioridad, activo } = req.body;
-
-        await db.query(
-            `UPDATE avisos SET titulo=?, contenido=?, prioridad=?, activo=? WHERE id=?`,
-            [titulo, contenido, prioridad, activo, id]
-        );
-
-        return res.json({ success: true, message: "Aviso actualizado." });
-
-    } catch (error) {
-        console.error("Error en actualizarAviso:", error);
-        return res.status(500).json({ success: false, message: "Error al actualizar aviso" });
-    }
-};
-
-// =======================================================
-// 🔹 ELIMINAR AVISO
-// =======================================================
-exports.eliminarAviso = async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        await db.query("DELETE FROM avisos WHERE id = ?", [id]);
-
-        return res.json({ success: true, message: "Aviso eliminado." });
-
-    } catch (error) {
-        console.error("Error en eliminarAviso:", error);
-        return res.status(500).json({ success: false, message: "Error al eliminar aviso" });
-    }
-};
-
-// =======================================================
-// 🔹 CAMBIAR ESTADO ACTIVO/INACTIVO
-// =======================================================
+// ================= PATCH TOGGLE AVISO =================
 exports.toggleAviso = async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+    const id = req.params.id;
+    const [aviso] = await db.execute('SELECT activo FROM avisos WHERE id = ?', [id]);
+    if (!aviso.length) return res.status(404).json({ success: false, message: 'Aviso no encontrado' });
 
-        await db.query(`
-            UPDATE avisos SET activo = NOT activo WHERE id = ?
-        `, [id]);
+    const nuevoEstado = aviso[0].activo ? 0 : 1;
+    await db.execute('UPDATE avisos SET activo = ?, fecha_actualizacion = NOW() WHERE id = ?', [nuevoEstado, id]);
 
-        return res.json({ success: true, message: "Estado del aviso cambiado." });
+    res.json({ success: true, message: 'Estado actualizado', nuevoEstado });
+  } catch (error) {
+    console.error('Error toggling aviso:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
-    } catch (error) {
-        console.error("Error en toggleAviso:", error);
-        return res.status(500).json({ success: false, message: "Error al cambiar estado" });
-    }
+// ================= POST CREAR AVISO =================
+exports.crearAviso = async (req, res) => {
+  try {
+    const { titulo, contenido, prioridad, activo } = req.body;
+    const [result] = await db.execute(
+      'INSERT INTO avisos (titulo, contenido, prioridad, activo) VALUES (?, ?, ?, ?)',
+      [titulo, contenido, prioridad, activo ? 1 : 0]
+    );
+
+    const [nuevoAviso] = await db.execute('SELECT * FROM avisos WHERE id = ?', [result.insertId]);
+    res.json({ success: true, aviso: nuevoAviso[0] });
+  } catch (error) {
+    console.error('Error creando aviso:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ================= PUT ACTUALIZAR AVISO =================
+exports.actualizarAviso = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { titulo, contenido, prioridad, activo } = req.body;
+
+    const [aviso] = await db.execute('SELECT * FROM avisos WHERE id = ?', [id]);
+    if (!aviso.length) return res.status(404).json({ success: false, message: 'Aviso no encontrado' });
+
+    await db.execute(
+      'UPDATE avisos SET titulo = ?, contenido = ?, prioridad = ?, activo = ?, fecha_actualizacion = NOW() WHERE id = ?',
+      [titulo, contenido, prioridad, activo ? 1 : 0, id]
+    );
+
+    const [actualizado] = await db.execute('SELECT * FROM avisos WHERE id = ?', [id]);
+    res.json({ success: true, aviso: actualizado[0] });
+  } catch (error) {
+    console.error('Error actualizando aviso:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ================= DELETE AVISO =================
+exports.eliminarAviso = async (req, res) => {
+  try {
+    const id = req.params.id;
+    await db.execute('DELETE FROM avisos WHERE id = ?', [id]);
+    res.json({ success: true, message: 'Aviso eliminado correctamente' });
+  } catch (error) {
+    console.error('Error eliminando aviso:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
 };

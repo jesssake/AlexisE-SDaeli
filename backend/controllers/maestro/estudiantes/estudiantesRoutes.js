@@ -1,20 +1,18 @@
-// C:\Codigos\HTml\gestion-educativa\backend\controllers\maestro\estudiantes\estudiantesRoutes.js
 const express = require('express');
 const router = express.Router();
+const {
+  getEstudiantes,
+  crearEstudiante,
+  actualizarEstudiante,
+  eliminarEstudiante
+} = require('./estudiantesController');
 
-// Controlador
-const estudiantesController = require('./estudiantesController');
-
-// GET → obtener todos los estudiantes (usuarios)
-router.get('/', estudiantesController.obtenerEstudiantes);
-
-// POST → crear estudiante
-router.post('/', estudiantesController.crearEstudiante);
-
-// PUT → actualizar estudiante
-router.put('/:id', estudiantesController.actualizarEstudiante);
-
-// DELETE → eliminar estudiante
-router.delete('/:id', estudiantesController.eliminarEstudiante);
+// =============================
+// Rutas para estudiantes
+// =============================
+router.get('/', getEstudiantes);           // GET todos los estudiantes
+router.post('/', crearEstudiante);         // POST crear estudiante (tutor + niño)
+router.put('/:id', actualizarEstudiante);  // PUT actualizar estudiante
+router.delete('/:id', eliminarEstudiante); // DELETE eliminar estudiante
 
 module.exports = router;

@@ -2,7 +2,7 @@
 const pool = require('../../../config/dbConfig');
 
 // ===============================================================
-// 🔹 LISTA DE ASISTENCIA POR FECHA + HORA
+// 🔹 LISTA DE ASISTENCIA POR FECHA + HORA - CORREGIDO
 // ===============================================================
 exports.obtenerLista = async (req, res) => {
   try {
@@ -15,13 +15,20 @@ exports.obtenerLista = async (req, res) => {
       });
     }
 
+    console.log('🔍 Obteniendo lista de asistencia:', { maestro_id, fecha, hora_clase });
+
+    // ✅ CONSULTA CORREGIDA - usar id en lugar de estudiante_id
     const [alumnos] = await pool.query(`
       SELECT 
-        u.id AS estudiante_id,
+        u.id AS estudiante_id,  -- ✅ CORREGIDO: u.id como estudiante_id
         u.nino_nombre AS nombre,
         TIMESTAMPDIFF(YEAR, u.fecha_nacimiento, CURDATE()) AS edad
       FROM usuarios u
+      WHERE u.nino_nombre IS NOT NULL 
+        AND u.nino_nombre != ''
     `);
+
+    console.log(`📊 Alumnos encontrados: ${alumnos.length}`);
 
     const [marcados] = await pool.query(`
       SELECT estudiante_id, estado, comentario_maestro
@@ -30,6 +37,8 @@ exports.obtenerLista = async (req, res) => {
         AND fecha = ?
         AND hora_clase = ?
     `, [maestro_id, fecha, hora_clase]);
+
+    console.log(`📝 Asistencias ya marcadas: ${marcados.length}`);
 
     let lista = alumnos.map(a => {
       const m = marcados.find(x => x.estudiante_id === a.estudiante_id);
@@ -51,17 +60,20 @@ exports.obtenerLista = async (req, res) => {
     return res.status(500).json({
       ok: false,
       message: "Error interno",
-      error: error.message
+      error: error.message,
+      sqlMessage: error.sqlMessage
     });
   }
 };
 
 // ===============================================================
-// 🔹 GUARDAR LISTA COMPLETA
+// 🔹 GUARDAR LISTA COMPLETA - CORREGIDO
 // ===============================================================
 exports.guardarLista = async (req, res) => {
   try {
     const { maestro_id, fecha, hora_clase, registros } = req.body;
+
+    console.log('💾 Guardando asistencia:', { maestro_id, fecha, hora_clase, registros: registros?.length });
 
     if (!maestro_id || !fecha || !hora_clase || !registros) {
       return res.status(400).json({
@@ -70,11 +82,16 @@ exports.guardarLista = async (req, res) => {
       });
     }
 
-    await pool.query(`
+    // ✅ ELIMINAR REGISTROS EXISTENTES PARA ESA FECHA/HORA
+    const [deleteResult] = await pool.query(`
       DELETE FROM asistencia
       WHERE maestro_id = ? AND fecha = ? AND hora_clase = ?
     `, [maestro_id, fecha, hora_clase]);
 
+    console.log(`🗑️ Registros eliminados: ${deleteResult.affectedRows}`);
+
+    // ✅ INSERTAR NUEVOS REGISTROS
+    let insertedRows = 0;
     for (const r of registros) {
       if (!r.estado) continue;
 
@@ -90,11 +107,15 @@ exports.guardarLista = async (req, res) => {
         r.estado,
         r.comentario_maestro || null
       ]);
+      insertedRows++;
     }
+
+    console.log(`✅ Registros insertados: ${insertedRows}`);
 
     return res.json({
       ok: true,
-      message: "Asistencia guardada correctamente."
+      message: "Asistencia guardada correctamente.",
+      rows: insertedRows
     });
 
   } catch (error) {
@@ -102,7 +123,8 @@ exports.guardarLista = async (req, res) => {
     return res.status(500).json({
       ok: false,
       message: "Error interno al guardar asistencia",
-      error: error.message
+      error: error.message,
+      sqlMessage: error.sqlMessage
     });
   }
 };
@@ -134,7 +156,7 @@ exports.obtenerAsistencias = async (req, res) => {
 };
 
 // ===============================================================
-// 🔹 REGISTRAR (NO USADO PERO DISPONIBLE)
+// 🔹 REGISTRAR ASISTENCIA INDIVIDUAL
 // ===============================================================
 exports.registrarAsistencia = async (req, res) => {
   const { estudiante_id, maestro_id, fecha, hora_clase, estado, comentario_maestro } = req.body;

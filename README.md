@@ -1,59 +1,140 @@
-# GestionEducativa
+# 📚 Sistema de Gestión Educativa
+**Frontend (Angular) + Backend (Node.js, Express, MySQL)**
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.3.
+Proyecto completo para gestión escolar con módulos para maestros, estudiantes, asistencia, calificaciones, tareas, reportes y chat maestro–tutor.
 
-## Development server
+---
 
-To start a local development server, run:
+## ✝️ Mensaje de fortaleza
+**Filipenses 4:13 dice:**  
+*"Todo lo puedo en Cristo que me fortalece."*
 
-```bash
-ng serve
-```
+---
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## 🚀 Tecnologías utilizadas
 
-## Code scaffolding
+### 🖥️ Frontend
+- Angular
+- TypeScript
+- SCSS
+- Angular Material
+- Servicios HTTP
+- Guards & Routing
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+### 🔧 Backend
+- Node.js / Express
+- MySQL
+- Multer (subida de archivos y logos)
+- PDF-Lib y Docx para exportación
+- JWT (autenticación)
+- Middlewares dinámicos
 
-```bash
-ng generate component component-name
-```
+---
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## 📦 Estructura del proyecto
 
-```bash
-ng generate --help
-```
+gestion-educativa/
+│
+├── backend/
+│   ├── controllers/
+│   ├── routes/
+│   ├── middlewares/
+│   ├── config/dbConfig.js
+│   ├── server.js
+│   └── app.js
+│
+└── frontend/
+    ├── src/app/features/
+    ├── environments/
+    └── main.ts
 
-## Building
+---
 
-To build the project run:
+## 🖥️ Cómo iniciar el backend
 
-```bash
-ng build
-```
+1. Instalar dependencias:
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+    cd backend  
+    npm install
 
-## Running unit tests
+2. Ejecutar:
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+    node server.js
 
-```bash
-ng test
-```
+3. Backend disponible en:
 
-## Running end-to-end tests
+    http://localhost:3000  
 
-For end-to-end (e2e) testing, run:
+Test:
 
-```bash
-ng e2e
-```
+    http://localhost:3000/api/test
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+---
 
-## Additional Resources
+## 🌐 Cómo iniciar el frontend
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+1. Instalar dependencias:
+
+    cd frontend  
+    npm install
+
+2. Ejecutar Angular:
+
+    ng serve --o
+
+Disponible en:
+
+    http://localhost:4200
+
+---
+
+## 📁 Módulos implementados
+
+✔ Login  
+✔ Dashboard maestro  
+✔ Estudiantes  
+✔ Asistencia  
+✔ Tareas  
+✔ Materias  
+✔ Calificaciones  
+✔ Reportes (CSV, Word)  
+✔ Chat maestro–tutor  
+✔ Configuración  
+✔ Subida de logos  
+✔ Reportes automáticos  
+
+---
+
+## ⚠️ Errores comunes
+
+### Middlewares no encontrados
+
+Si aparece:
+
+    Cannot find module 'backend/middleware/authMiddleware'
+
+Coloca tus archivos en:
+
+    backend/middlewares/authMiddleware.js  
+    backend/middlewares/maestroMiddleware.js
+
+---
+
+## 📄 Exportaciones disponibles
+
+- Reportes CSV  
+- Reportes Word  
+- Subida de logos  
+- Códigos automáticos (REP-000X)
+
+---
+
+## 📧 Autor
+
+Proyecto creado por **Yimpi**.
+
+---
+
+## 📜 Licencia  
+Proyecto de uso educativo, libre para adaptar.
+"

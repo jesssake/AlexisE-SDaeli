@@ -1,14 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const controller = require('./calificacionesController');
+const calificacionesController = require('./calificacionesController');
 
-// Rutas existentes
-router.get('/trimestres', controller.obtenerTrimestres);
-router.get('/lista', controller.obtenerCalificaciones);
-router.post('/guardar', controller.guardarPorcentajes);
+// Obtener todas las calificaciones
+router.get('/completas', calificacionesController.obtenerCalificaciones);
 
-// Nuevas rutas para promedios automáticos
-router.get('/completas', controller.obtenerCalificacionesCompletas);
-router.get('/test', controller.testConnection); // Ruta de prueba
+// Obtener calificaciones por estudiante
+router.get('/estudiante/:id', calificacionesController.obtenerCalificacionesPorEstudiante);
+
+// Obtener resumen de calificaciones
+router.get('/resumen', calificacionesController.obtenerResumenCalificaciones);
+
+// Actualizar calificación de tarea
+router.post('/actualizar', calificacionesController.actualizarCalificacion);
 
 module.exports = router;

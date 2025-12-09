@@ -1,241 +1,303 @@
-const db = require('../../../config/dbConfig');
+const db = require('../../../config/dbConfig'); // <-- apunta a tu dbConfig.js
 
-// ================================
-// OBTENER TRIMESTRES
-// ================================
-exports.obtenerTrimestres = async (req, res) => {
-  try {
-    const [rows] = await db.query("SELECT * FROM trimestres ORDER BY id ASC");
-    res.json(rows);
-  } catch (error) {
-    console.error("ERROR obtener trimestres:", error);
-    res.status(500).json({ ok: false, error: error.message });
-  }
-};
 
-// ================================
-// OBTENER CALIFICACIONES POR TRIMESTRE
-// ================================
-exports.obtenerCalificaciones = async (req, res) => {
-  try {
-    const trimestre = req.query.trimestre;
-    if (!trimestre) return res.json([]);
+const calificacionesController = {
+    // Obtener todas las calificaciones
+    obtenerCalificaciones: async (req, res) => {
+        try {
+            const query = `
+                SELECT 
+                    u.id AS estudiante_id,
+                    u.nino_nombre AS alumno_nombre,
+                    COALESCE(tr.nombre, 'Sin trimestre') AS trimestre_nombre,
+                    m.nombre AS materia_nombre,
+                    COALESCE(pc.promedio_materia, 0) AS promedio_materia,
+                    t.titulo AS titulo_tarea,
+                    COALESCE(et.calificacion, 0) AS calificacion,
+                    DATE_FORMAT(et.fecha_entrega, '%Y-%m-%d') AS fecha_entrega,
+                    t.fecha_cierre AS fecha_limite,
+                    CASE 
+                        WHEN et.calificacion IS NOT NULL THEN 'Calificada'
+                        WHEN et.fecha_entrega IS NOT NULL THEN 'Entregada'
+                        ELSE 'Pendiente'
+                    END AS estado_tarea
+                FROM usuarios u
+                LEFT JOIN promedios_calificaciones pc ON u.id = pc.estudiante_id
+                LEFT JOIN trimestres tr ON pc.trimestre = tr.id
+                LEFT JOIN materias m ON pc.id_materia = m.id_materia
+                LEFT JOIN tareas t ON m.id_materia = t.id_materia
+                LEFT JOIN entregas_tareas et ON u.id = et.estudiante_id AND t.id_tarea = et.id_tarea
+                WHERE u.nino_nombre IS NOT NULL
+                    AND (et.id_entrega IS NOT NULL OR pc.id_promedio IS NOT NULL)
+                ORDER BY u.nino_nombre, tr.nombre, m.nombre
+            `;
 
-    const [rows] = await db.query(`
-      SELECT 
-        u.id AS id_nino,
-        u.nino_nombre AS alumno_nombre,
-        t.id_tarea AS tarea_id,
-        t.titulo AS titulo_tarea,
-        e.calificacion AS calificacion,
-        COALESCE(c.porcentaje, 0) AS porcentaje,
-        ? AS trimestre_id
-      FROM entregas_tareas e
-      INNER JOIN tareas t ON t.id_tarea = e.id_tarea
-      INNER JOIN usuarios u ON u.id = e.estudiante_id
-      LEFT JOIN calificaciones_trimestre c 
-        ON c.estudiante_id = e.estudiante_id 
-        AND c.tarea_id = e.id_tarea
-        AND c.trimestre_id = ?
-      ORDER BY u.nino_nombre ASC, t.id_tarea ASC
-    `, [trimestre, trimestre]);
+            const [results] = await db.query(query);
+            
+            // Estructurar los datos
+            const calificacionesEstructuradas = {};
+            
+            results.forEach(row => {
+                if (!calificacionesEstructuradas[row.estudiante_id]) {
+                    calificacionesEstructuradas[row.estudiante_id] = {
+                        estudiante_id: row.estudiante_id,
+                        alumno_nombre: row.alumno_nombre,
+                        trimestres: {}
+                    };
+                }
+                
+                const estudiante = calificacionesEstructuradas[row.estudiante_id];
+                
+                // Agregar trimestre
+                if (!estudiante.trimestres[row.trimestre_nombre]) {
+                    estudiante.trimestres[row.trimestre_nombre] = {
+                        nombre: row.trimestre_nombre,
+                        materias: {}
+                    };
+                }
+                
+                const trimestre = estudiante.trimestres[row.trimestre_nombre];
+                
+                // Agregar materia
+                if (row.materia_nombre && !trimestre.materias[row.materia_nombre]) {
+                    trimestre.materias[row.materia_nombre] = {
+                        nombre: row.materia_nombre,
+                        promedio: row.promedio_materia,
+                        tareas: []
+                    };
+                }
+                
+                // Agregar tarea
+                if (row.titulo_tarea && row.materia_nombre) {
+                    const materia = trimestre.materias[row.materia_nombre];
+                    materia.tareas.push({
+                        titulo: row.titulo_tarea,
+                        calificacion: row.calificacion,
+                        fecha_entrega: row.fecha_entrega,
+                        fecha_limite: row.fecha_limite,
+                        estado: row.estado_tarea
+                    });
+                }
+            });
+            
+            // Convertir a array
+            const response = Object.values(calificacionesEstructuradas).map(estudiante => ({
+                ...estudiante,
+                trimestres: Object.values(estudiante.trimestres).map(trimestre => ({
+                    ...trimestre,
+                    materias: Object.values(trimestre.materias)
+                }))
+            }));
+            
+            res.json({
+                success: true,
+                data: response,
+                total: response.length,
+                message: 'Calificaciones obtenidas exitosamente'
+            });
+            
+        } catch (error) {
+            console.error('Error en obtenerCalificaciones:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error al obtener las calificaciones',
+                error: error.message
+            });
+        }
+    },
 
-    res.json(rows);
+    // Obtener calificaciones por estudiante
+    obtenerCalificacionesPorEstudiante: async (req, res) => {
+        try {
+            const { id } = req.params;
+            
+            const query = `
+                SELECT 
+                    u.id AS estudiante_id,
+                    u.nino_nombre AS alumno_nombre,
+                    COALESCE(tr.nombre, 'Sin trimestre') AS trimestre_nombre,
+                    m.nombre AS materia_nombre,
+                    COALESCE(pc.promedio_materia, 0) AS promedio_materia,
+                    t.titulo AS titulo_tarea,
+                    COALESCE(et.calificacion, 0) AS calificacion,
+                    DATE_FORMAT(et.fecha_entrega, '%Y-%m-%d') AS fecha_entrega,
+                    t.fecha_cierre AS fecha_limite,
+                    CASE 
+                        WHEN et.calificacion IS NOT NULL THEN 'Calificada'
+                        WHEN et.fecha_entrega IS NOT NULL THEN 'Entregada'
+                        ELSE 'Pendiente'
+                    END AS estado_tarea
+                FROM usuarios u
+                LEFT JOIN promedios_calificaciones pc ON u.id = pc.estudiante_id
+                LEFT JOIN trimestres tr ON pc.trimestre = tr.id
+                LEFT JOIN materias m ON pc.id_materia = m.id_materia
+                LEFT JOIN tareas t ON m.id_materia = t.id_materia
+                LEFT JOIN entregas_tareas et ON u.id = et.estudiante_id AND t.id_tarea = et.id_tarea
+                WHERE u.id = ? 
+                    AND u.nino_nombre IS NOT NULL
+                    AND (et.id_entrega IS NOT NULL OR pc.id_promedio IS NOT NULL)
+                ORDER BY tr.nombre, m.nombre, t.fecha_cierre
+            `;
 
-  } catch (error) {
-    console.error("ERROR obtener calificaciones:", error);
-    res.status(500).json({ ok: false, error: error.message });
-  }
-};
+            const [results] = await db.query(query, [id]);
+            
+            if (results.length === 0) {
+                return res.json({
+                    success: true,
+                    data: {
+                        estudiante_id: id,
+                        alumno_nombre: '',
+                        trimestres: []
+                    },
+                    message: 'No se encontraron calificaciones para este estudiante'
+                });
+            }
+            
+            // Estructurar los datos
+            const calificacionesEstructuradas = {
+                estudiante_id: results[0].estudiante_id,
+                alumno_nombre: results[0].alumno_nombre,
+                trimestres: {}
+            };
+            
+            results.forEach(row => {
+                // Agregar trimestre
+                if (!calificacionesEstructuradas.trimestres[row.trimestre_nombre]) {
+                    calificacionesEstructuradas.trimestres[row.trimestre_nombre] = {
+                        nombre: row.trimestre_nombre,
+                        materias: {}
+                    };
+                }
+                
+                const trimestre = calificacionesEstructuradas.trimestres[row.trimestre_nombre];
+                
+                // Agregar materia
+                if (row.materia_nombre && !trimestre.materias[row.materia_nombre]) {
+                    trimestre.materias[row.materia_nombre] = {
+                        nombre: row.materia_nombre,
+                        promedio: row.promedio_materia,
+                        tareas: []
+                    };
+                }
+                
+                // Agregar tarea
+                if (row.titulo_tarea && row.materia_nombre) {
+                    const materia = trimestre.materias[row.materia_nombre];
+                    materia.tareas.push({
+                        titulo: row.titulo_tarea,
+                        calificacion: row.calificacion,
+                        fecha_entrega: row.fecha_entrega,
+                        fecha_limite: row.fecha_limite,
+                        estado: row.estado_tarea
+                    });
+                }
+            });
+            
+            // Convertir a array
+            calificacionesEstructuradas.trimestres = Object.values(calificacionesEstructuradas.trimestres).map(trimestre => ({
+                ...trimestre,
+                materias: Object.values(trimestre.materias)
+            }));
+            
+            res.json({
+                success: true,
+                data: calificacionesEstructuradas,
+                message: 'Calificaciones del estudiante obtenidas exitosamente'
+            });
+            
+        } catch (error) {
+            console.error('Error en obtenerCalificacionesPorEstudiante:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error al obtener las calificaciones del estudiante',
+                error: error.message
+            });
+        }
+    },
 
-// ================================
-// GUARDAR PORCENTAJES
-// ================================
-exports.guardarPorcentajes = async (req, res) => {
-  try {
-    const { trimestre_id, items } = req.body;
+    // Actualizar calificación de tarea
+    actualizarCalificacion: async (req, res) => {
+        try {
+            const { estudiante_id, tarea_id, calificacion } = req.body;
+            
+            if (!estudiante_id || !tarea_id || calificacion === undefined) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Faltan campos requeridos: estudiante_id, tarea_id, calificacion'
+                });
+            }
+            
+            // Verificar si la entrega existe
+            const [entregaExistente] = await db.query(
+                'SELECT * FROM entregas_tareas WHERE estudiante_id = ? AND id_tarea = ?',
+                [estudiante_id, tarea_id]
+            );
+            
+            if (entregaExistente.length > 0) {
+                // Actualizar entrega existente
+                await db.query(
+                    'UPDATE entregas_tareas SET calificacion = ?, fecha_calificacion = NOW() WHERE estudiante_id = ? AND id_tarea = ?',
+                    [calificacion, estudiante_id, tarea_id]
+                );
+            } else {
+                // Insertar nueva entrega
+                await db.query(
+                    'INSERT INTO entregas_tareas (estudiante_id, id_tarea, calificacion, fecha_calificacion, fecha_entrega) VALUES (?, ?, ?, NOW(), NOW())',
+                    [estudiante_id, tarea_id, calificacion]
+                );
+            }
+            
+            res.json({
+                success: true,
+                message: 'Calificación actualizada exitosamente'
+            });
+            
+        } catch (error) {
+            console.error('Error en actualizarCalificacion:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error al actualizar la calificación',
+                error: error.message
+            });
+        }
+    },
 
-    if (!trimestre_id) {
-      return res.json({ ok: false, mensaje: 'Trimestre inválido' });
+    // Obtener resumen de calificaciones
+    obtenerResumenCalificaciones: async (req, res) => {
+        try {
+            const query = `
+                SELECT 
+                    u.id AS estudiante_id,
+                    u.nino_nombre AS alumno_nombre,
+                    COUNT(DISTINCT et.id_entrega) AS total_tareas,
+                    ROUND(AVG(et.calificacion), 2) AS promedio_general,
+                    MAX(et.fecha_entrega) AS ultima_entrega
+                FROM usuarios u
+                LEFT JOIN entregas_tareas et ON u.id = et.estudiante_id
+                WHERE u.nino_nombre IS NOT NULL
+                    AND et.calificacion IS NOT NULL
+                GROUP BY u.id, u.nino_nombre
+                ORDER BY u.nino_nombre
+            `;
+
+            const [results] = await db.query(query);
+            
+            res.json({
+                success: true,
+                data: results,
+                total: results.length,
+                message: 'Resumen de calificaciones obtenido exitosamente'
+            });
+            
+        } catch (error) {
+            console.error('Error en obtenerResumenCalificaciones:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error al obtener el resumen de calificaciones',
+                error: error.message
+            });
+        }
     }
-
-    for (const item of items) {
-      await db.query(`
-        INSERT INTO calificaciones_trimestre 
-        (estudiante_id, tarea_id, trimestre_id, porcentaje)
-        VALUES (?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE porcentaje = VALUES(porcentaje)
-      `, [
-        item.id_nino,
-        item.tarea_id,
-        trimestre_id,
-        item.porcentaje
-      ]);
-    }
-
-    res.json({ ok: true });
-
-  } catch (error) {
-    console.error("ERROR guardar porcentajes:", error);
-    res.status(500).json({ ok: false, mensaje: error.message });
-  }
 };
 
-// =============================================
-// NUEVA FUNCIÓN: OBTENER CALIFICACIONES COMPLETAS
-// =============================================
-exports.obtenerCalificacionesCompletas = async (req, res) => {
-  try {
-    const { trimestre } = req.query;
-
-    console.log('📊 Solicitando calificaciones completas, trimestre:', trimestre);
-
-    let query = `
-      SELECT 
-        u.id AS estudiante_id,
-        u.nino_nombre AS alumno_nombre,
-        t.trimestre,
-        m.nombre AS materia_nombre,
-        t.titulo AS titulo_tarea,
-        e.calificacion,
-        e.fecha_entrega,
-        p.promedio_materia,
-        p.promedio_trimestre,
-        p.promedio_general
-      FROM usuarios u
-      INNER JOIN entregas_tareas e ON u.id = e.estudiante_id
-      INNER JOIN tareas t ON e.id_tarea = t.id_tarea
-      LEFT JOIN materias m ON t.id_materia = m.id_materia
-      LEFT JOIN promedios_calificaciones p ON 
-        u.id = p.estudiante_id AND 
-        t.trimestre = p.trimestre AND
-        t.id_materia = p.id_materia
-      WHERE e.calificacion IS NOT NULL
-    `;
-
-    const params = [];
-    
-    if (trimestre) {
-      query += ' AND t.trimestre = ?';
-      params.push(trimestre);
-    }
-
-    query += ' ORDER BY u.nino_nombre, t.trimestre, m.nombre, t.titulo';
-
-    console.log('🔍 Ejecutando query:', query);
-    console.log('📋 Parámetros:', params);
-
-    const [rows] = await db.query(query, params);
-
-    console.log('✅ Datos obtenidos:', rows.length, 'registros');
-
-    // Si no hay datos, retornar array vacío
-    if (rows.length === 0) {
-      return res.json({ 
-        ok: true, 
-        datos: [],
-        total_estudiantes: 0,
-        mensaje: 'No hay calificaciones registradas'
-      });
-    }
-
-    // Estructurar los datos
-    const estudiantesMap = new Map();
-
-    rows.forEach(row => {
-      const estudianteId = row.estudiante_id;
-      
-      if (!estudiantesMap.has(estudianteId)) {
-        estudiantesMap.set(estudianteId, {
-          estudiante_id: estudianteId,
-          alumno_nombre: row.alumno_nombre,
-          promedio_general: row.promedio_general || 0,
-          trimestres: new Map()
-        });
-      }
-
-      const estudiante = estudiantesMap.get(estudianteId);
-      const trimestreKey = row.trimestre;
-
-      if (!estudiante.trimestres.has(trimestreKey)) {
-        estudiante.trimestres.set(trimestreKey, {
-          trimestre: row.trimestre,
-          promedio_trimestre: row.promedio_trimestre || 0,
-          materias: new Map()
-        });
-      }
-
-      const trimestreData = estudiante.trimestres.get(trimestreKey);
-      const materiaKey = row.materia_nombre || 'Sin materia';
-
-      if (!trimestreData.materias.has(materiaKey)) {
-        trimestreData.materias.set(materiaKey, {
-          materia_nombre: materiaKey,
-          promedio_materia: row.promedio_materia || 0,
-          tareas: []
-        });
-      }
-
-      const materiaData = trimestreData.materias.get(materiaKey);
-      
-      // Agregar tarea solo si no existe
-      const tareaExiste = materiaData.tareas.some(t => 
-        t.titulo_tarea === row.titulo_tarea && 
-        t.calificacion === row.calificacion
-      );
-      
-      if (!tareaExiste) {
-        materiaData.tareas.push({
-          titulo_tarea: row.titulo_tarea,
-          calificacion: row.calificacion,
-          fecha_entrega: row.fecha_entrega
-        });
-      }
-    });
-
-    // Convertir Map a Array
-    const resultado = Array.from(estudiantesMap.values()).map(estudiante => ({
-      ...estudiante,
-      trimestres: Array.from(estudiante.trimestres.values()).map(trimestre => ({
-        ...trimestre,
-        materias: Array.from(trimestre.materias.values())
-      }))
-    }));
-
-    console.log('🎯 Resultado estructurado:', resultado.length, 'estudiantes');
-
-    res.json({ 
-      ok: true, 
-      datos: resultado,
-      total_estudiantes: resultado.length
-    });
-
-  } catch (error) {
-    console.error("❌ ERROR obtener calificaciones completas:", error);
-    res.status(500).json({ 
-      ok: false, 
-      error: error.message,
-      detalles: 'Error al conectar con la base de datos'
-    });
-  }
-};
-
-// =============================================
-// FUNCIÓN DE PRUEBA PARA VERIFICAR CONEXIÓN
-// =============================================
-exports.testConnection = async (req, res) => {
-  try {
-    const [result] = await db.query('SELECT 1 + 1 AS result');
-    res.json({ 
-      ok: true, 
-      message: 'Conexión a BD exitosa',
-      result: result 
-    });
-  } catch (error) {
-    res.status(500).json({ 
-      ok: false, 
-      error: 'Error de conexión a BD',
-      details: error.message 
-    });
-  }
-};
+module.exports = calificacionesController;

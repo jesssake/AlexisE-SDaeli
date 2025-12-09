@@ -1,6 +1,0 @@
-﻿/* Backup: mismo contenido del padres.component.scss */
-.padres-wrap {
-  display: grid;
-  gap: 16px;
-}
-/* ... (pega aquí exactamente el mismo contenido que en padres.component.scss) ... */
