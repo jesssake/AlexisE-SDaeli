@@ -1,0 +1,378 @@
+<div class="estudiante-page">
+  <!-- HEADER SUPERIOR SIMPLE -->
+  <div class="top-header">
+    <div class="update-info">
+      <span class="update-icon">🔄</span>
+      Actualizado: {{ fechaActual | date:'medium' }}
+    </div>
+  </div>
+
+  <div class="container">
+    
+    <!-- HEADER PRINCIPAL -->
+    <div class="student-header">
+      <div class="header-content">
+        <div class="student-profile">
+          <div class="gradient-avatar">
+            {{ obtenerIniciales(estudiante?.nombre || '') }}
+          </div>
+          <div class="student-info">
+            <h1>¡Hola, {{ estudiante?.nombre || 'Estudiante' }}!</h1>
+            <p>Gestiona tus tareas académicas</p>
+            <div class="student-stats">
+              <span class="stat">{{ tareas.length }} Tareas</span>
+              <span class="stat">{{ misEntregas.length }} Entregas</span>
+            </div>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-outline" (click)="recargarTodo()">
+            <span class="btn-icon">🔄</span>
+            Actualizar
+          </button>
+          <button class="btn btn-primary" (click)="probarConexion()">
+            <span class="btn-icon">🔍</span>
+            Probar Conexión
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="main-content">
+      
+      <!-- SECCIÓN TAREAS PENDIENTES -->
+      <div class="section">
+        <div class="section-header">
+          <h2>Tareas Pendientes</h2>
+          <div class="badge">{{ tareas.length }} tareas</div>
+        </div>
+        
+        <div class="section-body">
+          <!-- Estados de carga -->
+          <div class="estado-carga" *ngIf="loadingTareas">
+            <div class="loading-spinner"></div>
+            Cargando tus tareas...
+          </div>
+          
+          <div class="estado-error" *ngIf="errorTareas">
+            <div class="error-icon">❌</div>
+            {{ errorTareas }}
+          </div>
+
+          <!-- Grid de tareas -->
+          <div class="tareas-grid" *ngIf="!loadingTareas && tareas.length > 0">
+            <div *ngFor="let tarea of tareas" 
+                 class="tarea-card"
+                 [class.vencida]="esTareaVencida(tarea)">
+              
+              <div class="card-gradient"></div>
+              <div class="card-content">
+                <div class="tarea-header">
+                  <div class="priority-indicator" 
+                       [class.high]="tiempoRestante(tarea) === 'Vencida'"></div>
+                  <h3 class="tarea-title">{{ tarea.titulo }}</h3>
+                  <div class="tarea-status">
+                    <span class="deadline-badge" 
+                          [class.urgent]="tiempoRestante(tarea) === 'Vencida'">
+                      {{ tiempoRestante(tarea) }}
+                    </span>
+                  </div>
+                </div>
+
+                <p class="tarea-description">
+                  {{ tarea.instrucciones || 'Sin instrucciones específicas' }}
+                </p>
+
+                <div class="tarea-meta">
+                  <div class="meta-chip">
+                    <span class="meta-icon">📅</span>
+                    {{ tarea.fecha_cierre | date:'short' }}
+                  </div>
+                  <div class="meta-chip" [class.allowed]="permiteTarde(tarea)">
+                    <span class="meta-icon">⏰</span>
+                    {{ permiteTarde(tarea) ? 'Tardías OK' : 'No tardías' }}
+                  </div>
+                </div>
+
+                <div class="tarea-actions">
+                  <button class="btn btn-outline" (click)="abrirModalDetalles(tarea)">
+                    <span class="btn-icon">👀</span>
+                    Detalles
+                  </button>
+                  <button class="btn btn-primary" 
+                          (click)="abrirModalEntrega(tarea)"
+                          [disabled]="esTareaVencida(tarea) && !permiteTarde(tarea)">
+                    <span class="btn-icon">📤</span>
+                    {{ obtenerEstadoEntrega(tarea.id_tarea) ? 'Reentregar' : 'Entregar' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Estado vacío -->
+          <div class="estado-vacio" *ngIf="!loadingTareas && tareas.length === 0">
+            <div class="empty-icon">🎉</div>
+            <h3>¡No tienes tareas pendientes!</h3>
+            <p>Parece que estás al día con tus asignaciones</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN MIS ENTREGAS -->
+      <div class="section" *ngIf="misEntregas.length > 0">
+        <div class="section-header">
+          <h2>Mis Entregas</h2>
+          <div class="badge">{{ misEntregas.length }} entregas</div>
+        </div>
+        
+        <div class="section-body">
+          <div class="entregas-list">
+            <div *ngFor="let entrega of misEntregas" class="entrega-item">
+              <div class="entrega-header">
+                <h4>{{ entrega.titulo_tarea || 'Tarea' }}</h4>
+                <span [class]="estadoEntregaClass(entrega.estado)" class="status">
+                  {{ entrega.estado || 'Entregado' }}
+                </span>
+              </div>
+              
+              <div class="entrega-details">
+                <span class="fecha">📅 {{ entrega.fecha_entrega | date:'medium' }}</span>
+                <span class="grade" *ngIf="entrega.calificacion !== null">
+                  ⭐ Nota: {{ entrega.calificacion }}/10
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DETALLES TAREA -->
+  <div class="modal-backdrop" *ngIf="modalDetallesAbierto">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>📖 Detalles de la Tarea</h3>
+        <button class="close" (click)="cerrarModalDetalles()">×</button>
+      </div>
+      
+      <div class="modal-body" *ngIf="tareaSeleccionada">
+        <div class="detalle-tarea">
+          
+          <!-- Información Principal -->
+          <div class="detalle-seccion">
+            <h4>{{ tareaSeleccionada.titulo }}</h4>
+            <div class="estado-tiempo">
+              <span class="badge" [class.vencida]="esTareaVencida(tareaSeleccionada)">
+                {{ esTareaVencida(tareaSeleccionada) ? '⏰ Vencida' : '⏳ Activa' }}
+              </span>
+              <span class="tiempo-restante">
+                {{ tiempoRestante(tareaSeleccionada) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Instrucciones -->
+          <div class="detalle-seccion">
+            <label>📋 Instrucciones</label>
+            <div class="contenido-detalle">
+              {{ tareaSeleccionada.instrucciones || 'No hay instrucciones específicas' }}
+            </div>
+          </div>
+
+          <!-- Fechas -->
+          <div class="detalle-seccion">
+            <label>📅 Fechas Importantes</label>
+            <div class="fechas-grid">
+              <div class="fecha-item">
+                <strong>Publicación:</strong>
+                <span>{{ (tareaSeleccionada.fecha_publicacion | date:'medium') || 'No especificada' }}</span>
+              </div>
+              <div class="fecha-item">
+                <strong>Entrega:</strong>
+                <span>{{ tareaSeleccionada.fecha_cierre | date:'medium' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Configuración -->
+          <div class="detalle-seccion">
+            <label>⚙️ Configuración</label>
+            <div class="config-grid">
+              <div class="config-item">
+                <span class="config-icon">⏰</span>
+                <span>Entrega tardía: {{ permiteTarde(tareaSeleccionada) ? 'Permitida' : 'No permitida' }}</span>
+              </div>
+              <div class="config-item">
+                <span class="config-icon">📊</span>
+                <span>Estado: {{ estaActiva(tareaSeleccionada) ? 'Activa' : 'Inactiva' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Material Adjunto -->
+          <div class="detalle-seccion" *ngIf="tareaSeleccionada.archivo_adjunto">
+            <label>📎 Material de Apoyo</label>
+            <div class="archivo-descarga">
+              <a [href]="fileUrl(tareaSeleccionada.archivo_adjunto)" 
+                 target="_blank" 
+                 download
+                 class="btn-descarga">
+                <span class="file-icon">📥</span>
+                Descargar {{ obtenerNombreArchivo(tareaSeleccionada.archivo_adjunto) }}
+              </a>
+            </div>
+          </div>
+
+          <!-- Rúbrica -->
+          <div class="detalle-seccion" *ngIf="tareaSeleccionada.rubrica">
+            <label>📊 Rúbrica de Evaluación</label>
+            <div class="rubrica-contenido">
+              <pre>{{ tareaSeleccionada.rubrica }}</pre>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarModalDetalles()">
+          Cerrar
+        </button>
+        <button class="btn btn-primary" 
+                (click)="abrirModalEntrega(tareaSeleccionada)"
+                [disabled]="esTareaVencida(tareaSeleccionada) && !permiteTarde(tareaSeleccionada)">
+          <span class="btn-icon">📤</span>
+          Entregar Tarea
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ENTREGA TAREA - DISEÑO MEJORADO -->
+  <div class="modal-backdrop" *ngIf="modalEntregaAbierto">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>📤 Entregar Tarea</h3>
+        <button class="close" (click)="cerrarModalEntrega()">×</button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Información de la tarea -->
+        <div class="tarea-info" *ngIf="tareaSeleccionada">
+          <div class="tarea-header">
+            <h4>{{ tareaSeleccionada.titulo }}</h4>
+            <div class="tarea-meta">
+              <span class="deadline">
+                📅 Vence: {{ tareaSeleccionada.fecha_cierre | date:'medium' }}
+              </span>
+              <span class="time-left" [class.urgent]="tiempoRestante(tareaSeleccionada) === 'Vencida'">
+                ({{ tiempoRestante(tareaSeleccionada) }})
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alertas -->
+        <div class="alert alert-warning" 
+             *ngIf="esTareaVencida(tareaSeleccionada) && !permiteTarde(tareaSeleccionada)">
+          <div class="alert-icon">⚠️</div>
+          <div class="alert-content">
+            <strong>Esta tarea está vencida</strong>
+            <p>No se permiten entregas tardías para esta tarea</p>
+          </div>
+        </div>
+
+        <div class="alert alert-info" *ngIf="obtenerEstadoEntrega(tareaSeleccionada?.id_tarea)">
+          <div class="alert-icon">ℹ️</div>
+          <div class="alert-content">
+            <strong>Ya has entregado esta tarea</strong>
+            <p>Puedes reemplazar tu entrega anterior</p>
+          </div>
+        </div>
+
+        <!-- Formulario de entrega -->
+        <div class="upload-section">
+          <div class="form-group">
+            <label class="form-label">📎 Archivo de Entrega</label>
+            <div class="file-upload-area" 
+                 [class.dragover]="isDragover"
+                 (drop)="onFileDrop($event)"
+                 (dragover)="onDragOver($event)"
+                 (dragleave)="onDragLeave($event)">
+              <input type="file" id="fileInput" 
+                     (change)="onFileSelectedEntrega($event)" 
+                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.zip,.rar">
+              <div class="upload-content">
+                <div class="upload-icon">📁</div>
+                <h4>Arrastra tu archivo aquí</h4>
+                <p>o haz clic para seleccionar</p>
+                <small>Formatos: PDF, Word, imágenes, ZIP, RAR (max 10MB)</small>
+              </div>
+            </div>
+            
+            <!-- Archivo seleccionado -->
+            <div class="file-preview" *ngIf="archivoEntrega">
+              <div class="file-info">
+                <span class="file-icon">{{ obtenerIconoArchivo(archivoEntrega.name) }}</span>
+                <div class="file-details">
+                  <strong>{{ archivoEntrega.name }}</strong>
+                  <span>{{ (archivoEntrega.size / 1024 / 1024).toFixed(2) }} MB</span>
+                </div>
+                <button class="remove-file" (click)="archivoEntrega = null">×</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">💬 Comentarios para el Profesor</label>
+            <textarea class="textarea" 
+                      rows="4" 
+                      [(ngModel)]="comentarioAlumno"
+                      placeholder="Explica tu entrega, añade comentarios o aclaraciones..."></textarea>
+            <div class="char-count">{{ comentarioAlumno.length }}/500</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarModalEntrega()">
+          Cancelar
+        </button>
+        <button class="btn btn-primary" 
+                (click)="enviarEntrega()"
+                [disabled]="subiendoEntrega || (esTareaVencida(tareaSeleccionada) && !permiteTarde(tareaSeleccionada)) || (!archivoEntrega && !comentarioAlumno.trim())">
+          <span class="btn-icon" *ngIf="!subiendoEntrega">🚀</span>
+          <span class="btn-icon" *ngIf="subiendoEntrega">⏳</span>
+          {{ subiendoEntrega ? 'Enviando...' : 'Enviar Entrega' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ALERTA -->
+  <div class="modal-backdrop" *ngIf="modalAlertaAbierto">
+    <div class="modal alert-modal">
+      <div class="modal-header">
+        <h3>{{ alertaTitulo }}</h3>
+        <button class="close" (click)="cerrarAlerta()">×</button>
+      </div>
+      
+      <div class="modal-body text-center">
+        <div class="alert-emoji">
+          {{ alertaTitulo.includes('✅') ? '🎉' : alertaTitulo.includes('❌') ? '😕' : '📢' }}
+        </div>
+        <div class="alert-message" [innerHTML]="alertaMensaje"></div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-primary" (click)="cerrarAlerta()" style="flex: 1;">
+          <span class="btn-icon">👌</span>
+          Entendido
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

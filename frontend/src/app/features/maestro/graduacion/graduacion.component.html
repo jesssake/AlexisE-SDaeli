@@ -1,0 +1,178 @@
+<div class="graduacion-wrapper" [class.loading]="cargando">
+  <!-- CABECERA -->
+  <div class="header">
+    <h1>Sistema de Graduación</h1>
+    <p>Gestiona certificados de excelencia y cartas de cierre de ciclo escolar</p>
+
+    <div class="header-actions">
+      <button class="btn-primary" (click)="abrirModalNuevo()">
+        ➕ Nuevo Certificado
+      </button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat-card">
+      <p class="label">TOTAL CERTIFICADOS</p>
+      <p class="value">{{ stats.total }}</p>
+    </div>
+
+    <div class="stat-card">
+      <p class="label">CERTIFICADOS DE EXCELENCIA</p>
+      <p class="value">{{ stats.excelencia }}</p>
+    </div>
+
+    <div class="stat-card">
+      <p class="label">ENVIADOS</p>
+      <p class="value">{{ stats.enviados }}</p>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filtros">
+    <h3>Filtros</h3>
+
+    <div class="filtro-row">
+      <div class="filtro-item">
+        <label>Tipo:</label>
+        <select [(ngModel)]="filtros.tipo" (change)="cargarCertificados()">
+          <option value="todos">Todos</option>
+          <option value="cierre">Cartas de cierre</option>
+          <option value="excelencia">Certificados de excelencia</option>
+        </select>
+      </div>
+
+      <div class="filtro-item">
+        <label>Estado:</label>
+        <select [(ngModel)]="filtros.estado" (change)="cargarCertificados()">
+          <option value="todos">Todos</option>
+          <option value="enviado">Enviados</option>
+          <option value="pendiente">Pendientes</option>
+        </select>
+      </div>
+
+      <div class="filtro-item">
+        <label>Alumno:</label>
+        <select [(ngModel)]="filtros.alumnoId" (change)="cargarCertificados()">
+          <option [ngValue]="0">Todos</option>
+          <option *ngFor="let a of alumnos" [ngValue]="a.id">
+            {{ a.nombre }}
+          </option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA CERTIFICADOS -->
+  <div class="tabla-card">
+    <h3>Listado de certificados</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Alumno</th>
+          <th>Promedio</th>
+          <th>Tipo</th>
+          <th>Ciclo</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngIf="certificados.length === 0">
+          <td colspan="8" style="text-align: center; padding: 12px">
+            No hay certificados para mostrar.
+          </td>
+        </tr>
+
+        <tr *ngFor="let c of certificados; let i = index">
+          <td>{{ i + 1 }}</td> <!-- Muestra 1, 2, 3, ... -->
+          <td class="negrita-italic">{{ c.alumno || '—' }}</td> <!-- Cursiva y negrita -->
+          <td>{{ c.promedio | number : '1.1-2' }}</td>
+          <td>{{ c.tipo | titlecase }}</td>
+          <td class="negrita-italic">{{ c.ciclo }}</td> <!-- Cursiva y negrita -->
+          <td>{{ c.creado_en | date : 'yyyy-MM-dd HH:mm' }}</td>
+
+          <td>
+            <span class="estado" [class.enviado]="c.estado === 'enviado'">
+              {{ c.estado | titlecase }}
+            </span>
+          </td>
+
+          <td class="acciones">
+            <button class="btn-mini" (click)="descargar(c.id)">⬇ Descargar</button>
+            <button class="btn-mini verde" (click)="enviar(c.id)">
+              ✉ Enviar
+            </button>
+            <button class="btn-mini rojo" (click)="eliminar(c.id)">
+              🗑 Eliminar
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- MODAL NUEVO CERTIFICADO -->
+  <div class="modal-backdrop" *ngIf="mostrarFormularioCertificado">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>🎓 Nuevo Certificado</h2>
+        <button class="close" (click)="cerrarModal()">✖</button>
+      </div>
+
+      <label class="config-previa">
+        <input
+          type="checkbox"
+          [(ngModel)]="usarUltimo"
+          (change)="cambiarCheckUsarUltimo()" />
+        Usar configuración anterior (ciclo y maestro)
+      </label>
+
+      <div class="modal-body">
+        <label>Alumno:</label>
+        <select [(ngModel)]="form.alumnoId" (change)="cuandoSeleccionaAlumno()">
+          <option [ngValue]="0">-- Selecciona un alumno --</option>
+          <option *ngFor="let a of alumnos" [ngValue]="a.id">
+            {{ a.nombre }}
+          </option>
+        </select>
+
+        <label>Nombre del estudiante:</label>
+        <input type="text" [(ngModel)]="form.nombreAlumno" disabled />
+
+        <label>Promedio:</label>
+        <input
+          type="number"
+          min="0"
+          max="10"
+          step="0.1"
+          [(ngModel)]="form.promedio" />
+
+        <label>Ciclo escolar:</label>
+        <input
+          type="text"
+          placeholder="2025-2026"
+          [(ngModel)]="form.cicloEscolar" />
+
+        <!-- Tipo de certificado removido: el TS ya fija 'excelencia' -->
+
+        <label>Nombre del profesor (firma):</label>
+        <input type="text" [(ngModel)]="form.teacherName" />
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-primary" (click)="generarCertificado()">
+          Generar PDF
+        </button>
+        <button class="btn-secondary" (click)="cerrarModal()">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

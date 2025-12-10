@@ -1,0 +1,72 @@
+<section class="config-page" [class.loading]="cargando">
+
+  <!-- HEADER -->
+  <div class="header-panel">
+    <div class="avatar">
+      {{ usuarioNombre | slice:0:1 }}
+    </div>
+
+    <div class="info">
+      <h1>{{ usuarioNombre }}</h1>
+
+      <p class="sub">
+        Rol: {{ usuarioRol }} · {{ usuarioEmail }}
+      </p>
+
+      <div class="mode">
+        <span class="chip" *ngIf="usuarioRol === 'TUTOR'">👨‍🏫 MODO TUTOR</span>
+        <span class="chip" *ngIf="usuarioRol !== 'TUTOR'">🎓 MODO ESTUDIANTE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MENSAJE DE ERROR -->
+  <div *ngIf="errorMsg" class="msg error">
+    ❌ {{ errorMsg }}
+  </div>
+
+  <!-- MODO TUTOR -->
+  <section *ngIf="usuarioRol === 'TUTOR'" class="tutor-block">
+    <div class="panel">
+      <h2>👥 Mis Alumnos</h2>
+      <p class="desc">Lista de alumnos asignados</p>
+
+      <!-- LOADING -->
+      <div *ngIf="cargando" class="loading">
+        <div class="spinner"></div>
+        <p>Cargando alumnos...</p>
+      </div>
+
+      <!-- LISTADO -->
+      <div *ngIf="!cargando" class="alumnos-list">
+
+        <div *ngFor="let n of listaNinos" class="alumno-card">
+          <div class="avatar-sm">
+            {{ n.nombre | slice:0:1 }}
+          </div>
+
+          <div class="info">
+            <h3>{{ n.nombre }}</h3>
+            <p>Nacimiento: {{ n.fecha_nacimiento }}</p>
+            <p>Condiciones: {{ n.condiciones_medicas }}</p>
+          </div>
+        </div>
+
+        <!-- SIN ALUMNOS -->
+        <div *ngIf="listaNinos.length === 0" class="empty">
+          <span class="icon">👶</span>
+          <h3>No tienes alumnos asignados</h3>
+          <p>Contacta al administrador.</p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- DEBUG -->
+  <div class="debug-zone">
+    <button class="btn ghost" (click)="debug()">🔍 DEBUG INFO</button>
+  </div>
+
+</section>

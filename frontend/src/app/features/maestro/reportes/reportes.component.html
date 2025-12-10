@@ -1,0 +1,235 @@
+<section class="wrap">
+  <!-- ======= Header con acciones globales ======= -->
+  <header class="header">
+    <div class="flex items-center gap-3">
+      <img
+        *ngIf="settings.logoUrl"
+        [src]="'http://localhost:3000/' + settings.logoUrl"
+        alt="Logo"
+        class="logo"
+      />
+      <div>
+        <h1>{{ settings.escuela || '📈 Sistema de Reportes' }}</h1>
+        <p class="muted">
+          {{ settings.direccion || 'Gestiona y da seguimiento a reportes estudiantiles.' }}
+        </p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn ghost" (click)="recargarDatos()" [disabled]="cargando">
+        🔄 {{ cargando ? 'Cargando...' : 'Recargar' }}
+      </button>
+      <button class="btn ghost" (click)="exportarReportes()">📊 Exportar CSV</button>
+      <button class="btn ghost" (click)="debugInfo()">🐛 Debug</button>
+    </div>
+  </header>
+
+  <!-- ======= Panel de Encabezado (configurable y persistente) ======= -->
+  <div class="panel">
+    <div class="panel-title-row">
+      <h2>Encabezado del Reporte</h2>
+      <div class="right">
+        <span class="folio-pill">Folio actual: <b>{{ folioEtiquetaSimple() }}</b></span>
+        <button class="btn tiny" (click)="guardarSettings()">💾 Guardar encabezado</button>
+        <button class="btn tiny danger" (click)="reiniciarFolio()">↺ Reiniciar folio</button>
+      </div>
+    </div>
+
+    <div class="grid grid-encabezado">
+      <div class="col full-sm">
+        <label>Nombre de la escuela</label>
+        <input type="text" [(ngModel)]="settings.escuela" placeholder="COLEGIO NUEVOS HORIZONTES" />
+      </div>
+
+      <div class="col full-sm">
+        <label>Dirección</label>
+        <input type="text" [(ngModel)]="settings.direccion" placeholder="Calle, Colonia, C.P." />
+      </div>
+
+      <div class="col">
+        <label>Teléfono</label>
+        <input type="text" [(ngModel)]="settings.telefono" placeholder="(000) 000 00 00" />
+      </div>
+
+      <div class="col">
+        <label>Maestro(a) que firma</label>
+        <input type="text" [(ngModel)]="settings.maestro" placeholder="Nombre del maestro(a)" />
+      </div>
+
+      <div class="col">
+        <label>Grupo / Grado</label>
+        <input type="text" [(ngModel)]="settings.grupo" placeholder="3° A" />
+      </div>
+
+      <div class="col">
+        <label>Fecha de cita (opcional)</label>
+        <input type="date" [(ngModel)]="settings.citaFecha" />
+      </div>
+
+      <div class="col">
+        <label>Hora de cita (opcional)</label>
+        <input type="time" [(ngModel)]="settings.citaHora" />
+      </div>
+
+      <div class="col full-sm">
+        <label>Logo del colegio</label>
+        <div class="logo-uploader">
+          <input type="file" accept="image/*" (change)="onLogoSelected($event)" />
+          <span *ngIf="logoSubiendo" class="muted">Subiendo logo…</span>
+          <img
+            *ngIf="settings.logoUrl && !logoSubiendo"
+            [src]="'http://localhost:3000/' + settings.logoUrl"
+            class="logo-preview"
+            alt="Preview logo"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= Resumen (KPIs) ======= -->
+  <div class="cards">
+    <div class="card">
+      <div class="kpi">{{ obtenerTotalReportes() }}</div>
+      <div class="kpi-title">Total</div>
+    </div>
+    <div class="card">
+      <div class="kpi">{{ obtenerCantidadPendientes() }}</div>
+      <div class="kpi-title">Pendientes</div>
+    </div>
+    <div class="card">
+      <div class="kpi">{{ obtenerCantidadResueltos() }}</div>
+      <div class="kpi-title">Resueltos</div>
+    </div>
+    <div class="card">
+      <div class="kpi">{{ obtenerCantidadAltaPrioridad() }}</div>
+      <div class="kpi-title">Alta Prioridad</div>
+    </div>
+  </div>
+
+  <!-- ======= Crear Nuevo Reporte ======= -->
+  <div class="panel">
+    <h2>Crear Nuevo Reporte</h2>
+    <div class="grid">
+      <div>
+        <label>Tipo de Reporte</label>
+        <select [(ngModel)]="nuevoReporte.tipo">
+          <option value="">Selecciona un tipo</option>
+          <option *ngFor="let t of tiposReporte" [value]="t.valor">{{ t.nombre }}</option>
+        </select>
+      </div>
+      <div>
+        <label>Estudiante</label>
+        <select [(ngModel)]="nuevoReporte.estudianteId">
+          <option [value]="0">Selecciona un estudiante</option>
+          <option *ngFor="let e of estudiantes" [value]="e.id">{{ e.nombre }}</option>
+        </select>
+      </div>
+      <div>
+        <label>Prioridad</label>
+        <select [(ngModel)]="nuevoReporte.prioridad">
+          <option *ngFor="let p of nivelesPrioridad" [value]="p.valor">{{ p.nombre }}</option>
+        </select>
+      </div>
+      <div class="full">
+        <label>Motivo</label>
+        <input type="text" [(ngModel)]="nuevoReporte.motivo" placeholder="Motivo breve" />
+      </div>
+      <div class="full">
+        <label>Descripción detallada</label>
+        <textarea rows="3" [(ngModel)]="nuevoReporte.descripcion" placeholder="Describe la situación..."></textarea>
+      </div>
+      <div class="actions full">
+        <button class="btn ghost" type="button" (click)="limpiarFormulario()">🧹 Limpiar</button>
+        <button class="btn primary" type="button" [disabled]="guardando" (click)="crearReporte()">
+          💾 {{ guardando ? 'Creando...' : 'Crear Reporte' }}
+        </button>
+        <button class="btn" type="button" (click)="exportarWordDesdeFormulario()">📝 Exportar Word</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= Filtros ======= -->
+  <div class="filters">
+    <div>
+      <label>Tipo</label>
+      <select [(ngModel)]="filtroTipo">
+        <option value="todos">Todos</option>
+        <option *ngFor="let t of tiposReporte" [value]="t.valor">{{ t.nombre }}</option>
+      </select>
+    </div>
+    <div>
+      <label>Estado</label>
+      <select [(ngModel)]="filtroEstado">
+        <option value="todos">Todos</option>
+        <option *ngFor="let e of estadosReporte" [value]="e.valor">{{ e.nombre }}</option>
+      </select>
+    </div>
+    <div>
+      <label>Prioridad</label>
+      <select [(ngModel)]="filtroPrioridad">
+        <option value="todos">Todas</option>
+        <option *ngFor="let p of nivelesPrioridad" [value]="p.valor">{{ p.nombre }}</option>
+      </select>
+    </div>
+    <div>
+      <label>Estudiante</label>
+      <select [(ngModel)]="filtroEstudiante">
+        <option [value]="0">Todos</option>
+        <option *ngFor="let e of estudiantes" [value]="e.id">{{ e.nombre }}</option>
+      </select>
+    </div>
+    <div>
+      <label>&nbsp;</label>
+      <button class="btn tiny ghost" (click)="limpiarFiltros()">🧹 Limpiar Filtros</button>
+    </div>
+  </div>
+
+  <!-- ======= Lista de Reportes ======= -->
+  <div class="list">
+    <div *ngIf="cargando" class="cargando">
+      <p>📥 Cargando reportes...</p>
+    </div>
+
+    <article class="card row" *ngFor="let r of filtrados()">
+      <div class="avatar">{{ nombreEstudiante(r.estudianteId) | slice:0:1 }}</div>
+
+      <div class="info">
+        <h3>{{ nombreEstudiante(r.estudianteId) }}</h3>
+        <p class="muted">{{ iconoTipo(r.tipo) }} {{ r.motivo }}</p>
+        <p>{{ r.descripcion }}</p>
+        <small class="muted">{{ fechaBonita(r.fecha) }}</small>
+      </div>
+
+      <div class="chips">
+        <span class="chip" 
+              [class.orange]="r.estado==='pendiente'" 
+              [class.blue]="r.estado==='revisado'" 
+              [class.green]="r.estado==='resuelto'">
+          {{ r.estado | titlecase }}
+        </span>
+        <span class="chip" 
+              [class.red]="r.prioridad==='alta'" 
+              [class.orange]="r.prioridad==='media'" 
+              [class.green]="r.prioridad==='baja'">
+          {{ r.prioridad | titlecase }}
+        </span>
+        <span class="chip gray">{{ iconoTipo(r.tipo) }} {{ obtenerNombreTipo(r.tipo) }}</span>
+      </div>
+
+      <div class="actions">
+        <button class="btn tiny" (click)="cambiarEstado(r,'revisado')" 
+                [disabled]="r.estado === 'revisado'">👁️ Revisado</button>
+        <button class="btn tiny" (click)="cambiarEstado(r,'resuelto')" 
+                [disabled]="r.estado === 'resuelto'">✅ Resuelto</button>
+        <button class="btn tiny" (click)="exportarWord(r)">📝 Word</button>
+        <button class="btn tiny danger" (click)="eliminar(r)">🗑️ Eliminar</button>
+      </div>
+    </article>
+
+    <p *ngIf="!cargando && !filtrados().length" class="muted">
+      {{ reportes.length === 0 ? 'No hay reportes registrados.' : 'No hay reportes que coincidan con los filtros.' }}
+    </p>
+  </div>
+</section>

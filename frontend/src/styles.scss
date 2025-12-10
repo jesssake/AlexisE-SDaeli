@@ -1,0 +1,538 @@
+/* ─────────────────────────────────────────────
+   BASE GLOBAL (limpio y consistente)
+   ───────────────────────────────────────────── */
+:root {
+  --color-primario: #F4A8A0;
+  --color-secundario: #5DA8E8;
+  --color-terciario: #F7B578;
+  --color-acento:   #FFEA80;
+  --color-texto:    #1A1A40;
+  --color-blanco:   #FFFFFF;
+  --color-sombra:   rgba(0, 0, 0, 0.15);
+  --color-exito:    #2A9D8F;
+  --color-error:    #E63946;
+
+  --app-bg: #f6f8fb;         /* fondo por defecto de la app */
+  --surface: #ffffff;
+
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 8px;
+  --transition-fast: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}
+
+/* Tema oscuro global opcional (.dark en body) */
+.dark {
+  --app-bg: #0b0f14;
+  --surface: #0f1623;
+  --color-texto: #e5e7eb;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: 'Baloo 2', cursive;
+  color: var(--color-texto);
+  min-height: 100vh;
+
+  /* 🔹 Fondo global con tu imagen */
+  background:
+    linear-gradient(
+      135deg,
+      rgba(244, 168, 160, 0.4),
+      rgba(93, 168, 232, 0.4),
+      rgba(247, 181, 120, 0.4)
+    ),
+    url('https://res.cloudinary.com/ds757fmhk/image/upload/v1762290966/7c29043c-eaa1-4b0d-bb51-7943e794f444_gxzyay.jpg')
+      center center / cover no-repeat fixed;
+}
+
+/* Asegura que el primer contenedor ocupe toda la pantalla
+   SOLO PARA VISTAS GENERALES (no login, no estudiante) */
+body:not(.login-page):not(.estudiante-page) app-root,
+body:not(.login-page):not(.estudiante-page) router-outlet + * {
+  min-height: 100dvh;
+  /* ❌ antes: background: var(--app-bg); */
+  background: transparent;  /* ✅ deja ver la imagen del body */
+}
+
+/* Utilidades comunes */
+.card,
+.panel,
+.box {
+  background: var(--surface);
+}
+
+/* ─────────────────────────────────────────────
+   FONDO DECORATIVO “FANCY” REUTILIZABLE (opcional)
+   ───────────────────────────────────────────── */
+.bg-hero {
+  position: relative;
+  min-height: 100vh;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(244, 168, 160, 0.4),
+      rgba(93, 168, 232, 0.4),
+      rgba(247, 181, 120, 0.4)
+    ),
+    url('https://res.cloudinary.com/ds757fmhk/image/upload/v1762290966/7c29043c-eaa1-4b0d-bb51-7943e794f444_gxzyay.jpg')
+      no-repeat center center fixed;
+  background-size: cover, cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  animation: backgroundPulse 15s ease infinite;
+}
+
+@keyframes backgroundPulse {
+  0%,
+  100% {
+    background-position: 0% 50%, center center;
+  }
+  50% {
+    background-position: 100% 50%, center calc(50% + 20px);
+  }
+}
+
+/* Burbujas SOLO dentro del fondo fancy */
+.bg-hero .bubble-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.bg-hero .bubble {
+  position: absolute;
+  background: radial-gradient(
+    circle,
+    rgba(255, 234, 128, 0.6),
+    rgba(255, 234, 128, 0.3),
+    transparent 70%
+  );
+  border-radius: 50%;
+  box-shadow:
+    0 0 20px rgba(255, 234, 128, 0.4),
+    inset 0 0 20px rgba(255, 255, 255, 0.2);
+  animation: floatBubble 15s ease-in-out infinite;
+  filter: blur(1px);
+}
+
+.bg-hero .bubble:nth-child(1) {
+  width: 80px;
+  height: 80px;
+  left: 10%;
+  top: 15%;
+  animation-delay: 0s;
+  background: radial-gradient(circle, rgba(93, 168, 232, 0.5), transparent 70%);
+}
+.bg-hero .bubble:nth-child(2) {
+  width: 60px;
+  height: 60px;
+  left: 25%;
+  top: 60%;
+  animation-delay: 2s;
+  background: radial-gradient(circle, rgba(244, 168, 160, 0.5), transparent 70%);
+}
+.bg-hero .bubble:nth-child(3) {
+  width: 100px;
+  height: 100px;
+  left: 50%;
+  top: 25%;
+  animation-delay: 4s;
+  background: radial-gradient(circle, rgba(255, 234, 128, 0.6), transparent 70%);
+}
+.bg-hero .bubble:nth-child(4) {
+  width: 70px;
+  height: 70px;
+  left: 70%;
+  top: 65%;
+  animation-delay: 6s;
+  background: radial-gradient(circle, rgba(247, 181, 120, 0.5), transparent 70%);
+}
+.bg-hero .bubble:nth-child(5) {
+  width: 90px;
+  height: 90px;
+  left: 85%;
+  top: 20%;
+  animation-delay: 8s;
+  background: radial-gradient(circle, rgba(42, 157, 143, 0.4), transparent 70%);
+}
+
+@keyframes floatBubble {
+  0%,
+  100% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0.6;
+  }
+  25% {
+    transform: translateY(-40px) translateX(20px) scale(1.05);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateY(-80px) translateX(-10px) scale(1.1);
+    opacity: 0.7;
+  }
+  75% {
+    transform: translateY(-40px) translateX(-20px) scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+/* ─────────────────────────────────────────────
+   COMPONENTES REUTILIZABLES
+   ───────────────────────────────────────────── */
+.container {
+  width: 100%;
+  max-width: 440px;
+  perspective: 1000px;
+  position: relative;
+  z-index: 2;
+}
+.card-flipper {
+  position: relative;
+  width: 100%;
+  transition: transform var(--transition-slow);
+  transform-style: preserve-3d;
+  animation: cardEntrance 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes cardEntrance {
+  0% {
+    transform: translateY(50px) rotateX(-10deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) rotateX(0deg);
+    opacity: 1;
+  }
+}
+
+.card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+  backdrop-filter: blur(20px);
+  border: 3px solid;
+  border-image: linear-gradient(
+      135deg,
+      var(--color-primario),
+      var(--color-secundario),
+      var(--color-acento)
+    )
+    1;
+  border-radius: var(--radius-lg);
+  padding: 40px 32px;
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.1),
+    0 0 60px rgba(255, 234, 128, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  text-align: center;
+  backface-visibility: hidden;
+  transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--color-primario),
+    var(--color-secundario),
+    var(--color-acento)
+  );
+}
+.card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.15),
+    0 0 80px rgba(255, 234, 128, 0.3);
+}
+
+.card-header {
+  margin-bottom: 32px;
+}
+.card-header h1,
+.card-header h2 {
+  font-family: 'Dancing Script', cursive;
+  font-size: 3rem;
+  background: linear-gradient(135deg, var(--color-secundario), var(--color-primario));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+.card-header p {
+  font-size: 1.4rem;
+  opacity: 0.8;
+}
+
+.form-group {
+  margin-bottom: 24px;
+  text-align: left;
+  position: relative;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+}
+
+.input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid transparent;
+  transition: all var(--transition-fast);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+.input-container:focus-within {
+  border-color: var(--color-acento);
+  box-shadow:
+    0 4px 16px rgba(255, 234, 128, 0.3),
+    0 0 0 3px rgba(255, 234, 128, 0.1);
+  transform: translateY(-2px);
+}
+.input-container input,
+.input-container select,
+.input-container textarea {
+  width: 100%;
+  padding: 14px 20px 14px 50px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-size: 1.1rem;
+  color: var(--color-texto);
+  transition: all var(--transition-fast);
+}
+.input-container input:focus,
+.input-container select:focus,
+.input-container textarea:focus {
+  outline: none;
+}
+.input-container i {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-secundario);
+  font-size: 1.3rem;
+  transition: all var(--transition-fast);
+  z-index: 2;
+}
+.input-container:focus-within i {
+  color: var(--color-acento);
+  transform: translateY(-50%) scale(1.2);
+}
+
+.btn {
+  padding: 14px 40px;
+  border: none;
+  border-radius: 50px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-fast);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-primario), var(--color-secundario));
+  color: var(--color-blanco);
+  box-shadow:
+    0 8px 20px rgba(93, 168, 232, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow:
+    0 12px 25px rgba(93, 168, 232, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.btn-primary:active {
+  transform: translateY(-1px) scale(1.02);
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--color-secundario);
+  border: 2px solid var(--color-secundario);
+  box-shadow: 0 4px 12px rgba(93, 168, 232, 0.2);
+}
+.btn-secondary:hover {
+  background: var(--color-secundario);
+  color: var(--color-blanco);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(93, 168, 232, 0.3);
+}
+
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    max-width: 100%;
+    padding: 12px;
+  }
+  .card {
+    padding: 32px 24px;
+    border-radius: var(--radius-md);
+  }
+  .card-header h1,
+  .card-header h2 {
+    font-size: 2.5rem;
+  }
+  .card-header p {
+    font-size: 1.2rem;
+  }
+  .input-container input,
+  .input-container select,
+  .input-container textarea {
+    padding: 12px 16px 12px 44px;
+    font-size: 1rem;
+  }
+  .input-container i {
+    font-size: 1.1rem;
+    left: 14px;
+  }
+  .btn {
+    padding: 12px 32px;
+    font-size: 1.1rem;
+  }
+}
+@media (max-width: 480px) {
+  .card {
+    padding: 24px 20px;
+  }
+  .card-header h1,
+  .card-header h2 {
+    font-size: 2.2rem;
+  }
+  .card-header p {
+    font-size: 1.1rem;
+  }
+  .input-container input,
+  .input-container select,
+  .input-container textarea {
+    padding: 10px 14px;
+  }
+  .btn {
+    padding: 10px 28px;
+    font-size: 1rem;
+  }
+}
+
+/* ─────────────────────────────────────────────
+   SOLO LOGIN CON IMAGEN DE FONDO
+   (body.login-page)
+   ───────────────────────────────────────────── */
+body.login-page {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(244, 168, 160, 0.4),
+      rgba(93, 168, 232, 0.4),
+      rgba(247, 181, 120, 0.4)
+    ),
+    url('https://res.cloudinary.com/ds757fmhk/image/upload/v1762290966/7c29043c-eaa1-4b0d-bb51-7943e794f444_gxzyay.jpg')
+      center center / cover no-repeat fixed !important;
+}
+
+/* En modo oscuro, conserva la imagen y oscurece ligeramente */
+body.dark.login-page,
+body.dark-mode.login-page {
+  background:
+    linear-gradient(135deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
+    url('https://res.cloudinary.com/ds757fmhk/image/upload/v1762290966/7c29043c-eaa1-4b0d-bb51-7943e794f444_gxzyay.jpg')
+      center center / cover no-repeat fixed !important;
+}
+
+/* Evita que layouts tapen el fondo del login */
+body.login-page .layout,
+body.login-page .maestro-container,
+body.login-page app-root,
+body.login-page router-outlet + * {
+  background: transparent !important;
+}
+
+/* ─────────────────────────────────────────────
+   SOLO MENÚ ESTUDIANTES CON OTRA IMAGEN DE FONDO
+   (body.estudiante-page)
+   ───────────────────────────────────────────── */
+body.estudiante-page {
+  /* Ajusta variables para tema oscuro del estudiante */
+  --app-bg: #020617;
+  --surface: rgba(15, 23, 42, 0.92);
+  --color-texto: #e5e7eb;
+
+  background:
+    radial-gradient(1200px 600px at 20% 0%, rgba(56, 189, 248, 0.25), transparent 65%),
+    radial-gradient(1000px 600px at 80% 100%, rgba(244, 114, 182, 0.22), transparent 65%),
+    url('https://res.cloudinary.com/ds757fmhk/image/upload/v1762708310/unnamed_2_me7fik.jpg')
+      center center / cover no-repeat fixed !important;
+
+  color: var(--color-texto);
+}
+
+/* Que nada le ponga “sábana” encima en el layout de estudiante */
+body.estudiante-page .layout,
+body.estudiante-page .maestro-container,
+body.estudiante-page app-root,
+body.estudiante-page router-outlet + * {
+  background: transparent !important;
+}
+
+/* Parche para wrappers típicos que generan fondo sólido
+   (tareas, dashboard, reportes, etc. del alumno) */
+body.estudiante-page .wrap,
+body.estudiante-page .wrapper,
+body.estudiante-page [class*='wrapper'],
+body.estudiante-page [class*='-wrapper'],
+body.estudiante-page .tareas-wrapper,
+body.estudiante-page .dashboard-wrapper {
+  background: transparent !important;
+}
+
+/* PARCHE GLOBAL: elimina capas del layout */
+.layout::before {
+  content: none !important;
+  background: transparent !important;
+}
+.layout {
+  background: transparent !important;
+}

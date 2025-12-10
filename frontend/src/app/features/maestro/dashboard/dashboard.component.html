@@ -1,0 +1,328 @@
+<div class="dashboard formal-theme">
+  <!-- ========== TOPBAR ========== -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">🎓</div>
+      <div class="titles">
+        <h1>Panel del Maestro</h1>
+        <p>Gestión académica y avisos</p>
+      </div>
+    </div>
+
+    <div class="now">
+      <div class="time">{{ fechaActual.hora }}</div>
+      <div class="date">
+        {{ fechaActual.dia }} · {{ fechaActual.mes }} {{ fechaActual.anio }}
+      </div>
+    </div>
+  </header>
+
+  <!-- ========== ACCESOS RÁPIDOS ========== -->
+  <section class="quickgrid">
+    <!-- Alumnos -->
+    <button class="tile" (click)="navigateTo('/maestro/estudiantes')">
+      <div class="tile-icon alumnos-icon">👨‍🏫</div>
+      <div class="tile-text">
+        <div class="title">Alumnos</div>
+        <div class="sub">Estudiantes</div>
+      </div>
+    </button>
+
+    <!-- Calificaciones (antes Grupos) -->
+    <button class="tile" (click)="navigateTo('/maestro/calificaciones')">
+      <div class="tile-icon calificaciones-icon">📊</div>
+      <div class="tile-text">
+        <div class="title">Calificaciones</div>
+        <div class="sub">Gestiona tus calificaciones</div>
+      </div>
+    </button>
+
+    <!-- Asistencias -->
+    <button class="tile" (click)="navigateTo('/maestro/asistencia')">
+      <div class="tile-icon asistencias-icon">📅</div>
+      <div class="tile-text">
+        <div class="title">Asistencias</div>
+        <div class="sub">Pase de lista</div>
+      </div>
+    </button>
+
+    <!-- Avisos -->
+    <button class="tile" (click)="cargarTodosLosAvisos()">
+      <div class="tile-icon avisos-icon">📢</div>
+      <div class="tile-text">
+        <div class="title">Avisos</div>
+        <div class="sub">Crear, activar, ocultar</div>
+      </div>
+    </button>
+  </section>
+
+  <!-- ========== PANEL DE AVISOS VISIBLES ========== -->
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Últimos avisos</h2>
+
+      <div class="panel-actions">
+        <button class="btn ghost" (click)="cargarAvisos()">↻ Actualizar</button>
+        <button class="btn primary" (click)="cargarTodosLosAvisos()">
+          ⚙️ Gestionar
+        </button>
+      </div>
+    </div>
+
+    <div class="status" *ngIf="loadingAvisos || errorAvisos">
+      <span *ngIf="loadingAvisos">Cargando avisos…</span>
+      <span *ngIf="errorAvisos" class="bad">⚠ {{ errorAvisos }}</span>
+    </div>
+
+    <div class="cards">
+      <!-- Tarjeta de aviso -->
+      <article
+        class="card card-formal"
+        *ngFor="let a of avisos"
+        [class.muted]="!a.activo"
+      >
+        <header>
+          <h3>{{ a.titulo }}</h3>
+          <span class="badge" [class.ok]="a.activo" [class.off]="!a.activo">
+            {{ a.activo ? 'Activo' : 'Oculto' }}
+          </span>
+        </header>
+
+        <p class="content">{{ a.contenido }}</p>
+
+        <footer>
+          <span class="chip" [attr.data-level]="a.prioridad">
+            Prioridad: {{ a.prioridad || 'media' }}
+          </span>
+          <span class="meta" *ngIf="a.fecha_creacion">
+            Publicado: {{ a.fecha_creacion | date: 'short' }}
+          </span>
+        </footer>
+      </article>
+
+      <!-- Vacío -->
+      <div
+        class="empty"
+        *ngIf="!loadingAvisos && (!avisos || avisos.length === 0)"
+      >
+        <div class="emoji">🗒️</div>
+        <p>No hay avisos visibles aún.</p>
+        <button class="btn primary" (click)="cargarTodosLosAvisos()">
+          Gestionar avisos
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== MODAL: GESTIÓN DE AVISOS ========== -->
+  <div class="overlay" *ngIf="mostrarGestionAvisos" (click)="cerrarGestionAvisos()">
+    <div class="modal xl" (click)="$event.stopPropagation()">
+      <header class="modal-head">
+        <h3>🧭 Gestión de Avisos</h3>
+        <button class="x" (click)="cerrarGestionAvisos()">×</button>
+      </header>
+
+      <!-- Toolbar superior -->
+      <div class="toolbar">
+        <div class="left">
+          <button class="btn ghost" (click)="seleccionarTodos()">Seleccionar todo</button>
+          <button class="btn ghost" (click)="deseleccionarTodos()">Quitar selección</button>
+          <button
+            class="btn ghost"
+            (click)="mostrarAvisosSeleccionados()"
+            [disabled]="avisosSeleccionados.size === 0"
+          >
+            Ver seleccionados ({{ avisosSeleccionados.size }})
+          </button>
+        </div>
+
+        <div class="right">
+          <div class="search">
+            <span>🔎</span>
+            <input
+              type="search"
+              placeholder="Buscar por título…"
+              [(ngModel)]="busquedaAvisos"
+              (ngModelChange)="filtrarAvisos()"
+            />
+          </div>
+          <button class="btn primary" (click)="agregarAviso()">+ Nuevo aviso</button>
+        </div>
+      </div>
+
+      <!-- Data grid -->
+      <div class="datagrid">
+        <!-- Cabecera -->
+        <div class="dg-head">
+          <div class="dg-c c-check">
+            <input
+              type="checkbox"
+              [checked]="
+                todosLosAvisos &&
+                todosLosAvisos.length > 0 &&
+                avisosSeleccionados.size === todosLosAvisos.length
+              "
+              (change)="onToggleMaster($event)"
+            />
+          </div>
+          <div class="dg-c">Título</div>
+          <div class="dg-c">Prioridad</div>
+          <div class="dg-c">Estado</div>
+          <div class="dg-c c-actions">Acciones</div>
+        </div>
+
+        <!-- Filas -->
+        <div
+          class="dg-row"
+          *ngFor="let a of (todosLosAvisosFiltrados || todosLosAvisos)"
+          [class.selected]="avisosSeleccionados.has(a.id)"
+          (click)="toggleSeleccionAviso(a.id)"
+        >
+          <div class="dg-c c-check">
+            <input type="checkbox" [checked]="avisosSeleccionados.has(a.id)" />
+          </div>
+
+          <div class="dg-c">
+            <div class="title">{{ a.titulo }}</div>
+            <div class="subtitle">
+              {{ a.contenido | slice: 0 : 80 }}{{ (a.contenido || '').length > 80 ? '…' : '' }}
+            </div>
+          </div>
+
+          <div class="dg-c">
+            <span
+              class="pill"
+              [class.p-high]="a.prioridad === 'alta'"
+              [class.p-mid]="a.prioridad === 'media'"
+              [class.p-low]="a.prioridad === 'baja'"
+            >
+              ● {{ a.prioridad || 'media' }}
+            </span>
+          </div>
+
+          <div class="dg-c">
+            <span class="badge" [class.ok]="a.activo" [class.off]="!a.activo">
+              {{ a.activo ? 'Activo' : 'Oculto' }}
+            </span>
+          </div>
+
+          <div class="dg-c c-actions" (click)="$event.stopPropagation()">
+            <button class="btn ghost sm" (click)="editarAviso(a)">Editar</button>
+            <button class="btn ghost sm" (click)="toggleAviso(a)">
+              {{ a.activo ? 'Ocultar' : 'Activar' }}
+            </button>
+            <button class="btn ghost sm danger" (click)="eliminarAviso(a.id)">
+              Eliminar
+            </button>
+          </div>
+        </div>
+
+        <!-- Vacío -->
+        <div
+          class="dg-empty"
+          *ngIf="(todosLosAvisosFiltrados || todosLosAvisos)?.length === 0"
+        >
+          <div class="emoji">📭</div>
+          <p>Sin resultados.</p>
+        </div>
+      </div>
+
+      <!-- Footer modal -->
+      <footer class="modal-actions">
+        <button class="btn ghost" (click)="cerrarGestionAvisos()">Cerrar</button>
+        <button class="btn primary" (click)="aplicarSeleccion()">
+          Aplicar selección (toggle)
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ========== MODAL CREAR / EDITAR AVISO ========== -->
+  <div class="overlay" *ngIf="mostrarModalAviso" (click)="cerrarModalAviso()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <header class="modal-head">
+        <h3>{{ editandoAviso ? 'Editar aviso' : 'Nuevo aviso' }}</h3>
+        <button class="x" (click)="cerrarModalAviso()">×</button>
+      </header>
+
+      <form class="form-grid" (ngSubmit)="guardarAviso()" #avisoForm="ngForm">
+        <!-- Título -->
+        <label class="field">
+          <span class="label">Título</span>
+          <input
+            type="text"
+            name="titulo"
+            [(ngModel)]="avisoEditando!.titulo"
+            required
+          />
+        </label>
+
+        <!-- Prioridad -->
+        <label class="field">
+          <span class="label">Prioridad</span>
+          <select name="prioridad" [(ngModel)]="avisoEditando!.prioridad">
+            <option value="alta">Alta</option>
+            <option value="media">Media</option>
+            <option value="baja">Baja</option>
+          </select>
+        </label>
+
+        <!-- Contenido -->
+        <label class="field field-full">
+          <span class="label">Contenido</span>
+          <textarea
+            rows="5"
+            name="contenido"
+            [(ngModel)]="avisoEditando!.contenido"
+            required
+          ></textarea>
+        </label>
+
+        <!-- Activo -->
+        <div class="field switch-wrap">
+          <span class="label">Activo</span>
+          <label class="switch">
+            <input
+              type="checkbox"
+              name="activo"
+              [(ngModel)]="avisoEditando!.activo"
+            />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- Acciones -->
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn ghost"
+            (click)="cerrarModalAviso()"
+          >
+            Cancelar
+          </button>
+          <button type="submit" class="btn primary">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========== POPUP ÉXITO (APLICAR SELECCIÓN) ========== -->
+  <div class="success-popup-backdrop" *ngIf="mostrarPopupExito">
+    <div class="success-popup">
+      <div class="success-popup__icon">✅</div>
+
+      <div class="success-popup__text">
+        <h4>Éxito</h4>
+        <p>Anuncio(s) aplicado(s) correctamente.</p>
+      </div>
+
+      <button
+        type="button"
+        class="success-popup__btn"
+        (click)="cerrarPopupExito()"
+      >
+        Entendido
+      </button>
+    </div>
+  </div>
+</div>

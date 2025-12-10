@@ -1,0 +1,36 @@
+﻿<!-- src/index.html -->
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>GestionEducativa</title>
+
+  <!-- En desarrollo siempre raíz. 
+       En producción (GitHub Pages) el baseHref se inyecta desde angular.json: "/AlexisE-SDaeli/" -->
+  <base href="/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b1220" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+  <!-- (Opcional) Redirigir siempre al login respetando el <base> actual -->
+  <script>
+    (function () {
+      try {
+        var base = (document.querySelector('base')?.getAttribute('href') || '/').replace(/\/+$/, '/') ;
+        var loginPath = base + 'auth/login';
+        // Si no estamos ya en /auth/* dentro del base actual, redirige al login
+        if (!location.pathname.startsWith(new URL(loginPath, location.origin).pathname)) {
+          // Limpieza opcional (comenta si no quieres "logout" duro):
+          // localStorage.clear(); sessionStorage.clear();
+          location.replace(loginPath);
+        }
+      } catch (_) { /* no-op */ }
+    })();
+  </script>
+</head>
+<body>
+  <noscript>Necesitas habilitar JavaScript para usar esta aplicación.</noscript>
+  <app-root></app-root>
+</body>
+</html>

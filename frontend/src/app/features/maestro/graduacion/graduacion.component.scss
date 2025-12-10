@@ -1,0 +1,317 @@
+﻿/* ===================================================================
+   CONTENEDOR GENERAL
+=================================================================== */
+.graduacion-wrapper {
+  padding: 30px;
+  width: 100%;
+  color: #2b2b3c;
+  font-family: "Poppins", sans-serif;
+}
+
+/* ===================================================================
+   TÍTULOS Y CABECERA
+=================================================================== */
+.header {
+  margin-bottom: 20px;
+
+  h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  p {
+    margin-top: 4px;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .header-actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 12px;
+  }
+}
+
+/* ===================================================================
+   BOTONES GENERALES
+=================================================================== */
+.btn-primary {
+  background: linear-gradient(90deg, #ff9800, #ffb84d);
+  border: none;
+  padding: 10px 20px;
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+  }
+}
+
+.btn-secondary {
+  background: #eaf0ff;
+  border: 1px solid #c2d4ff;
+  padding: 10px 20px;
+  color: #3555d1;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+
+  &:hover {
+    background: #d8e4ff;
+  }
+}
+
+.btn-mini {
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  border: none;
+  background: #ddd;
+  margin-right: 4px;
+  transition: 0.2s;
+
+  &:hover {
+    filter: brightness(0.9);
+  }
+
+  &.verde {
+    background: #caffcf;
+    color: #1a8d20;
+  }
+
+  &.rojo {
+    background: #ffd6d6;
+    color: #c62828;
+  }
+}
+
+/* ===================================================================
+   TARJETAS DE ESTADÍSTICAS
+=================================================================== */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  margin-bottom: 25px;
+
+  .stat-card {
+    padding: 18px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #ffffff, #f4f7ff);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+    border: 1px solid #eef1ff;
+    text-align: center;
+
+    .label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #657;
+      margin-bottom: 4px;
+    }
+
+    .value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #222;
+    }
+  }
+}
+
+/* ===================================================================
+   FILTROS
+=================================================================== */
+.filtros {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 18px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
+  margin-bottom: 25px;
+
+  h3 {
+    margin: 0 0 12px;
+    font-weight: 700;
+    font-size: 18px;
+  }
+
+  .filtro-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+
+    .filtro-item {
+      display: flex;
+      flex-direction: column;
+
+      label {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+
+      select {
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid #ccd5ff;
+      }
+    }
+  }
+}
+
+/* ===================================================================
+   TABLA GENERAL
+=================================================================== */
+.tabla-card {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 18px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
+
+  h3 {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+
+    thead {
+      background: #f5f7ff;
+
+      th {
+        padding: 12px;
+        text-align: left;
+        font-size: 13px;
+        font-weight: 700;
+        color: #555;
+      }
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #eee;
+
+      td {
+        padding: 12px;
+        font-size: 13px;
+        vertical-align: middle;
+      }
+    }
+  }
+}
+
+.estado {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+
+  &.enviado {
+    background: #d4ffe0;
+    color: #0c6b1b;
+  }
+}
+
+/* ===================================================================
+   MODAL
+=================================================================== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(3px);
+  z-index: 2000;
+}
+
+.modal {
+  background: #fff;
+  width: 480px;
+  max-width: 95%;
+  border-radius: 18px;
+  padding: 20px 25px;
+  box-shadow: 0 10px 50px rgba(0,0,0,0.2);
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  .close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+
+    &:hover {
+      color: #d33;
+    }
+  }
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: -3px;
+  }
+
+  input,
+  select {
+    padding: 10px;
+    border: 1px solid #ccd5ff;
+    border-radius: 8px;
+  }
+}
+
+.img-preview {
+  width: 120px;
+  height: auto;
+  margin-top: 10px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+/* ===================================================================
+   FOOTER DEL MODAL
+=================================================================== */
+.modal-footer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* ===================================================================
+   ANIMACIÓN
+=================================================================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

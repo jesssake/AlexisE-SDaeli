@@ -1,0 +1,55 @@
+<section class="calif" [class.loading]="cargando">
+  <header class="top">
+    <div class="lh">
+      <h1>Mis Calificaciones</h1>
+      <p>Consulta tus notas por trimestre y tu promedio general.</p>
+    </div>
+    <div class="rh">
+      <button type="button" (click)="cargar()">Actualizar</button>
+    </div>
+  </header>
+
+  <div *ngIf="cargando" class="msg info">Cargando información de calificaciones…</div>
+  <div *ngIf="error && !cargando" class="msg error">{{ error }}</div>
+
+  <div class="kpis" *ngIf="!cargando && !error">
+    <div class="kpi">
+      <div class="kpi-title">Promedio Global</div>
+      <div class="kpi-value">{{ promedioGlobal ?? '—' }}</div>
+    </div>
+  </div>
+
+  <div class="trimestres" *ngIf="!cargando && !error">
+    <div class="trim" *ngFor="let t of trimestres">
+      <div class="trim-head">
+        <h2>{{ t.nombre }}</h2>
+        <div class="prom">Promedio: <strong>{{ t.promedio ?? '—' }}</strong></div>
+      </div>
+
+      <div class="tabla">
+        <div class="th">
+          <div>Tarea / Actividad</div>
+          <div>Fecha de Cierre</div>
+          <div>Calificación</div>
+        </div>
+
+        <div class="row" *ngFor="let x of t.tareas">
+          <div class="cell title">
+            <div class="titulo">{{ x.titulo }}</div>
+            <div class="sub" *ngIf="x.instrucciones">{{ x.instrucciones }}</div>
+          </div>
+          <div class="cell">{{ fmt(x.fecha_cierre) }}</div>
+          <div class="cell nota">{{ x.calificacion ?? '—' }}</div>
+        </div>
+
+        <div class="empty" *ngIf="t.tareas.length === 0">
+          Aún no tienes calificaciones en este trimestre.
+        </div>
+      </div>
+    </div>
+
+    <div class="empty" *ngIf="trimestres.length === 0">
+      No hay información de calificaciones disponible.
+    </div>
+  </div>
+</section>

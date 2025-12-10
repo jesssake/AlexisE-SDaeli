@@ -1,0 +1,519 @@
+<div class="container-fluid py-4">
+  <!-- ALERTAS -->
+  <div *ngIf="alerta.mostrar" class="alert alert-dismissible fade show mb-4" 
+       [class.alert-success]="alerta.tipo === 'success'"
+       [class.alert-danger]="alerta.tipo === 'error'"
+       [class.alert-warning]="alerta.tipo === 'warning'"
+       [class.alert-info]="alerta.tipo === 'info'">
+    <i class="fas"
+       [class.fa-check-circle]="alerta.tipo === 'success'"
+       [class.fa-exclamation-circle]="alerta.tipo === 'error'"
+       [class.fa-exclamation-triangle]="alerta.tipo === 'warning'"
+       [class.fa-info-circle]="alerta.tipo === 'info'"></i>
+    {{ alerta.mensaje }}
+    <button type="button" class="btn-close" (click)="alerta.mostrar = false"></button>
+  </div>
+
+  <!-- HEADER CON TÍTULO Y BOTONES -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+    <div class="mb-3 mb-md-0">
+      <h1 class="h3 mb-1 text-gray-800 fw-bold">
+        <i class="fas fa-graduation-cap text-primary me-2"></i>
+        Calificaciones
+      </h1>
+      <p class="text-muted mb-0">Gestión completa de calificaciones por estudiante</p>
+    </div>
+  
+      
+      <button class="btn btn-primary btn-sm" (click)="cargarCalificaciones()">
+        <i class="fas fa-sync-alt me-2"></i>Actualizar
+      </button>
+    </div>
+  </div>
+
+  <!-- TARJETAS DE RESUMEN -->
+  <div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-primary shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs fw-bold text-primary text-uppercase mb-1">
+                Total Estudiantes
+              </div>
+              <div class="h5 mb-0 fw-bold text-gray-800">{{ resumen.totalEstudiantes }}</div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-users fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-success shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs fw-bold text-success text-uppercase mb-1">
+                Promedio General
+              </div>
+              <div class="h5 mb-0 fw-bold text-gray-800">{{ formatNumber(resumen.promedioGeneral) }}</div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-info shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs fw-bold text-info text-uppercase mb-1">
+                Tareas Calificadas
+              </div>
+              <div class="h5 mb-0 fw-bold text-gray-800">{{ resumen.totalTareasCalificadas }}</div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-tasks fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-warning shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs fw-bold text-warning text-uppercase mb-1">
+                Total Materias
+              </div>
+              <div class="h5 mb-0 fw-bold text-gray-800">{{ resumen.totalMaterias }}</div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-book fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="card shadow mb-4 border-0">
+    <div class="card-header bg-gradient-primary text-white py-3 d-flex justify-content-between align-items-center">
+      <h6 class="m-0 font-weight-bold">
+        <i class="fas fa-filter me-2"></i>Filtros de Búsqueda
+      </h6>
+      <button class="btn btn-light btn-sm" (click)="toggleFiltrosAvanzados()">
+        <i class="fas fa-sliders-h me-2"></i>
+        {{ mostrarFiltrosAvanzados ? 'Ocultar' : 'Mostrar' }} Filtros Avanzados
+      </button>
+    </div>
+    <div class="card-body">
+      <!-- Filtros principales -->
+      <div class="row g-3 mb-3">
+        <div class="col-md-3">
+          <label class="form-label fw-semibold text-gray-700">
+            <i class="fas fa-search me-1"></i> Buscar Estudiante
+          </label>
+          <div class="input-group">
+            <span class="input-group-text bg-light">
+              <i class="fas fa-user text-primary"></i>
+            </span>
+            <input type="text" class="form-control" 
+                   [(ngModel)]="filtroBusqueda" 
+                   (ngModelChange)="actualizarBusqueda($event)"
+                   placeholder="Nombre del estudiante...">
+          </div>
+        </div>
+        
+        <div class="col-md-3">
+          <label class="form-label fw-semibold text-gray-700">
+            <i class="fas fa-book me-1"></i> Materia
+          </label>
+          <div class="input-group">
+            <span class="input-group-text bg-light">
+              <i class="fas fa-graduation-cap text-primary"></i>
+            </span>
+            <select class="form-control" [(ngModel)]="filtroMateria" (ngModelChange)="onMateriaChange($event)">
+              <option value="">Todas las materias</option>
+              <option *ngFor="let materia of materiasUnicas" [value]="materia">
+                {{ materia }}
+              </option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="col-md-3">
+          <label class="form-label fw-semibold text-gray-700">
+            <i class="fas fa-calendar-alt me-1"></i> Trimestre
+          </label>
+          <div class="input-group">
+            <span class="input-group-text bg-light">
+              <i class="fas fa-clock text-primary"></i>
+            </span>
+            <select class="form-control" [(ngModel)]="filtroTrimestre" (ngModelChange)="onTrimestreChange($event)">
+              <option value="">Todos los trimestres</option>
+              <option *ngFor="let trimestre of trimestresUnicos" [value]="trimestre">
+                {{ trimestre }}
+              </option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="col-md-3">
+          <label class="form-label fw-semibold text-gray-700">
+            <i class="fas fa-flag me-1"></i> Estado
+          </label>
+          <div class="input-group">
+            <span class="input-group-text bg-light">
+              <i class="fas fa-clipboard-check text-primary"></i>
+            </span>
+            <select class="form-control" [(ngModel)]="filtroEstado" (ngModelChange)="onEstadoChange($event)">
+              <option value="">Todos los estados</option>
+              <option value="Calificada">Calificada</option>
+              <option value="Entregada">Entregada</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="Sin tareas">Sin tareas</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Filtros activos -->
+      <div *ngIf="obtenerFiltrosActivos().length > 0" class="mb-3">
+        <div class="d-flex align-items-center mb-2">
+          <span class="text-muted small me-2">Filtros activos:</span>
+          <div class="d-flex flex-wrap gap-1">
+            <span *ngFor="let filtro of obtenerFiltrosActivos()" class="filter-chip">
+              {{ filtro }}
+              <i class="fas fa-times close-btn" (click)="removerFiltro(getTipoFiltro(filtro))"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Filtros avanzados -->
+      <div *ngIf="mostrarFiltrosAvanzados" class="border-top pt-3 mt-3">
+        <h6 class="mb-3 fw-semibold text-gray-700">
+          <i class="fas fa-sliders-h me-2"></i>Filtros Avanzados
+        </h6>
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label fw-semibold text-gray-700">
+              <i class="fas fa-star me-1"></i> Calificación Mínima
+            </label>
+            <input type="number" class="form-control" min="0" max="10" step="0.1"
+                   [(ngModel)]="filtroCalificacionMin" (ngModelChange)="onCalificacionMinChange($event)"
+                   placeholder="0">
+          </div>
+          
+          <div class="col-md-3">
+            <label class="form-label fw-semibold text-gray-700">
+              <i class="fas fa-star me-1"></i> Calificación Máxima
+            </label>
+            <input type="number" class="form-control" min="0" max="10" step="0.1"
+                   [(ngModel)]="filtroCalificacionMax" (ngModelChange)="onCalificacionMaxChange($event)"
+                   placeholder="10">
+          </div>
+          
+          <div class="col-md-3">
+            <label class="form-label fw-semibold text-gray-700">
+              <i class="fas fa-calendar-day me-1"></i> Desde
+            </label>
+            <input type="date" class="form-control"
+                   [(ngModel)]="filtroFechaDesde" (ngModelChange)="onFechaDesdeChange($event)">
+          </div>
+          
+          <div class="col-md-3">
+            <label class="form-label fw-semibold text-gray-700">
+              <i class="fas fa-calendar-day me-1"></i> Hasta
+            </label>
+            <input type="date" class="form-control"
+                   [(ngModel)]="filtroFechaHasta" (ngModelChange)="onFechaHastaChange($event)">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTROLES DE TABLA -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h5 class="mb-0">
+        <i class="fas fa-graduation-cap text-primary me-2"></i>
+        Lista de Calificaciones
+        <span class="badge bg-primary ms-2">{{ calificacionesFiltradasPlanas.length }}</span>
+      </h5>
+      <small class="text-muted">
+        Mostrando {{ (paginaActual - 1) * itemsPorPagina + 1 }} - 
+        {{ Math.min(paginaActual * itemsPorPagina, calificacionesFiltradasPlanas.length) }} 
+        de {{ calificacionesFiltradasPlanas.length }} registros
+      </small>
+    </div>
+    
+    <div class="d-flex align-items-center gap-2">
+      <!-- Selección múltiple -->
+      <div *ngIf="estudiantesSeleccionados.size > 0" class="me-3">
+        <span class="badge bg-warning">
+          <i class="fas fa-users me-1"></i>{{ estudiantesSeleccionados.size }} seleccionados
+        </span>
+        <button class="btn btn-sm btn-outline-danger ms-2" (click)="deseleccionarTodos()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <!-- Items por página -->
+      <div class="d-flex align-items-center">
+        <label class="form-label mb-0 me-2 small">Mostrar:</label>
+        <select class="form-select form-select-sm w-auto" 
+                [(ngModel)]="itemsPorPagina" 
+                (ngModelChange)="cambiarItemsPorPagina()">
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+      
+      <!-- Botón de seleccionar todos -->
+      <button class="btn btn-sm btn-outline-primary" (click)="seleccionarTodos()">
+        <i class="fas fa-check-double me-1"></i>Seleccionar Todos
+      </button>
+    </div>
+  </div>
+
+  <!-- MENSAJE DE CARGA -->
+  <div *ngIf="cargando" class="text-center py-5">
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-3 text-muted fw-semibold">Cargando calificaciones...</p>
+    <small class="text-muted">Por favor espere</small>
+  </div>
+
+  <!-- MENSAJE SIN DATOS -->
+  <div *ngIf="!cargando && calificacionesFiltradasPlanas.length === 0" class="text-center py-5">
+    <div class="mb-4">
+      <i class="fas fa-clipboard-list fa-4x text-gray-300"></i>
+    </div>
+    <h5 class="text-gray-500 mb-2">No hay calificaciones disponibles</h5>
+    <p class="text-muted mb-4">Intenta cambiar los filtros o cargar los datos nuevamente</p>
+    <button class="btn btn-primary btn-lg" (click)="cargarCalificaciones()">
+      <i class="fas fa-sync-alt me-2"></i>Cargar Calificaciones
+    </button>
+  </div>
+
+  <!-- VISTA DE TABLA -->
+  <div *ngIf="!cargando && calificacionesFiltradasPlanas.length > 0">
+    <div class="card shadow border-0">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="bg-light">
+              <tr>
+                <!-- Checkbox para selección -->
+                <th class="border-0" style="width: 40px;">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" 
+                           [checked]="estudiantesSeleccionados.size === calificacionesPaginaActual.length"
+                           (change)="estudiantesSeleccionados.size === calificacionesPaginaActual.length ? deseleccionarTodos() : seleccionarTodos()">
+                  </div>
+                </th>
+                
+                <th class="border-0">
+                  <i class="fas fa-hashtag me-1 text-primary"></i> ID
+                </th>
+                <th class="border-0 cursor-pointer" (click)="ordenarPor('alumno_nombre')">
+                  <i class="fas fa-user-graduate me-1 text-primary"></i> Estudiante
+                  <i class="fas ms-1" 
+                     [class.fa-sort]="columnaOrden !== 'alumno_nombre'"
+                     [class.fa-sort-up]="columnaOrden === 'alumno_nombre' && ordenAscendente"
+                     [class.fa-sort-down]="columnaOrden === 'alumno_nombre' && !ordenAscendente"></i>
+                </th>
+                <th class="border-0 cursor-pointer" (click)="ordenarPor('trimestre_nombre')">
+                  <i class="fas fa-calendar me-1 text-primary"></i> Trimestre
+                  <i class="fas ms-1" 
+                     [class.fa-sort]="columnaOrden !== 'trimestre_nombre'"
+                     [class.fa-sort-up]="columnaOrden === 'trimestre_nombre' && ordenAscendente"
+                     [class.fa-sort-down]="columnaOrden === 'trimestre_nombre' && !ordenAscendente"></i>
+                </th>
+                <th class="border-0 cursor-pointer" (click)="ordenarPor('materia_nombre')">
+                  <i class="fas fa-book me-1 text-primary"></i> Materia
+                  <i class="fas ms-1" 
+                     [class.fa-sort]="columnaOrden !== 'materia_nombre'"
+                     [class.fa-sort-up]="columnaOrden === 'materia_nombre' && ordenAscendente"
+                     [class.fa-sort-down]="columnaOrden === 'materia_nombre' && !ordenAscendente"></i>
+                </th>
+                <th class="border-0">
+                  <i class="fas fa-tasks me-1 text-primary"></i> Tarea
+                </th>
+                <th class="border-0 text-center cursor-pointer" (click)="ordenarPor('calificacion')">
+                  <i class="fas fa-star me-1 text-primary"></i> Calificación
+                  <i class="fas ms-1" 
+                     [class.fa-sort]="columnaOrden !== 'calificacion'"
+                     [class.fa-sort-up]="columnaOrden === 'calificacion' && ordenAscendente"
+                     [class.fa-sort-down]="columnaOrden === 'calificacion' && !ordenAscendente"></i>
+                </th>
+                <th class="border-0 text-center cursor-pointer" (click)="ordenarPor('estado_tarea')">
+                  <i class="fas fa-flag me-1 text-primary"></i> Estado
+                  <i class="fas ms-1" 
+                     [class.fa-sort]="columnaOrden !== 'estado_tarea'"
+                     [class.fa-sort-up]="columnaOrden === 'estado_tarea' && ordenAscendente"
+                     [class.fa-sort-down]="columnaOrden === 'estado_tarea' && !ordenAscendente"></i>
+                </th>
+                <th class="border-0 text-center">
+                  <i class="fas fa-chart-bar me-1 text-primary"></i> Promedio Materia
+                </th>
+                <th class="border-0 text-center cursor-pointer" (click)="ordenarPor('fecha_entrega')">
+                  <i class="fas fa-calendar-day me-1 text-primary"></i> Fecha
+                  <i class="fas ms-1" 
+                     [class.fa-sort]="columnaOrden !== 'fecha_entrega'"
+                     [class.fa-sort-up]="columnaOrden === 'fecha_entrega' && ordenAscendente"
+                     [class.fa-sort-down]="columnaOrden === 'fecha_entrega' && !ordenAscendente"></i>
+                </th>
+                <th class="border-0 text-center">
+                  <i class="fas fa-heart me-1 text-primary"></i> Favorito
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of calificacionesPaginaActual" class="align-middle"
+                  [class.table-active]="estudiantesSeleccionados.has(item.estudiante_id)">
+                <!-- Checkbox de selección -->
+                <td>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" 
+                           [checked]="estudiantesSeleccionados.has(item.estudiante_id)"
+                           (change)="toggleSeleccionEstudiante(item.estudiante_id)">
+                  </div>
+                </td>
+                
+                <td class="fw-semibold text-gray-700">
+                  <span class="badge bg-gray-100 text-gray-800 border">#{{ item.estudiante_id }}</span>
+                </td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <div class="avatar-circle-sm bg-primary text-white me-2">
+                      {{ obtenerIniciales(item.alumno_nombre) }}
+                    </div>
+                    <div>
+                      <div class="fw-semibold">{{ item.alumno_nombre }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge bg-info-light text-info border border-info">
+                    {{ item.trimestre_nombre }}
+                  </span>
+                </td>
+                <td>
+                  <span class="fw-semibold text-gray-700">{{ item.materia_nombre }}</span>
+                </td>
+                <td>
+                  <div class="max-width-200">
+                    <span class="text-truncate d-inline-block" style="max-width: 200px;">
+                      {{ item.titulo_tarea || 'Sin tarea' }}
+                    </span>
+                    <small *ngIf="item.comentarios && item.comentarios.trim()" 
+                           class="d-block text-muted text-truncate" 
+                           style="max-width: 200px;">
+                      {{ item.comentarios }}
+                    </small>
+                  </div>
+                </td>
+                <td class="text-center">
+                  <span *ngIf="item.calificacion !== null && item.calificacion !== undefined" 
+                        class="badge fw-bold fs-6 py-2 px-3"
+                        [ngClass]="getColorCalificacion(item.calificacion)">
+                    {{ formatNumber(item.calificacion) }}
+                  </span>
+                  <span *ngIf="item.calificacion === null || item.calificacion === undefined" 
+                        class="badge bg-gray-200 text-gray-700">
+                    N/A
+                  </span>
+                </td>
+                <td class="text-center">
+                  <span class="badge py-2 px-3 fw-semibold" 
+                        [ngClass]="getColorEstado(item.estado_tarea)">
+                    {{ item.estado_tarea }}
+                  </span>
+                </td>
+                <td class="text-center">
+                  <div class="d-flex align-items-center justify-content-center">
+                    <span class="badge bg-dark py-2 px-3 fw-bold">
+                      {{ formatNumber(item.promedio_materia) }}
+                    </span>
+                  </div>
+                </td>
+                <td class="text-center text-muted small">
+                  {{ item.fecha_entrega || 'N/A' }}
+                </td>
+                <td class="text-center">
+                  <button class="btn btn-favorite" 
+                          [class.active]="esFavorito(item.estudiante_id)"
+                          (click)="toggleFavorito(item.estudiante_id)"
+                          data-bs-toggle="tooltip" 
+                          [title]="esFavorito(item.estudiante_id) ? 'Remover de favoritos' : 'Agregar a favoritos'">
+                    <i class="fas fa-heart"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- PAGINACIÓN -->
+      <div class="card-footer bg-white py-3">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+          <div class="mb-2 mb-md-0">
+            <span class="text-muted small">
+              <i class="fas fa-info-circle me-1"></i>
+              Página {{ paginaActual }} de {{ totalPaginas }}
+            </span>
+          </div>
+          
+          <nav aria-label="Paginación de calificaciones">
+            <ul class="pagination mb-0">
+              <li class="page-item" [class.disabled]="paginaActual === 1">
+                <button class="page-link" (click)="cambiarPagina(paginaActual - 1)">
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+              </li>
+              
+              <li *ngFor="let pagina of obtenerPaginas()" 
+                  class="page-item" 
+                  [class.active]="pagina === paginaActual">
+                <button class="page-link" (click)="cambiarPagina(pagina)">
+                  {{ pagina }}
+                </button>
+              </li>
+              
+              <li class="page-item" 
+                  [class.disabled]="paginaActual === totalPaginas">
+                <button class="page-link" (click)="cambiarPagina(paginaActual + 1)">
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+              </li>
+            </ul>
+          </nav>
+          
+          <div class="mt-2 mt-md-0">
+            <span class="text-muted small">
+              <i class="fas fa-chart-line me-1"></i>
+              Promedio general: <strong class="text-primary">{{ formatNumber(calcularPromedioGeneral()) }}</strong>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

@@ -1,0 +1,129 @@
+<div class="chat-container">
+  <!-- Header -->
+  <div class="chat-header">
+    <h2>💬 Chat con Padres</h2>
+    <div class="estadisticas" *ngIf="estadisticas">
+      <span class="stat">👥 {{estadisticas.total_tutores}} Tutores</span>
+      <span class="stat">💬 {{estadisticas.total_mensajes}} Mensajes</span>
+      <span class="stat" *ngIf="estadisticas.mensajes_no_leidos > 0">
+        🔴 {{estadisticas.mensajes_no_leidos}} No leídos
+      </span>
+    </div>
+  </div>
+
+  <div class="chat-layout">
+    <!-- Lista de conversaciones -->
+    <div class="conversaciones-list">
+      <div class="list-header">
+        <h3>Conversaciones</h3>
+        <button class="btn-refresh" (click)="cargarConversaciones()" [disabled]="loading">
+          🔄 {{loading ? 'Cargando...' : ''}}
+        </button>
+      </div>
+
+      <div class="loading" *ngIf="loading">Cargando conversaciones...</div>
+      
+      <div class="conversaciones">
+        <div 
+          *ngFor="let conversacion of conversaciones" 
+          class="conversacion-item"
+          [class.active]="conversacionSeleccionada?.tutor_id === conversacion.tutor_id"
+          (click)="seleccionarConversacion(conversacion)">
+          
+          <div class="conversacion-header">
+            <strong>{{conversacion.tutor_nombre}}</strong>
+            <span class="badge" *ngIf="conversacion.mensajes_no_leidos > 0">
+              {{conversacion.mensajes_no_leidos}}
+            </span>
+          </div>
+          
+          <div class="nino-info">👶 {{conversacion.nino_nombre}}</div>
+          
+          <div class="ultimo-mensaje" *ngIf="conversacion.ultimo_mensaje">
+            {{conversacion.ultimo_mensaje}}
+          </div>
+          
+          <div class="fecha" *ngIf="conversacion.fecha_ultimo_mensaje">
+            {{formatearFecha(conversacion.fecha_ultimo_mensaje)}}
+          </div>
+        </div>
+
+        <div class="no-conversations" *ngIf="conversaciones.length === 0 && !loading">
+          <p>No hay conversaciones disponibles</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Área de chat -->
+    <div class="chat-area" *ngIf="conversacionSeleccionada; else noSelection">
+      <div class="chat-header-selected">
+        <h3>💬 {{conversacionSeleccionada.tutor_nombre}}</h3>
+        <div class="contact-info">
+          <span>📧 {{conversacionSeleccionada.tutor_email}}</span>
+          <span>📞 {{conversacionSeleccionada.tutor_telefono}}</span>
+          <span>👶 {{conversacionSeleccionada.nino_nombre}}</span>
+        </div>
+      </div>
+
+      <!-- Mensajes -->
+      <div class="chat-messages">
+        <div 
+          *ngFor="let mensaje of mensajes" 
+          class="mensaje"
+          [class.mensaje-maestro]="mensaje.tipo_remitente === 'maestro'"
+          [class.mensaje-tutor]="mensaje.tipo_remitente === 'tutor'">
+          
+          <div class="mensaje-content">
+            <div class="mensaje-text">{{mensaje.mensaje}}</div>
+            <div class="mensaje-info">
+              <span class="fecha">{{formatearFecha(mensaje.fecha_envio)}}</span>
+              <span class="estado" *ngIf="mensaje.tipo_remitente === 'maestro'">
+                {{mensaje.leido ? '✅' : '🕒'}}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="no-messages" *ngIf="mensajes.length === 0">
+          <p>No hay mensajes en esta conversación</p>
+          <p>Envía un mensaje para comenzar</p>
+        </div>
+      </div>
+
+      <!-- Input para enviar mensaje -->
+      <div class="chat-input">
+        <textarea 
+          [(ngModel)]="nuevoMensaje"
+          placeholder="Escribe tu mensaje..."
+          (keydown.enter)="$event.preventDefault(); enviarMensaje()"
+          rows="2">
+        </textarea>
+        <button 
+          (click)="enviarMensaje()" 
+          [disabled]="!nuevoMensaje.trim()"
+          class="btn-send">
+          📤 Enviar
+        </button>
+      </div>
+    </div>
+
+    <!-- Sin conversación seleccionada -->
+    <ng-template #noSelection>
+      <div class="no-selection">
+        <div class="placeholder">
+          <h3>💬 Selecciona una conversación</h3>
+          <p>Elige un tutor de la lista para comenzar a chatear</p>
+          <p *ngIf="conversaciones.length === 0" class="warning">
+            ⚠️ No hay conversaciones disponibles. Verifica la conexión con el servidor.
+          </p>
+        </div>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- Error -->
+  <div class="error" *ngIf="error">
+    {{error}}
+    <button (click)="error = ''" class="btn-close">✕</button>
+  </div>
+</div>

@@ -1,0 +1,68 @@
+<div class="dashboard formal-theme">
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">🎓</div>
+      <div class="titles">
+        <h1>Panel del Estudiante</h1>
+        <p>Tus avisos importantes</p>
+      </div>
+    </div>
+
+    <div class="now">
+      <div class="time">{{ fechaActual.hora }}</div>
+      <div class="date">
+        {{ fechaActual.dia }} · {{ fechaActual.mes }} {{ fechaActual.anio }}
+      </div>
+    </div>
+  </header>
+
+  <!-- Panel de avisos -->
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Avisos del maestro</h2>
+      <button class="btn ghost" (click)="cargarAvisos()">↻ ACTUALIZAR</button>
+    </div>
+
+    <div class="status" *ngIf="loadingAvisos || errorAvisos">
+      <span *ngIf="loadingAvisos">Cargando avisos…</span>
+      <span *ngIf="errorAvisos" class="bad">⚠ {{ errorAvisos }}</span>
+    </div>
+
+    <div class="cards">
+      <article
+        class="card card-formal"
+        *ngFor="let a of avisos"
+        [class.muted]="!a.activo"
+      >
+        <header>
+          <h3>{{ a.titulo }}</h3>
+          <span class="badge" [class.ok]="a.activo" [class.off]="!a.activo">
+            {{ a.activo ? 'Activo' : 'Oculto' }}
+          </span>
+        </header>
+
+        <p class="content">
+          {{ a.contenido }}
+        </p>
+
+        <footer>
+          <span class="chip" [attr.data-level]="a.prioridad">
+            Prioridad: {{ a.prioridad || 'media' }}
+          </span>
+          <span class="meta" *ngIf="a.fecha_creacion">
+            Publicado: {{ a.fecha_creacion | date: 'short' }}
+          </span>
+        </footer>
+      </article>
+
+      <div
+        class="empty"
+        *ngIf="!loadingAvisos && (!avisos || avisos.length === 0)"
+      >
+        <div class="emoji">📭</div>
+        <p>No tienes avisos por ahora.</p>
+      </div>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,72 @@
+<!-- manual.component.html - VERSIÓN ULTRA CHIC -->
+<div class="manual">
+
+  <!-- Hero Section Premium -->
+  <section class="panel hero no-print">
+    <div class="title">
+      <h1>🎓 Audi del Estudiante</h1>
+      <p>Explora la plataforma: roles, tareas, asistencia, calificaciones y mucho más con estilo premium.</p>
+    </div>
+
+    <form [formGroup]="form" class="search">
+      <input type="search" placeholder="🔍 Buscar en el manual..." formControlName="q">
+      <button type="button" (click)="imprimir()">
+        🖨️ Imprimir / Guardar PDF
+      </button>
+    </form>
+  </section>
+
+  <!-- Índice de Contenidos Elegante -->
+  <section class="panel indice no-print">
+    <h2>📑 Comercial de Contenidos</h2>
+    <div class="links">
+      <button *ngFor="let s of secciones()" (click)="irA(s.id)">
+        <span class="icon">{{ s.icono }}</span>
+        <span class="text">{{ s.titulo }}</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Secciones de Contenido Estilizadas -->
+  <section class="contenido">
+    <article class="panel seccion" *ngFor="let s of seccionesFiltradas()" [attr.id]="s.id">
+      <header class="sec-head">
+        <h3>{{ s.icono }} {{ s.titulo }}</h3>
+        <a class="anchor no-print" (click)="irA('top')">
+          ⬆️ Volver Arriba
+        </a>
+      </header>
+
+      <ul class="bullets">
+        <li *ngFor="let c of s.contenido">{{ c }}</li>
+      </ul>
+      
+      <div class="seccion-footer no-print" *ngIf="s.contenido.length > 0">
+        <small>✨ {{ s.contenido.length }} puntos premium</small>
+      </div>
+    </article>
+  </section>
+
+  <!-- FAQs de Lujo -->
+  <section class="panel faqs" id="faqs">
+    <h2>💎 Centro de Ayuda Premium</h2>
+
+    <div class="faq" *ngFor="let f of faqsFiltradas(); let i = index">
+      <details>
+        <summary>Q{{i + 1}}: {{ f.q }}</summary>
+        <p>{{ f.a }}</p>
+      </details>
+    </div>
+
+    <div class="empty" *ngIf="!faqsFiltradas().length">
+      🔍 No encontramos resultados para tu búsqueda
+    </div>
+  </section>
+
+  <!-- Pie de Página Elegante -->
+  <section class="panel footer">
+    <div class="note">
+      💫 ¿Necesitas ayuda adicional? Consulta "Soporte técnico" o contacta a tu profesor.
+    </div>
+  </section>
+</div>

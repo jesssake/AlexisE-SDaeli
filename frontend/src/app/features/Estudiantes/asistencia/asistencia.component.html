@@ -1,0 +1,118 @@
+﻿<div class="asist-wrapper">
+
+  <!-- TOP | DATOS DEL ALUMNO -->
+  <div class="top">
+    <h1>Historial de Asistencia</h1>
+    <p>Consulta tu asistencia del mes o por rango de fechas.</p>
+
+    <div class="user-info">
+      <div class="user-details">
+        <strong>Alumno:</strong> {{ auth.getUserName() }} <br />
+        <strong>Email:</strong> {{ auth.getUserEmail() }} <br />
+        <strong>ID Alumno:</strong> {{ auth.userAlumnoId || 'N/A' }}
+      </div>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="filtros">
+
+      <div class="acciones">
+        <button (click)="verMesActual()">Mes actual</button>
+      </div>
+
+      <div class="grupo">
+        <label>Desde</label>
+        <input type="date" [(ngModel)]="desde" />
+      </div>
+
+      <div class="grupo">
+        <label>Hasta</label>
+        <input type="date" [(ngModel)]="hasta" />
+      </div>
+
+      <div class="acciones">
+        <button (click)="aplicarRango()">Buscar</button>
+        <button (click)="limpiarRango()">Limpiar</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MENSAJES -->
+  <div *ngIf="error" class="msg error">{{ error }}</div>
+  <div *ngIf="cargando" class="msg info">Cargando asistencia...</div>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div *ngIf="!cargando && !error" class="stats-section">
+
+    <!-- RESUMEN -->
+    <div class="stats-main">
+      <h2>Resumen del período</h2>
+      <div class="attendance-percentage">
+        {{ asistenciaPct() }}%
+      </div>
+      <p class="stats-description">Porcentaje de asistencia del alumno</p>
+    </div>
+
+    <!-- TOTALES -->
+    <div class="stats-grid">
+      <div class="stat-card present">
+        <span class="stat-label">PRESENTE</span>
+        <span class="stat-value present">{{ totales.PRESENTE }}</span>
+      </div>
+
+      <div class="stat-card justified">
+        <span class="stat-label">JUSTIFICADO</span>
+        <span class="stat-value justified">{{ totales.JUSTIFICADO }}</span>
+      </div>
+
+      <div class="stat-card absent">
+        <span class="stat-label">AUSENTE</span>
+        <span class="stat-value absent">{{ totales.AUSENTE }}</span>
+      </div>
+    </div>
+
+    <!-- TABLA -->
+    <div class="table-section">
+      <div class="table-header">
+        <h3>Registros de Asistencia</h3>
+        <p>Listado detallado por fecha y hora</p>
+      </div>
+
+      <div class="tabla">
+
+        <div class="head">
+          <div>Fecha</div>
+          <div>Hora</div>
+          <div>Estado</div>
+          <div>Comentario</div>
+          <div>Maestro</div>
+        </div>
+
+        <div
+          class="row"
+          *ngFor="let r of registros"
+          [ngClass]="{ empty: registros.length === 0 }"
+        >
+          <div data-label="Fecha">{{ r.fecha }}</div>
+          <div data-label="Hora">{{ r.hora }}</div>
+          <div data-label="Estado">
+            <span class="badge" [ngClass]="badgeClase(r.estado)">
+              {{ r.estado }}
+            </span>
+          </div>
+          <div data-label="Comentario" class="coment">
+            {{ r.comentario || '-' }}
+          </div>
+          <div data-label="Maestro">{{ r.maestro_id }}</div>
+        </div>
+
+        <div class="row empty" *ngIf="registros.length === 0">
+          <div class="full">No hay registros para mostrar</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
