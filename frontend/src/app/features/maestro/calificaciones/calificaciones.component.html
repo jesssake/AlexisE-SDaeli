@@ -1,183 +1,156 @@
-<div class="container-fluid py-4">
-  <!-- ALERTAS -->
-  <div *ngIf="alerta.mostrar" class="alert alert-dismissible fade show mb-4" 
-       [class.alert-success]="alerta.tipo === 'success'"
-       [class.alert-danger]="alerta.tipo === 'error'"
-       [class.alert-warning]="alerta.tipo === 'warning'"
-       [class.alert-info]="alerta.tipo === 'info'">
-    <i class="fas"
-       [class.fa-check-circle]="alerta.tipo === 'success'"
-       [class.fa-exclamation-circle]="alerta.tipo === 'error'"
-       [class.fa-exclamation-triangle]="alerta.tipo === 'warning'"
-       [class.fa-info-circle]="alerta.tipo === 'info'"></i>
-    {{ alerta.mensaje }}
-    <button type="button" class="btn-close" (click)="alerta.mostrar = false"></button>
-  </div>
-
-  <!-- HEADER CON TÍTULO Y BOTONES -->
-  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
-    <div class="mb-3 mb-md-0">
-      <h1 class="h3 mb-1 text-gray-800 fw-bold">
-        <i class="fas fa-graduation-cap text-primary me-2"></i>
-        Calificaciones
-      </h1>
-      <p class="text-muted mb-0">Gestión completa de calificaciones por estudiante</p>
-    </div>
-  
+<div class="centered-box">
+  <!-- Header del cuadro -->
+  <div class="box-header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="title-group">
+          <i class="fas fa-graduation-cap main-icon"></i>
+          <h1>Gestión de Calificaciones</h1>
+        </div>
+        <p class="subtitle">Administración completa de calificaciones por estudiante, materia y trimestre</p>
+        <div class="status-indicator">
+          <span class="status-dot"></span>
+          {{ cargando ? 'Cargando...' : 'Sistema Operativo' }}
+        </div>
+      </div>
       
-      <button class="btn btn-primary btn-sm" (click)="cargarCalificaciones()">
-        <i class="fas fa-sync-alt me-2"></i>Actualizar
-      </button>
-    </div>
-  </div>
-
-  <!-- TARJETAS DE RESUMEN -->
-  <div class="row mb-4">
-    <div class="col-xl-3 col-md-6 mb-4">
-      <div class="card border-left-primary shadow h-100 py-2">
-        <div class="card-body">
-          <div class="row no-gutters align-items-center">
-            <div class="col mr-2">
-              <div class="text-xs fw-bold text-primary text-uppercase mb-1">
-                Total Estudiantes
-              </div>
-              <div class="h5 mb-0 fw-bold text-gray-800">{{ resumen.totalEstudiantes }}</div>
-            </div>
-            <div class="col-auto">
-              <i class="fas fa-users fa-2x text-gray-300"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6 mb-4">
-      <div class="card border-left-success shadow h-100 py-2">
-        <div class="card-body">
-          <div class="row no-gutters align-items-center">
-            <div class="col mr-2">
-              <div class="text-xs fw-bold text-success text-uppercase mb-1">
-                Promedio General
-              </div>
-              <div class="h5 mb-0 fw-bold text-gray-800">{{ formatNumber(resumen.promedioGeneral) }}</div>
-            </div>
-            <div class="col-auto">
-              <i class="fas fa-chart-line fa-2x text-gray-300"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6 mb-4">
-      <div class="card border-left-info shadow h-100 py-2">
-        <div class="card-body">
-          <div class="row no-gutters align-items-center">
-            <div class="col mr-2">
-              <div class="text-xs fw-bold text-info text-uppercase mb-1">
-                Tareas Calificadas
-              </div>
-              <div class="h5 mb-0 fw-bold text-gray-800">{{ resumen.totalTareasCalificadas }}</div>
-            </div>
-            <div class="col-auto">
-              <i class="fas fa-tasks fa-2x text-gray-300"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6 mb-4">
-      <div class="card border-left-warning shadow h-100 py-2">
-        <div class="card-body">
-          <div class="row no-gutters align-items-center">
-            <div class="col mr-2">
-              <div class="text-xs fw-bold text-warning text-uppercase mb-1">
-                Total Materias
-              </div>
-              <div class="h5 mb-0 fw-bold text-gray-800">{{ resumen.totalMaterias }}</div>
-            </div>
-            <div class="col-auto">
-              <i class="fas fa-book fa-2x text-gray-300"></i>
-            </div>
-          </div>
-        </div>
+      <div class="header-right">
+        <button class="action-button" (click)="cargarCalificaciones()" [disabled]="cargando">
+          <i class="fas fa-sync-alt"></i>
+          {{ cargando ? 'Cargando...' : 'Actualizar' }}
+        </button>
+        
+      
+        
+        <button class="action-button primary" (click)="generarReporteEstadistico()">
+          <i class="fas fa-chart-bar"></i> Reporte
+        </button>
       </div>
     </div>
   </div>
-
-  <!-- FILTROS -->
-  <div class="card shadow mb-4 border-0">
-    <div class="card-header bg-gradient-primary text-white py-3 d-flex justify-content-between align-items-center">
-      <h6 class="m-0 font-weight-bold">
-        <i class="fas fa-filter me-2"></i>Filtros de Búsqueda
-      </h6>
-      <button class="btn btn-light btn-sm" (click)="toggleFiltrosAvanzados()">
-        <i class="fas fa-sliders-h me-2"></i>
-        {{ mostrarFiltrosAvanzados ? 'Ocultar' : 'Mostrar' }} Filtros Avanzados
+  
+  <!-- Contenido del cuadro -->
+  <div class="box-content">
+    <!-- Alertas flotantes -->
+    <div *ngIf="alerta.mostrar" class="alert-centered fade-in">
+      <i class="fas alert-icon" 
+         [class.fa-check-circle]="alerta.tipo === 'success'"
+         [class.fa-exclamation-circle]="alerta.tipo === 'error'"
+         [class.fa-exclamation-triangle]="alerta.tipo === 'warning'"
+         [class.fa-info-circle]="alerta.tipo === 'info'"
+         [class.success]="alerta.tipo === 'success'"
+         [class.error]="alerta.tipo === 'error'"
+         [class.warning]="alerta.tipo === 'warning'"
+         [class.info]="alerta.tipo === 'info'"></i>
+      <div class="alert-message">{{ alerta.mensaje }}</div>
+      <button class="alert-close" (click)="alerta.mostrar = false">
+        <i class="fas fa-times"></i>
       </button>
     </div>
-    <div class="card-body">
-      <!-- Filtros principales -->
-      <div class="row g-3 mb-3">
-        <div class="col-md-3">
-          <label class="form-label fw-semibold text-gray-700">
-            <i class="fas fa-search me-1"></i> Buscar Estudiante
-          </label>
-          <div class="input-group">
-            <span class="input-group-text bg-light">
-              <i class="fas fa-user text-primary"></i>
-            </span>
-            <input type="text" class="form-control" 
+    
+    <!-- Stats mini -->
+    <div class="stats-mini-grid">
+      <div class="stat-mini-card">
+        <div class="stat-decorator">
+          <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-main">
+          <div class="stat-label">Total Estudiantes</div>
+          <div class="stat-value">{{ resumen.totalEstudiantes }}</div>
+          <div class="stat-description">Registrados en el sistema</div>
+        </div>
+      </div>
+      
+      <div class="stat-mini-card">
+        <div class="stat-decorator">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="stat-main">
+          <div class="stat-label">Promedio General</div>
+          <div class="stat-value">{{ formatNumber(resumen.promedioGeneral) }}</div>
+          <div class="stat-description">Escala 0-10</div>
+        </div>
+      </div>
+      
+      <div class="stat-mini-card">
+        <div class="stat-decorator">
+          <i class="fas fa-tasks"></i>
+        </div>
+        <div class="stat-main">
+          <div class="stat-label">Tareas Calificadas</div>
+          <div class="stat-value">{{ resumen.totalTareasCalificadas }}</div>
+          <div class="stat-description">Total evaluaciones</div>
+        </div>
+      </div>
+      
+      <div class="stat-mini-card">
+        <div class="stat-decorator">
+          <i class="fas fa-book"></i>
+        </div>
+        <div class="stat-main">
+          <div class="stat-label">Total Materias</div>
+          <div class="stat-value">{{ resumen.totalMaterias }}</div>
+          <div class="stat-description">Materias activas</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Filtros compactos -->
+    <div class="filters-compact-panel">
+      <div class="filters-header">
+        <div class="filters-title">
+          <i class="fas fa-filter"></i>
+          Filtros de Búsqueda
+        </div>
+        <button class="toggle-advanced" (click)="toggleFiltrosAvanzados()">
+          <i class="fas fa-sliders-h"></i>
+          {{ mostrarFiltrosAvanzados ? 'Ocultar' : 'Mostrar' }} Avanzados
+        </button>
+      </div>
+      
+      <div class="filters-body">
+        <div class="filters-grid">
+          <div class="filter-group">
+            <label class="filter-label">
+              <i class="fas fa-search"></i> Buscar Estudiante
+            </label>
+            <input type="text" class="filter-input" 
                    [(ngModel)]="filtroBusqueda" 
                    (ngModelChange)="actualizarBusqueda($event)"
                    placeholder="Nombre del estudiante...">
           </div>
-        </div>
-        
-        <div class="col-md-3">
-          <label class="form-label fw-semibold text-gray-700">
-            <i class="fas fa-book me-1"></i> Materia
-          </label>
-          <div class="input-group">
-            <span class="input-group-text bg-light">
-              <i class="fas fa-graduation-cap text-primary"></i>
-            </span>
-            <select class="form-control" [(ngModel)]="filtroMateria" (ngModelChange)="onMateriaChange($event)">
+          
+          <div class="filter-group">
+            <label class="filter-label">
+              <i class="fas fa-book"></i> Materia
+            </label>
+            <select class="filter-input select-input" 
+                    [(ngModel)]="filtroMateria" 
+                    (ngModelChange)="onMateriaChange($event)">
               <option value="">Todas las materias</option>
-              <option *ngFor="let materia of materiasUnicas" [value]="materia">
-                {{ materia }}
-              </option>
+              <option *ngFor="let materia of materiasUnicas" [value]="materia">{{ materia }}</option>
             </select>
           </div>
-        </div>
-        
-        <div class="col-md-3">
-          <label class="form-label fw-semibold text-gray-700">
-            <i class="fas fa-calendar-alt me-1"></i> Trimestre
-          </label>
-          <div class="input-group">
-            <span class="input-group-text bg-light">
-              <i class="fas fa-clock text-primary"></i>
-            </span>
-            <select class="form-control" [(ngModel)]="filtroTrimestre" (ngModelChange)="onTrimestreChange($event)">
+          
+          <div class="filter-group">
+            <label class="filter-label">
+              <i class="fas fa-calendar-alt"></i> Trimestre
+            </label>
+            <select class="filter-input select-input" 
+                    [(ngModel)]="filtroTrimestre" 
+                    (ngModelChange)="onTrimestreChange($event)">
               <option value="">Todos los trimestres</option>
-              <option *ngFor="let trimestre of trimestresUnicos" [value]="trimestre">
-                {{ trimestre }}
-              </option>
+              <option *ngFor="let trimestre of trimestresUnicos" [value]="trimestre">{{ trimestre }}</option>
             </select>
           </div>
-        </div>
-        
-        <div class="col-md-3">
-          <label class="form-label fw-semibold text-gray-700">
-            <i class="fas fa-flag me-1"></i> Estado
-          </label>
-          <div class="input-group">
-            <span class="input-group-text bg-light">
-              <i class="fas fa-clipboard-check text-primary"></i>
-            </span>
-            <select class="form-control" [(ngModel)]="filtroEstado" (ngModelChange)="onEstadoChange($event)">
+          
+          <div class="filter-group">
+            <label class="filter-label">
+              <i class="fas fa-flag"></i> Estado
+            </label>
+            <select class="filter-input select-input" 
+                    [(ngModel)]="filtroEstado" 
+                    (ngModelChange)="onEstadoChange($event)">
               <option value="">Todos los estados</option>
               <option value="Calificada">Calificada</option>
               <option value="Entregada">Entregada</option>
@@ -186,334 +159,311 @@
             </select>
           </div>
         </div>
-      </div>
-      
-      <!-- Filtros activos -->
-      <div *ngIf="obtenerFiltrosActivos().length > 0" class="mb-3">
-        <div class="d-flex align-items-center mb-2">
-          <span class="text-muted small me-2">Filtros activos:</span>
-          <div class="d-flex flex-wrap gap-1">
+        
+        <!-- Filtros activos -->
+        <div *ngIf="obtenerFiltrosActivos().length > 0" class="active-filters">
+          <div class="filters-label">
+            <i class="fas fa-filter"></i> Filtros activos:
+          </div>
+          <div>
             <span *ngFor="let filtro of obtenerFiltrosActivos()" class="filter-chip">
               {{ filtro }}
-              <i class="fas fa-times close-btn" (click)="removerFiltro(getTipoFiltro(filtro))"></i>
+              <span class="remove-filter" (click)="removerFiltro(getTipoFiltro(filtro))">
+                <i class="fas fa-times"></i>
+              </span>
             </span>
           </div>
         </div>
-      </div>
-      
-      <!-- Filtros avanzados -->
-      <div *ngIf="mostrarFiltrosAvanzados" class="border-top pt-3 mt-3">
-        <h6 class="mb-3 fw-semibold text-gray-700">
-          <i class="fas fa-sliders-h me-2"></i>Filtros Avanzados
-        </h6>
-        <div class="row g-3">
-          <div class="col-md-3">
-            <label class="form-label fw-semibold text-gray-700">
-              <i class="fas fa-star me-1"></i> Calificación Mínima
-            </label>
-            <input type="number" class="form-control" min="0" max="10" step="0.1"
-                   [(ngModel)]="filtroCalificacionMin" (ngModelChange)="onCalificacionMinChange($event)"
-                   placeholder="0">
-          </div>
-          
-          <div class="col-md-3">
-            <label class="form-label fw-semibold text-gray-700">
-              <i class="fas fa-star me-1"></i> Calificación Máxima
-            </label>
-            <input type="number" class="form-control" min="0" max="10" step="0.1"
-                   [(ngModel)]="filtroCalificacionMax" (ngModelChange)="onCalificacionMaxChange($event)"
-                   placeholder="10">
-          </div>
-          
-          <div class="col-md-3">
-            <label class="form-label fw-semibold text-gray-700">
-              <i class="fas fa-calendar-day me-1"></i> Desde
-            </label>
-            <input type="date" class="form-control"
-                   [(ngModel)]="filtroFechaDesde" (ngModelChange)="onFechaDesdeChange($event)">
-          </div>
-          
-          <div class="col-md-3">
-            <label class="form-label fw-semibold text-gray-700">
-              <i class="fas fa-calendar-day me-1"></i> Hasta
-            </label>
-            <input type="date" class="form-control"
-                   [(ngModel)]="filtroFechaHasta" (ngModelChange)="onFechaHastaChange($event)">
-          </div>
+        
+        <!-- Acciones de filtros -->
+        <div class="filters-actions">
+          <button class="filter-action-btn" (click)="limpiarFiltros()">
+            <i class="fas fa-broom"></i> Limpiar Filtros
+          </button>
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- CONTROLES DE TABLA -->
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-      <h5 class="mb-0">
-        <i class="fas fa-graduation-cap text-primary me-2"></i>
-        Lista de Calificaciones
-        <span class="badge bg-primary ms-2">{{ calificacionesFiltradasPlanas.length }}</span>
-      </h5>
-      <small class="text-muted">
-        Mostrando {{ (paginaActual - 1) * itemsPorPagina + 1 }} - 
-        {{ Math.min(paginaActual * itemsPorPagina, calificacionesFiltradasPlanas.length) }} 
-        de {{ calificacionesFiltradasPlanas.length }} registros
-      </small>
-    </div>
     
-    <div class="d-flex align-items-center gap-2">
-      <!-- Selección múltiple -->
-      <div *ngIf="estudiantesSeleccionados.size > 0" class="me-3">
-        <span class="badge bg-warning">
-          <i class="fas fa-users me-1"></i>{{ estudiantesSeleccionados.size }} seleccionados
-        </span>
-        <button class="btn btn-sm btn-outline-danger ms-2" (click)="deseleccionarTodos()">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      
-      <!-- Items por página -->
-      <div class="d-flex align-items-center">
-        <label class="form-label mb-0 me-2 small">Mostrar:</label>
-        <select class="form-select form-select-sm w-auto" 
-                [(ngModel)]="itemsPorPagina" 
-                (ngModelChange)="cambiarItemsPorPagina()">
-          <option value="10">10</option>
-          <option value="25">25</option>
-          <option value="50">50</option>
-          <option value="100">100</option>
-        </select>
-      </div>
-      
-      <!-- Botón de seleccionar todos -->
-      <button class="btn btn-sm btn-outline-primary" (click)="seleccionarTodos()">
-        <i class="fas fa-check-double me-1"></i>Seleccionar Todos
+    <!-- Estados de carga/vacío -->
+    <div *ngIf="cargando" class="loading-state-centered">
+      <div class="loading-spinner"></div>
+      <h5 class="loading-title">Cargando calificaciones...</h5>
+      <p class="loading-description">Por favor espere mientras se cargan los datos</p>
+    </div>
+
+    <div *ngIf="!cargando && calificacionesFiltradasPlanas.length === 0" class="empty-state-centered">
+      <i class="fas fa-clipboard-list empty-icon"></i>
+      <h5 class="empty-title">No hay calificaciones disponibles</h5>
+      <p class="empty-description">Intenta cambiar los filtros o cargar los datos nuevamente</p>
+      <button class="reload-btn" (click)="cargarCalificaciones()">
+        <i class="fas fa-sync-alt"></i> Cargar Calificaciones
       </button>
     </div>
-  </div>
-
-  <!-- MENSAJE DE CARGA -->
-  <div *ngIf="cargando" class="text-center py-5">
-    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-      <span class="visually-hidden">Cargando...</span>
-    </div>
-    <p class="mt-3 text-muted fw-semibold">Cargando calificaciones...</p>
-    <small class="text-muted">Por favor espere</small>
-  </div>
-
-  <!-- MENSAJE SIN DATOS -->
-  <div *ngIf="!cargando && calificacionesFiltradasPlanas.length === 0" class="text-center py-5">
-    <div class="mb-4">
-      <i class="fas fa-clipboard-list fa-4x text-gray-300"></i>
-    </div>
-    <h5 class="text-gray-500 mb-2">No hay calificaciones disponibles</h5>
-    <p class="text-muted mb-4">Intenta cambiar los filtros o cargar los datos nuevamente</p>
-    <button class="btn btn-primary btn-lg" (click)="cargarCalificaciones()">
-      <i class="fas fa-sync-alt me-2"></i>Cargar Calificaciones
-    </button>
-  </div>
-
-  <!-- VISTA DE TABLA -->
-  <div *ngIf="!cargando && calificacionesFiltradasPlanas.length > 0">
-    <div class="card shadow border-0">
-      <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table table-hover mb-0">
-            <thead class="bg-light">
-              <tr>
-                <!-- Checkbox para selección -->
-                <th class="border-0" style="width: 40px;">
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" 
-                           [checked]="estudiantesSeleccionados.size === calificacionesPaginaActual.length"
-                           (change)="estudiantesSeleccionados.size === calificacionesPaginaActual.length ? deseleccionarTodos() : seleccionarTodos()">
-                  </div>
-                </th>
-                
-                <th class="border-0">
-                  <i class="fas fa-hashtag me-1 text-primary"></i> ID
-                </th>
-                <th class="border-0 cursor-pointer" (click)="ordenarPor('alumno_nombre')">
-                  <i class="fas fa-user-graduate me-1 text-primary"></i> Estudiante
-                  <i class="fas ms-1" 
+    
+    <!-- Tabla centrada -->
+    <div *ngIf="!cargando && calificacionesFiltradasPlanas.length > 0" class="table-container-centered">
+      <div class="table-controls">
+        <div class="table-info">
+          <div class="table-title">
+            <i class="fas fa-graduation-cap"></i>
+            Lista de Calificaciones
+            <span class="table-count">{{ calificacionesFiltradasPlanas.length }}</span>
+          </div>
+          <div class="table-subtitle">
+            <i class="fas fa-info-circle"></i>
+            Mostrando {{ (paginaActual - 1) * itemsPorPagina + 1 }} - 
+            {{ Math.min(paginaActual * itemsPorPagina, calificacionesFiltradasPlanas.length) }} 
+            de {{ calificacionesFiltradasPlanas.length }} registros
+          </div>
+        </div>
+        
+        <div class="table-actions">
+          <!-- Selección múltiple -->
+          <div *ngIf="estudiantesSeleccionados.size > 0" class="selection-info">
+            <span class="selection-badge">
+              <i class="fas fa-users"></i> {{ estudiantesSeleccionados.size }} seleccionados
+              <span class="clear-selection" (click)="deseleccionarTodos()">
+                <i class="fas fa-times"></i>
+              </span>
+            </span>
+          </div>
+          
+          <!-- Items por página -->
+          <div class="items-per-page">
+            <span class="per-page-label">Mostrar:</span>
+            <select class="per-page-select" 
+                    [(ngModel)]="itemsPorPagina" 
+                    (ngModelChange)="cambiarItemsPorPagina()">
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+          
+          <!-- Botón de seleccionar todos -->
+          <button class="select-all-btn" (click)="seleccionarTodos()">
+            <i class="fas fa-check-double"></i> Seleccionar Todos
+          </button>
+        </div>
+      </div>
+      
+      <!-- Tabla -->
+      <div class="table-wrapper">
+        <table class="compact-table">
+          <thead>
+            <tr>
+              <!-- Checkbox para selección -->
+              <th style="width: 40px;">
+                <input type="checkbox" class="row-checkbox" 
+                       [checked]="estudiantesSeleccionados.size === calificacionesPaginaActual.length"
+                       (change)="estudiantesSeleccionados.size === calificacionesPaginaActual.length ? deseleccionarTodos() : seleccionarTodos()">
+              </th>
+              
+              <th (click)="ordenarPor('alumno_nombre')">
+                <div class="header-content">
+                  <i class="fas fa-user-graduate"></i> Estudiante
+                  <i class="fas sort-indicator" 
                      [class.fa-sort]="columnaOrden !== 'alumno_nombre'"
                      [class.fa-sort-up]="columnaOrden === 'alumno_nombre' && ordenAscendente"
                      [class.fa-sort-down]="columnaOrden === 'alumno_nombre' && !ordenAscendente"></i>
-                </th>
-                <th class="border-0 cursor-pointer" (click)="ordenarPor('trimestre_nombre')">
-                  <i class="fas fa-calendar me-1 text-primary"></i> Trimestre
-                  <i class="fas ms-1" 
+                </div>
+              </th>
+              
+              <th (click)="ordenarPor('trimestre_nombre')">
+                <div class="header-content">
+                  <i class="fas fa-calendar"></i> Trimestre
+                  <i class="fas sort-indicator" 
                      [class.fa-sort]="columnaOrden !== 'trimestre_nombre'"
                      [class.fa-sort-up]="columnaOrden === 'trimestre_nombre' && ordenAscendente"
                      [class.fa-sort-down]="columnaOrden === 'trimestre_nombre' && !ordenAscendente"></i>
-                </th>
-                <th class="border-0 cursor-pointer" (click)="ordenarPor('materia_nombre')">
-                  <i class="fas fa-book me-1 text-primary"></i> Materia
-                  <i class="fas ms-1" 
+                </div>
+              </th>
+              
+              <th (click)="ordenarPor('materia_nombre')">
+                <div class="header-content">
+                  <i class="fas fa-book"></i> Materia
+                  <i class="fas sort-indicator" 
                      [class.fa-sort]="columnaOrden !== 'materia_nombre'"
                      [class.fa-sort-up]="columnaOrden === 'materia_nombre' && ordenAscendente"
                      [class.fa-sort-down]="columnaOrden === 'materia_nombre' && !ordenAscendente"></i>
-                </th>
-                <th class="border-0">
-                  <i class="fas fa-tasks me-1 text-primary"></i> Tarea
-                </th>
-                <th class="border-0 text-center cursor-pointer" (click)="ordenarPor('calificacion')">
-                  <i class="fas fa-star me-1 text-primary"></i> Calificación
-                  <i class="fas ms-1" 
+                </div>
+              </th>
+              
+              <th>
+                <div class="header-content">
+                  <i class="fas fa-tasks"></i> Tarea
+                </div>
+              </th>
+              
+              <th (click)="ordenarPor('calificacion')">
+                <div class="header-content">
+                  <i class="fas fa-star"></i> Calificación
+                  <i class="fas sort-indicator" 
                      [class.fa-sort]="columnaOrden !== 'calificacion'"
                      [class.fa-sort-up]="columnaOrden === 'calificacion' && ordenAscendente"
                      [class.fa-sort-down]="columnaOrden === 'calificacion' && !ordenAscendente"></i>
-                </th>
-                <th class="border-0 text-center cursor-pointer" (click)="ordenarPor('estado_tarea')">
-                  <i class="fas fa-flag me-1 text-primary"></i> Estado
-                  <i class="fas ms-1" 
+                </div>
+              </th>
+              
+              <th (click)="ordenarPor('estado_tarea')">
+                <div class="header-content">
+                  <i class="fas fa-flag"></i> Estado
+                  <i class="fas sort-indicator" 
                      [class.fa-sort]="columnaOrden !== 'estado_tarea'"
                      [class.fa-sort-up]="columnaOrden === 'estado_tarea' && ordenAscendente"
                      [class.fa-sort-down]="columnaOrden === 'estado_tarea' && !ordenAscendente"></i>
-                </th>
-                <th class="border-0 text-center">
-                  <i class="fas fa-chart-bar me-1 text-primary"></i> Promedio Materia
-                </th>
-                <th class="border-0 text-center cursor-pointer" (click)="ordenarPor('fecha_entrega')">
-                  <i class="fas fa-calendar-day me-1 text-primary"></i> Fecha
-                  <i class="fas ms-1" 
+                </div>
+              </th>
+              
+              <th>
+                <div class="header-content">
+                  <i class="fas fa-chart-bar"></i> Promedio
+                </div>
+              </th>
+              
+              <th (click)="ordenarPor('fecha_entrega')">
+                <div class="header-content">
+                  <i class="fas fa-calendar-day"></i> Fecha
+                  <i class="fas sort-indicator" 
                      [class.fa-sort]="columnaOrden !== 'fecha_entrega'"
                      [class.fa-sort-up]="columnaOrden === 'fecha_entrega' && ordenAscendente"
                      [class.fa-sort-down]="columnaOrden === 'fecha_entrega' && !ordenAscendente"></i>
-                </th>
-                <th class="border-0 text-center">
-                  <i class="fas fa-heart me-1 text-primary"></i> Favorito
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let item of calificacionesPaginaActual" class="align-middle"
-                  [class.table-active]="estudiantesSeleccionados.has(item.estudiante_id)">
-                <!-- Checkbox de selección -->
-                <td>
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" 
-                           [checked]="estudiantesSeleccionados.has(item.estudiante_id)"
-                           (change)="toggleSeleccionEstudiante(item.estudiante_id)">
+                </div>
+              </th>
+              
+              <th>
+                <div class="header-content">
+                  <i class="fas fa-heart"></i> Favorito
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of calificacionesPaginaActual" 
+                [class.selected]="estudiantesSeleccionados.has(item.estudiante_id)">
+              <!-- Checkbox de selección -->
+              <td>
+                <input type="checkbox" class="row-checkbox" 
+                       [checked]="estudiantesSeleccionados.has(item.estudiante_id)"
+                       (change)="toggleSeleccionEstudiante(item.estudiante_id)">
+              </td>
+              
+              <td>
+                <div class="student-cell">
+                  <div class="student-avatar">
+                    {{ obtenerIniciales(item.alumno_nombre) }}
                   </div>
-                </td>
-                
-                <td class="fw-semibold text-gray-700">
-                  <span class="badge bg-gray-100 text-gray-800 border">#{{ item.estudiante_id }}</span>
-                </td>
-                <td>
-                  <div class="d-flex align-items-center">
-                    <div class="avatar-circle-sm bg-primary text-white me-2">
-                      {{ obtenerIniciales(item.alumno_nombre) }}
-                    </div>
-                    <div>
-                      <div class="fw-semibold">{{ item.alumno_nombre }}</div>
-                    </div>
+                  <div class="student-details">
+                    <div class="student-name">{{ item.alumno_nombre }}</div>
+                    <div class="student-id">ID: {{ item.estudiante_id }}</div>
                   </div>
-                </td>
-                <td>
-                  <span class="badge bg-info-light text-info border border-info">
-                    {{ item.trimestre_nombre }}
-                  </span>
-                </td>
-                <td>
-                  <span class="fw-semibold text-gray-700">{{ item.materia_nombre }}</span>
-                </td>
-                <td>
-                  <div class="max-width-200">
-                    <span class="text-truncate d-inline-block" style="max-width: 200px;">
-                      {{ item.titulo_tarea || 'Sin tarea' }}
-                    </span>
-                    <small *ngIf="item.comentarios && item.comentarios.trim()" 
-                           class="d-block text-muted text-truncate" 
-                           style="max-width: 200px;">
-                      {{ item.comentarios }}
-                    </small>
+                </div>
+              </td>
+              
+              <td>
+                <span class="badge">{{ item.trimestre_nombre }}</span>
+              </td>
+              
+              <td>
+                <span class="task-title">{{ item.materia_nombre }}</span>
+              </td>
+              
+              <td>
+                <div class="task-info">
+                  <div class="task-title">{{ item.titulo_tarea || 'Sin tarea' }}</div>
+                  <div *ngIf="item.comentarios && item.comentarios.trim()" class="task-comments">
+                    {{ item.comentarios }}
                   </div>
-                </td>
-                <td class="text-center">
-                  <span *ngIf="item.calificacion !== null && item.calificacion !== undefined" 
-                        class="badge fw-bold fs-6 py-2 px-3"
-                        [ngClass]="getColorCalificacion(item.calificacion)">
-                    {{ formatNumber(item.calificacion) }}
-                  </span>
-                  <span *ngIf="item.calificacion === null || item.calificacion === undefined" 
-                        class="badge bg-gray-200 text-gray-700">
-                    N/A
-                  </span>
-                </td>
-                <td class="text-center">
-                  <span class="badge py-2 px-3 fw-semibold" 
-                        [ngClass]="getColorEstado(item.estado_tarea)">
-                    {{ item.estado_tarea }}
-                  </span>
-                </td>
-                <td class="text-center">
-                  <div class="d-flex align-items-center justify-content-center">
-                    <span class="badge bg-dark py-2 px-3 fw-bold">
-                      {{ formatNumber(item.promedio_materia) }}
-                    </span>
-                  </div>
-                </td>
-                <td class="text-center text-muted small">
-                  {{ item.fecha_entrega || 'N/A' }}
-                </td>
-                <td class="text-center">
-                  <button class="btn btn-favorite" 
-                          [class.active]="esFavorito(item.estudiante_id)"
-                          (click)="toggleFavorito(item.estudiante_id)"
-                          data-bs-toggle="tooltip" 
-                          [title]="esFavorito(item.estudiante_id) ? 'Remover de favoritos' : 'Agregar a favoritos'">
-                    <i class="fas fa-heart"></i>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                </div>
+              </td>
+              
+              <td>
+                <span *ngIf="item.calificacion !== null && item.calificacion !== undefined" 
+                      class="badge badge-grade"
+                      [ngClass]="{
+                        'excellent': item.calificacion >= 9,
+                        'good': item.calificacion >= 7 && item.calificacion < 9,
+                        'average': item.calificacion >= 5 && item.calificacion < 7,
+                        'poor': item.calificacion < 5
+                      }">
+                  {{ formatNumber(item.calificacion) }}
+                </span>
+                <span *ngIf="item.calificacion === null || item.calificacion === undefined" 
+                      class="badge badge-status no-tasks">
+                  N/A
+                </span>
+              </td>
+              
+              <td>
+                <span class="badge badge-status" 
+                      [ngClass]="{
+                        'graded': item.estado_tarea === 'Calificada',
+                        'submitted': item.estado_tarea === 'Entregada',
+                        'pending': item.estado_tarea === 'Pendiente',
+                        'no-tasks': item.estado_tarea === 'Sin tareas'
+                      }">
+                  {{ item.estado_tarea }}
+                </span>
+              </td>
+              
+              <td>
+                <span class="badge badge-grade average">
+                  {{ formatNumber(item.promedio_materia) }}
+                </span>
+              </td>
+              
+              <td>
+                {{ item.fecha_entrega || 'N/A' }}
+              </td>
+              
+              <td>
+                <button class="favorite-btn" 
+                        [class.active]="esFavorito(item.estudiante_id)"
+                        (click)="toggleFavorito(item.estudiante_id)">
+                  <i class="fas fa-heart"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
       
-      <!-- PAGINACIÓN -->
-      <div class="card-footer bg-white py-3">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
-          <div class="mb-2 mb-md-0">
-            <span class="text-muted small">
-              <i class="fas fa-info-circle me-1"></i>
-              Página {{ paginaActual }} de {{ totalPaginas }}
-            </span>
+      <!-- Paginación -->
+      <div class="table-pagination">
+        <div class="pagination-info">
+          <i class="fas fa-info-circle"></i>
+          Página {{ paginaActual }} de {{ totalPaginas }}
+        </div>
+        
+        <div class="pagination-controls">
+          <button class="page-btn" 
+                  (click)="cambiarPagina(paginaActual - 1)"
+                  [disabled]="paginaActual === 1">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          
+          <div class="page-numbers">
+            <button *ngFor="let pagina of obtenerPaginas()" 
+                    class="page-btn" 
+                    [class.active]="pagina === paginaActual"
+                    (click)="cambiarPagina(pagina)">
+              {{ pagina }}
+            </button>
           </div>
           
-          <nav aria-label="Paginación de calificaciones">
-            <ul class="pagination mb-0">
-              <li class="page-item" [class.disabled]="paginaActual === 1">
-                <button class="page-link" (click)="cambiarPagina(paginaActual - 1)">
-                  <i class="fas fa-chevron-left"></i>
-                </button>
-              </li>
-              
-              <li *ngFor="let pagina of obtenerPaginas()" 
-                  class="page-item" 
-                  [class.active]="pagina === paginaActual">
-                <button class="page-link" (click)="cambiarPagina(pagina)">
-                  {{ pagina }}
-                </button>
-              </li>
-              
-              <li class="page-item" 
-                  [class.disabled]="paginaActual === totalPaginas">
-                <button class="page-link" (click)="cambiarPagina(paginaActual + 1)">
-                  <i class="fas fa-chevron-right"></i>
-                </button>
-              </li>
-            </ul>
-          </nav>
-          
-          <div class="mt-2 mt-md-0">
-            <span class="text-muted small">
-              <i class="fas fa-chart-line me-1"></i>
-              Promedio general: <strong class="text-primary">{{ formatNumber(calcularPromedioGeneral()) }}</strong>
-            </span>
-          </div>
+          <button class="page-btn" 
+                  (click)="cambiarPagina(paginaActual + 1)"
+                  [disabled]="paginaActual === totalPaginas">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+        
+        <div class="pagination-stats">
+          <i class="fas fa-chart-line"></i>
+          Promedio general: <strong>{{ formatNumber(calcularPromedioGeneral()) }}</strong>
         </div>
       </div>
     </div>
   </div>
+</div>

@@ -1,8 +1,16 @@
 <div class="maestro-container">
+  <!-- Decoración de hojas -->
+  <div class="corner-decoration top-left"></div>
+  <div class="corner-decoration top-right"></div>
+  <div class="corner-decoration bottom-left"></div>
+  <div class="corner-decoration bottom-right"></div>
+  
   <!-- Header -->
   <header class="header">
     <div class="header-left">
-      <button type="button" class="menu-toggle" (click)="toggleMenu()">☰</button>
+      <button type="button" class="menu-toggle" (click)="toggleMenu()">
+        <span>{{ menuAbierto ? '✕' : '☰' }}</span>
+      </button>
       <div class="page-info">
         <h1>Panel del Maestro</h1>
         <span class="current-section">{{ seccionActual }}</span>
@@ -16,94 +24,131 @@
     </div>
   </header>
 
-  <!-- Sidebar -->
+  <!-- Sidebar con menú desplegable -->
   <aside class="sidebar" [class.open]="menuAbierto">
     <nav class="nav-menu">
-      <ul>
-        <li>
+      <!-- Categoría 1: Gestión Académica -->
+      <div class="menu-category">
+        <div class="category-header" (click)="toggleCategory('academica')">
+          <span class="category-icon">📚</span>
+          <span class="category-text">Gestión Académica</span>
+          <span class="category-arrow" [class.open]="categoriasAbiertas.academica">▼</span>
+        </div>
+        <div class="category-items" [class.open]="categoriasAbiertas.academica">
           <a [routerLink]="['/maestro','dashboard']"
              routerLinkActive="active"
              class="nav-link"
              (click)="cerrarMenu()">
-            📊 Dashboard
+            <span class="nav-icon">📊</span>
+            <span class="nav-text">Dashboard</span>
           </a>
-        </li>
-        <li>
           <a [routerLink]="['/maestro','estudiantes']"
              routerLinkActive="active"
              class="nav-link"
              (click)="cerrarMenu()">
-            👥 Estudiantes
+            <span class="nav-icon">👥</span>
+            <span class="nav-text">Estudiantes</span>
           </a>
-        </li>
-        <li>
           <a [routerLink]="['/maestro','tareas']"
              routerLinkActive="active"
              class="nav-link"
              (click)="cerrarMenu()">
-            📝 Tareas
+            <span class="nav-icon">📝</span>
+            <span class="nav-text">Tareas</span>
           </a>
-        </li>
-        <li>
           <a [routerLink]="['/maestro','asistencia']"
              routerLinkActive="active"
              class="nav-link"
              (click)="cerrarMenu()">
-            ✅ Asistencia
+            <span class="nav-icon">✅</span>
+            <span class="nav-text">Asistencia</span>
           </a>
-        </li>
-        <li>
           <a [routerLink]="['/maestro','calificaciones']"
              routerLinkActive="active"
              class="nav-link"
              (click)="cerrarMenu()">
-            🎓 Calificaciones
+            <span class="nav-icon">🎓</span>
+            <span class="nav-text">Calificaciones</span>
           </a>
-        </li>
-        <li>
-          <a [routerLink]="['/maestro','reportes']"
-             routerLinkActive="active"
-             class="nav-link"
-             (click)="cerrarMenu()">
-            📈 Reportes
-          </a>
-        </li>
-        <li>
+        </div>
+      </div>
+
+      <!-- Categoría 2: Comunicación -->
+      <div class="menu-category">
+        <div class="category-header" (click)="toggleCategory('comunicacion')">
+          <span class="category-icon">💬</span>
+          <span class="category-text">Comunicación</span>
+          <span class="category-arrow" [class.open]="categoriasAbiertas.comunicacion">▼</span>
+        </div>
+        <div class="category-items" [class.open]="categoriasAbiertas.comunicacion">
           <a [routerLink]="['/maestro','padres']"
              routerLinkActive="active"
              class="nav-link"
              (click)="cerrarMenu()">
-            👨‍👩‍👧‍👦 Padres
+            <span class="nav-icon">👨‍👩‍👧‍👦</span>
+            <span class="nav-text">Padres</span>
           </a>
-        </li>
-        <li>
+          <a [routerLink]="['/maestro','reportes']"
+             routerLinkActive="active"
+             class="nav-link"
+             (click)="cerrarMenu()">
+            <span class="nav-icon">📈</span>
+            <span class="nav-text">Reportes</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Categoría 3: Administración -->
+      <div class="menu-category">
+        <div class="category-header" (click)="toggleCategory('administracion')">
+          <span class="category-icon">⚙️</span>
+          <span class="category-text">Administración</span>
+          <span class="category-arrow" [class.open]="categoriasAbiertas.administracion">▼</span>
+        </div>
+        <div class="category-items" [class.open]="categoriasAbiertas.administracion">
           <a [routerLink]="['/maestro','graduacion']"
              routerLinkActive="active"
              class="nav-link"
              (click)="cerrarMenu()">
-            🎓 Graduación
+            <span class="nav-icon">🎓</span>
+            <span class="nav-text">Graduación</span>
           </a>
-        </li>
-        <li>
           <a [routerLink]="['/maestro','manual']"
              routerLinkActive="active"
              class="nav-link"
              (click)="cerrarMenu()">
-            📖 Manual
+            <span class="nav-icon">📖</span>
+            <span class="nav-text">Manual</span>
           </a>
-        </li>
-        <li>
           <a [routerLink]="['/maestro','configuracion']"
              routerLinkActive="active"
              class="nav-link"
              (click)="cerrarMenu()">
-            ⚙️ Configuración
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-text">Configuración</span>
           </a>
-        </li>
-        <li>
-          <a (click)="cerrarSesion()" class="nav-link logout">🚪 Cerrar Sesión</a>
-        </li>
-      </ul>
+        </div>
+      </div>
+
+      <!-- Separador decorativo -->
+      <hr class="category-separator">
+
+      <!-- Categoría de Cerrar Sesión -->
+      <div class="menu-category logout-category">
+        <div class="category-header">
+          <span class="category-icon">🔒</span>
+          <span class="category-text">Sesión</span>
+        </div>
+        <div class="category-items open">
+          <button type="button" 
+                  (click)="cerrarSesion()" 
+                  class="nav-link logout"
+                  aria-label="Cerrar sesión">
+            <span class="nav-icon">🚪</span>
+            <span class="nav-text">Cerrar Sesión</span>
+          </button>
+        </div>
+      </div>
     </nav>
   </aside>
 

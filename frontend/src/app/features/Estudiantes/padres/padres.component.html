@@ -1,1 +1,374 @@
-﻿<div><h2>Chat</h2><p>En desarrollo</p></div>
+﻿<!-- C:\Codigos\HTml\gestion-educativa\frontend\src\app\features\Estudiantes\padres\padres.component.html -->
+<div class="chat-container">
+  <!-- Header principal -->
+  <div class="chat-header">
+    <div class="header-main">
+      <h2>💬 Chat con Maestros</h2>
+      <div class="server-status" [class]="getServerStatusClass()">
+        {{serverStatus}}
+        <button class="btn-refresh" (click)="verificarSaludServidor()" title="Verificar servidor">
+          🔄
+        </button>
+      </div>
+    </div>
+    
+    <!-- Información del usuario -->
+    <div class="user-info" *ngIf="tieneSesionValida()">
+      <div class="user-details">
+        <span class="user-icon">👤</span>
+        <span class="user-name">{{getUsuarioInfo()}}</span>
+        <span class="user-id">ID: {{estudianteId}}</span>
+        <button class="btn-session-refresh" (click)="recargarTodo()" title="Recargar datos">
+          🔄
+        </button>
+      </div>
+    </div>
+    
+    <div class="estadisticas" *ngIf="estadisticas">
+      <div class="stat-group">
+        <span class="stat" title="Total de maestros">
+          👨‍🏫 {{estadisticas.total_maestros}}
+        </span>
+        <span class="stat" title="Total de mensajes">
+          💬 {{estadisticas.total_mensajes}}
+        </span>
+        <span class="stat unread-stat" *ngIf="estadisticas.mensajes_no_leidos > 0" 
+              title="Mensajes no leídos">
+          🔴 {{estadisticas.mensajes_no_leidos}}
+        </span>
+        <span class="stat" title="Última actividad">
+          ⏰ {{formatearFechaCorta(estadisticas.ultima_actividad)}}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-layout">
+    <!-- Panel izquierdo: Lista de conversaciones -->
+    <div class="conversaciones-list">
+      <div class="list-header">
+        <h3>Conversaciones</h3>
+        <div class="list-actions">
+          <button class="btn-refresh" (click)="cargarConversaciones()" [disabled]="loading" 
+                  title="Recargar conversaciones">
+            🔄 {{loading ? 'Cargando...' : ''}}
+          </button>
+          <span class="total-conversations" *ngIf="!loading">
+            {{conversaciones.length}}
+          </span>
+        </div>
+      </div>
+
+      <!-- Estado: Sin sesión -->
+      <div class="no-session" *ngIf="!tieneSesionValida()">
+        <div class="session-error">
+          <div class="error-icon">🔒</div>
+          <h4>Sesión no válida</h4>
+          <p>No se pudo cargar tu información de sesión.</p>
+          <div class="session-actions">
+            <button class="btn-session" (click)="recargarTodo()">
+              🔄 Intentar nuevamente
+            </button>
+            <button class="btn-logout" (click)="logout()">
+              🚪 Cerrar sesión
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading state -->
+      <div class="loading-state" *ngIf="loading && conversaciones.length === 0 && tieneSesionValida()">
+        <div class="spinner"></div>
+        <p>Cargando conversaciones...</p>
+        <p class="loading-detail">Usuario ID: {{estudianteId}}</p>
+      </div>
+      
+      <!-- Lista de conversaciones -->
+      <div class="conversaciones" *ngIf="(!loading || conversaciones.length > 0) && tieneSesionValida()">
+        <div 
+          *ngFor="let conversacion of conversaciones" 
+          class="conversacion-item"
+          [class.active]="conversacionSeleccionada?.maestro_id === conversacion.maestro_id"
+          [class.has-unread]="conversacion.mensajes_no_leidos > 0"
+          (click)="seleccionarConversacion(conversacion)">
+          
+          <div class="conversacion-avatar">
+            <div class="avatar">{{conversacion.maestro_nombre.charAt(0)}}</div>
+          </div>
+          
+          <div class="conversacion-content">
+            <div class="conversacion-header">
+              <strong class="maestro-name">{{conversacion.maestro_nombre}}</strong>
+              <div class="conversacion-meta">
+                <span class="badge" *ngIf="conversacion.mensajes_no_leidos > 0">
+                  {{conversacion.mensajes_no_leidos}}
+                </span>
+                <span class="time">
+                  {{formatearFechaCorta(conversacion.fecha_ultimo_mensaje)}}
+                </span>
+              </div>
+            </div>
+            
+            <div class="nino-info">
+              <span class="child-icon">👶</span>
+              {{conversacion.nino_nombre}}
+            </div>
+            
+            <div class="ultimo-mensaje" *ngIf="conversacion.ultimo_mensaje">
+              {{conversacion.ultimo_mensaje.length > 60 ? 
+                (conversacion.ultimo_mensaje.substring(0, 60) + '...') : 
+                conversacion.ultimo_mensaje}}
+            </div>
+            
+            <div class="contact-info">
+              <span class="email" title="Email">📧 {{conversacion.maestro_email}}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sin conversaciones -->
+        <div class="no-conversaciones" *ngIf="conversaciones.length === 0 && !loading && tieneSesionValida()">
+          <div class="empty-state">
+            <div class="empty-icon">💬</div>
+            <p>No hay conversaciones activas</p>
+            <p class="empty-subtext">Los mensajes aparecerán aquí cuando los maestros te escriban</p>
+            <button class="btn-empty" (click)="recargarTodo()">
+              🔄 Recargar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel derecho: Área de chat -->
+    <div class="chat-area" *ngIf="conversacionSeleccionada && tieneSesionValida(); else noSelection">
+      <!-- Header de conversación seleccionada -->
+      <div class="chat-header-selected">
+        <div class="selected-header-main">
+          <button class="btn-back" (click)="conversacionSeleccionada = null" title="Volver">
+            ←
+          </button>
+          <div class="selected-maestro-info">
+            <h3>{{conversacionSeleccionada.maestro_nombre}}</h3>
+            <div class="maestro-details">
+              <span class="detail-item" title="Email">
+                📧 {{conversacionSeleccionada.maestro_email}}
+              </span>
+              <span class="detail-item" title="Estudiante">
+                👶 {{conversacionSeleccionada.nino_nombre}}
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="selected-actions">
+          <button class="btn-action" (click)="cargarMensajes(conversacionSeleccionada.maestro_id)" 
+                  title="Recargar mensajes">
+            🔄
+          </button>
+          <button class="btn-mark-read" (click)="marcarMensajesLeidos(conversacionSeleccionada.maestro_id)"
+                  title="Marcar como leído">
+            📖
+          </button>
+        </div>
+      </div>
+
+      <!-- Área de mensajes -->
+      <div class="chat-messages" #chatMessages>
+        <!-- Loading mensajes -->
+        <div class="loading-messages" *ngIf="loading && mensajes.length === 0">
+          <div class="spinner"></div>
+          <p>Cargando mensajes...</p>
+        </div>
+        
+        <!-- Mensajes -->
+        <div 
+          *ngFor="let mensaje of mensajes" 
+          class="mensaje"
+          [class.mensaje-tutor]="mensaje.tipo_remitente === 'tutor'"
+          [class.mensaje-maestro]="mensaje.tipo_remitente === 'maestro'">
+          
+          <div class="mensaje-avatar" *ngIf="mensaje.tipo_remitente === 'maestro'">
+            <div class="avatar">{{mensaje.maestro_nombre.charAt(0)}}</div>
+          </div>
+          
+          <div class="mensaje-content">
+            <div class="mensaje-header">
+              <strong class="sender-name">
+                {{mensaje.tipo_remitente === 'tutor' ? 'Tú' : mensaje.maestro_nombre}}
+              </strong>
+              <span class="mensaje-time">{{formatearFecha(mensaje.fecha_envio)}}</span>
+            </div>
+            
+            <div class="mensaje-text">{{mensaje.mensaje}}</div>
+            
+            <div class="mensaje-footer">
+              <span class="child-name">
+                👶 {{mensaje.nino_nombre}}
+              </span>
+              <span class="estado" *ngIf="mensaje.tipo_remitente === 'tutor'">
+                {{mensaje.leido ? '✅ Leído' : '🕒 Enviado'}}
+              </span>
+            </div>
+          </div>
+          
+          <div class="mensaje-avatar" *ngIf="mensaje.tipo_remitente === 'tutor'">
+            <div class="avatar">T</div>
+          </div>
+        </div>
+
+        <!-- Sin mensajes -->
+        <div class="no-messages" *ngIf="mensajes.length === 0 && !loading">
+          <div class="empty-chat">
+            <div class="empty-icon">💭</div>
+            <p>No hay mensajes en esta conversación</p>
+            <p class="empty-subtext">Envía un mensaje para comenzar</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input para enviar mensaje -->
+      <div class="chat-input">
+        <div class="input-container">
+          <textarea 
+            [(ngModel)]="nuevoMensaje"
+            placeholder="Escribe tu mensaje aquí..."
+            (keydown)="onKeyDown($event)"
+            rows="2"
+            [disabled]="enviando || !tieneSesionValida()"
+            #messageInput>
+          </textarea>
+          <div class="input-actions">
+            <span class="char-count" *ngIf="nuevoMensaje.length > 0">
+              {{nuevoMensaje.length}}/1000
+            </span>
+            <button 
+              (click)="enviarMensaje()" 
+              [disabled]="!nuevoMensaje.trim() || enviando || !tieneSesionValida()"
+              class="btn-send"
+              [class.sending]="enviando">
+              <span *ngIf="!enviando">📤 Enviar</span>
+              <span *ngIf="enviando">⏳ Enviando...</span>
+            </button>
+          </div>
+        </div>
+        <div class="input-hint">
+          Presiona <kbd>Enter</kbd> para enviar, <kbd>Shift + Enter</kbd> para nueva línea
+          <span *ngIf="!tieneSesionValida()" class="session-warning">
+            ⚠️ Sesión no válida. No puedes enviar mensajes.
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sin conversación seleccionada -->
+    <ng-template #noSelection>
+      <div class="no-selection">
+        <div class="placeholder">
+          <div class="placeholder-icon">💬</div>
+          
+          <!-- Sin sesión válida -->
+          <div *ngIf="!tieneSesionValida()" class="session-placeholder">
+            <h3>Sesión requerida</h3>
+            <p>No se pudo cargar tu información de usuario.</p>
+            <div class="session-info">
+              <p><strong>Posibles causas:</strong></p>
+              <ul>
+                <li>La sesión ha expirado</li>
+                <li>No se guardaron correctamente los datos</li>
+                <li>Error al cargar la información del usuario</li>
+              </ul>
+            </div>
+            <div class="session-buttons">
+              <button class="btn-primary" (click)="recargarTodo()">
+                🔄 Recargar sesión
+              </button>
+              <button class="btn-secondary" (click)="logout()">
+                🚪 Cerrar sesión
+              </button>
+            </div>
+          </div>
+
+          <!-- Con sesión válida pero sin conversación seleccionada -->
+          <div *ngIf="tieneSesionValida()">
+            <h3>Selecciona una conversación</h3>
+            <p>Elige un maestro de la lista para comenzar a chatear</p>
+            
+            <div class="user-info-card">
+              <div class="user-card-header">
+                <span class="user-card-icon">👤</span>
+                <div class="user-card-details">
+                  <h4>{{estudianteNombre}}</h4>
+                  <p>ID: {{estudianteId}} | Email: {{estudianteEmail}}</p>
+                  <p *ngIf="ninoNombre">Estudiante: {{ninoNombre}}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="placeholder-tips" *ngIf="conversaciones.length === 0">
+              <div class="tip">
+                <strong>💡 Consejo:</strong> Si no ves conversaciones:
+              </div>
+              <ul>
+                <li>Verifica que el servidor esté conectado</li>
+                <li>Asegúrate de tener mensajes en la base de datos</li>
+                <li>Los maestros deben haber iniciado una conversación</li>
+              </ul>
+              <button class="btn-try" (click)="recargarTodo()">
+                🔄 Intentar de nuevo
+              </button>
+            </div>
+            
+            <div class="placeholder-stats" *ngIf="estadisticas">
+              <div class="stat-card">
+                <div class="stat-value">{{estadisticas.total_maestros}}</div>
+                <div class="stat-label">Maestros</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">{{estadisticas.total_mensajes}}</div>
+                <div class="stat-label">Mensajes</div>
+              </div>
+              <div class="stat-card" *ngIf="estadisticas.mensajes_no_leidos > 0">
+                <div class="stat-value unread">{{estadisticas.mensajes_no_leidos}}</div>
+                <div class="stat-label">No leídos</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- Mensajes de error -->
+  <div class="error-overlay" *ngIf="error">
+    <div class="error-message">
+      <div class="error-icon">⚠️</div>
+      <div class="error-content">
+        <strong>Atención</strong>
+        <p>{{error}}</p>
+      </div>
+      <button (click)="limpiarError()" class="btn-close-error" title="Cerrar">
+        ✕
+      </button>
+    </div>
+  </div>
+
+  <!-- Estado del servidor (flotante) -->
+  <div class="floating-status" [class]="getServerStatusClass()">
+    <div class="status-content">
+      <span class="status-icon">
+        {{serverStatus.includes('🟢') ? '✅' : 
+          serverStatus.includes('🔴') ? '❌' : '🔄'}}
+      </span>
+      <span class="status-text">{{serverStatus}}</span>
+      <button class="btn-status-refresh" (click)="verificarSaludServidor()">
+        🔄
+      </button>
+    </div>
+  </div>
+
+  <!-- Debug session button (solo en desarrollo) -->
+  <button class="debug-button" (click)="mostrarDatosSesion()" *ngIf="isDevelopmentMode()">
+    🐛 Debug
+  </button>
+</div>

@@ -1,71 +1,250 @@
-<div class="grad-wrapper" [class.loading]="cargando()">
-  <section class="panel head">
-    <div class="title-block">
-      <h1>Mis certificados</h1>
-      <p class="sub">
-        Aquí podrás ver los certificados emitidos por tu escuela.
+<!-- C:\Codigos\HTml\gestion-educativa\frontend\src\app\features\Estudiantes\graduacion\graduacion.component.html -->
+<div class="graduacion-estudiante-wrapper" [class.loading]="cargando">
+  <!-- CABECERA -->
+  <div class="header">
+    <div class="header-info">
+      <h1>🎓 Mis Certificados de Excelencia</h1>
+      <p class="subtitle">Consulta y descarga tus certificados académicos y cartas de cierre de ciclo</p>
+    </div>
+    
+    <div class="header-actions">
+      <button class="btn btn-refresh" (click)="recargarDatos()" [disabled]="cargando">
+        🔄 {{ cargando ? 'Cargando...' : 'Recargar' }}
+      </button>
+      <button class="btn btn-test" (click)="testBackend()" [disabled]="cargando">
+        🧪 Test Backend
+      </button>
+    </div>
+  </div>
+
+  <!-- MENSAJES DE ERROR/INFORMACIÓN -->
+  <div *ngIf="error" class="error-message">
+    ⚠️ {{ error }}
+  </div>
+
+  <!-- ESTADÍSTICAS PERSONALES -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-content">
+        <p class="label">TOTAL DE CERTIFICADOS</p>
+        <p class="value">{{ stats.total }}</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-content">
+        <p class="label">ENVIADOS</p>
+        <p class="value">{{ stats.enviados }}</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">⏳</div>
+      <div class="stat-content">
+        <p class="label">PENDIENTES</p>
+        <p class="value">{{ stats.pendientes }}</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">📈</div>
+      <div class="stat-content">
+        <p class="label">PROMEDIO GENERAL</p>
+        <p class="value">{{ stats.promedio_general }}</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">⬆️</div>
+      <div class="stat-content">
+        <p class="label">PROMEDIO MÁXIMO</p>
+        <p class="value">{{ stats.promedio_maximo }}</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">⬇️</div>
+      <div class="stat-content">
+        <p class="label">PROMEDIO MÍNIMO</p>
+        <p class="value">{{ stats.promedio_minimo }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- INFORMACIÓN DEL ESTUDIANTE -->
+  <div *ngIf="resumen?.estudiante" class="info-estudiante">
+    <h3>👤 Información del Estudiante</h3>
+    <div class="info-grid">
+      <div class="info-item">
+        <span class="info-label">Nombre:</span>
+        <span class="info-value">{{ resumen?.estudiante?.nombre }}</span> <!-- ✅ CORREGIDO -->
+      </div>
+      <div class="info-item">
+        <span class="info-label">Tutor:</span>
+        <span class="info-value">{{ resumen?.estudiante?.tutor }}</span> <!-- ✅ CORREGIDO -->
+      </div>
+      <div class="info-item">
+        <span class="info-label">Grado:</span>
+        <span class="info-value">{{ resumen?.estudiante?.grado }}</span> <!-- ✅ CORREGIDO -->
+      </div>
+      <div class="info-item">
+        <span class="info-label">Email tutor:</span>
+        <span class="info-value">{{ resumen?.estudiante?.email }}</span> <!-- ✅ CORREGIDO -->
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filtros-section" *ngIf="certificados.length > 0">
+    <h3>🔍 Filtrar certificados</h3>
+    
+    <div class="filtros-grid">
+      <div class="filtro-item">
+        <label for="filtro-estado">Estado:</label>
+        <select id="filtro-estado" [(ngModel)]="filtros.estado" (change)="aplicarFiltros()">
+          <option value="todos">Todos los estados</option>
+          <option value="enviado">✅ Enviados</option>
+          <option value="pendiente">⏳ Pendientes</option>
+        </select>
+      </div>
+
+      <div class="filtro-item">
+        <label for="filtro-ciclo">Ciclo escolar:</label>
+        <select id="filtro-ciclo" [(ngModel)]="filtros.ciclo" (change)="aplicarFiltros()">
+          <option value="todos">Todos los ciclos</option>
+          <option *ngFor="let ciclo of ciclosUnicos" [value]="ciclo">
+            {{ ciclo }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filtro-item">
+        <button class="btn btn-clear" (click)="limpiarFiltros()">
+          🧹 Limpiar filtros
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA DE CERTIFICADOS -->
+  <div class="tabla-section">
+    <div class="tabla-header">
+      <h3>📜 Mis Certificados ({{ certificados.length }})</h3>
+      <div class="tabla-info">
+        <span *ngIf="certificados.length > 0">
+          Disponibles para descarga: {{ resumen?.certificados_disponibles_descarga || 0 }}
+        </span>
+      </div>
+    </div>
+
+    <!-- INDICADOR DE CARGA -->
+    <div *ngIf="cargando" class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando certificados...</p>
+    </div>
+
+    <!-- MENSAJE SIN CERTIFICADOS -->
+    <div *ngIf="!cargando && certificados.length === 0" class="empty-state">
+      <div class="empty-icon">📄</div>
+      <h3>No tienes certificados aún</h3>
+      <p *ngIf="resumen?.estudiante?.nombre"> <!-- ✅ CORREGIDO -->
+        Hola {{resumen?.estudiante?.nombre}}, aún no has recibido certificados de excelencia. <!-- ✅ CORREGIDO -->
       </p>
+      <p>Los certificados aparecerán aquí cuando tu maestro los genere y envíe.</p>
+      <p class="empty-note"><small>Si crees que deberías tener certificados, contacta a tu maestro.</small></p>
     </div>
 
-    <button type="button" class="btn-refresh" (click)="cargarCertificados()">
-      🔄 Actualizar
-    </button>
-  </section>
-
-  <section class="panel content">
-    <div *ngIf="errorMsg()" class="alert error">
-      {{ errorMsg() }}
+    <!-- TABLA DE CERTIFICADOS -->
+    <div *ngIf="!cargando && certificados.length > 0" class="tabla-container">
+      <table class="certificados-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Ciclo escolar</th>
+            <th>Promedio</th>
+            <th>Maestro</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        
+        <tbody>
+          <tr *ngFor="let certificado of certificados" class="certificado-row">
+            <td class="certificado-id">#{{ certificado.id }}</td>
+            <td class="certificado-ciclo">{{ certificado.ciclo }}</td>
+            <td>
+              <span class="promedio-badge" [style.background-color]="getColorPromedio(certificado.promedio)">
+                {{ certificado.promedio | number:'1.1-2' }}
+              </span>
+            </td>
+            <td class="certificado-maestro">{{ certificado.maestro_firma }}</td>
+            <td class="certificado-fecha">
+              {{ certificado.fecha_formateada || fechaBonita(certificado.fecha_creacion) }}
+            </td>
+            <td>
+              <span class="estado-badge" [style.background-color]="getColorEstado(certificado.estado)">
+                {{ estadoTexto(certificado.estado) }}
+              </span>
+            </td>
+            <td class="acciones-cell">
+              <div class="acciones-group">
+                <button class="btn-action btn-download" 
+                        (click)="descargarCertificado(certificado.id)" 
+                        [disabled]="certificado.estado !== 'enviado'"
+                        [title]="certificado.estado === 'enviado' ? 'Descargar certificado' : 'No disponible para descarga'">
+                  ⬇️ Descargar
+                </button>
+                <button class="btn-action btn-view" (click)="verDetalles(certificado)">
+                  👁️ Ver
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+  </div>
 
-    <div *ngIf="!errorMsg() && !tieneCertificados() && !cargando()" class="empty-state">
-      <h2>Aún no tienes certificados</h2>
-      <p>Cuando tu maestro genere y envíe uno, aparecerá aquí.</p>
+  <!-- INFORMACIÓN ADICIONAL -->
+  <div class="info-extra" *ngIf="certificados.length > 0">
+    <h3>📋 Información importante sobre los certificados</h3>
+    <div class="info-list">
+      <div class="info-item">
+        <span class="info-icon">✅</span>
+        <div class="info-text">
+          <strong>Certificados enviados:</strong> Puedes descargarlos haciendo clic en el botón "Descargar"
+        </div>
+      </div>
+      <div class="info-item">
+        <span class="info-icon">⏳</span>
+        <div class="info-text">
+          <strong>Certificados pendientes:</strong> Tu maestro aún no los ha enviado. Aparecerán cuando estén listos
+        </div>
+      </div>
+      <div class="info-item">
+        <span class="info-icon">📧</span>
+        <div class="info-text">
+          <strong>Problemas con descargas:</strong> Contacta a tu maestro si no puedes descargar un certificado que debería estar disponible
+        </div>
+      </div>
+      <div class="info-item">
+        <span class="info-icon">🔄</span>
+        <div class="info-text">
+          <strong>Actualizaciones:</strong> Los certificados nuevos aparecerán automáticamente cuando el maestro los genere
+        </div>
+      </div>
     </div>
+  </div>
 
-    <div *ngIf="tieneCertificados()" class="lista-certificados">
-      <article class="cert-card" *ngFor="let c of certificados()">
-        <header class="cert-header">
-          <div class="pill tipo">
-            {{ c.tipo | titlecase }}
-          </div>
-          <span class="fecha">
-            Emitido el: {{ c.fecha_emision | date : 'dd/MM/yyyy HH:mm' }}
-          </span>
-        </header>
-
-        <h2 class="titulo">
-          Certificado de fin de curso – {{ c.ciclo }}
-        </h2>
-
-        <p class="alumno">
-          Alumno: <strong>{{ c.alumno }}</strong>
-        </p>
-
-        <p class="promedio" *ngIf="c.promedio !== null">
-          Promedio general:
-          <strong>{{ c.promedio | number : '1.2-2' }}</strong>
-        </p>
-
-        <p class="estado">
-          Estado:
-          <span class="pill estado-pill">{{ c.estado | titlecase }}</span>
-        </p>
-
-        <footer class="cert-footer">
-          <small>
-            Si la escuela adjunta el archivo del certificado, podrás descargarlo desde aquí.
-          </small>
-
-          <button
-            *ngIf="c.archivo_path"
-            type="button"
-            class="btn-descargar"
-            (click)="abrirCertificado(c.archivo_path)"
-          >
-            📄 Ver certificado
-          </button>
-        </footer>
-      </article>
+  <!-- DEBUG (solo en desarrollo) -->
+  <div *ngIf="false" class="debug-section">
+    <button class="btn btn-debug" (click)="verificarDatos()">🔍 Verificar datos</button>
+    <div class="debug-info">
+      <p><strong>ID Estudiante:</strong> {{ estudianteId }}</p>
+      <p><strong>Ciclos disponibles:</strong> {{ ciclosUnicos.length }}</p>
     </div>
-  </section>
+  </div>
 </div>

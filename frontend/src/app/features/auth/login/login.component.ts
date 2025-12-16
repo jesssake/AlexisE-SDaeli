@@ -13,6 +13,16 @@ interface LoginModel {
   password: string;
 }
 
+interface CredencialPrueba {
+  email: string;
+  password: string;
+  rol: string;
+  nombre: string;
+  admin_nombre?: string;
+  tutor_nombre?: string;
+  nino_nombre?: string;
+}
+
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -40,13 +50,44 @@ export class LoginComponent implements OnInit, OnDestroy {
   errors: Record<string, string> = {};
 
   // Credenciales de prueba para desarrollo
-  private readonly CREDENCIALES_PRUEBA = [
-    { email: 'admin@gestion.com', password: 'AdminPassword123', rol: 'SuperAdmin', nombre: 'Administrador Principal' },
-    { email: 'juan.perez@example.com', password: 'ContraseñaSegura123', rol: 'TUTOR', nombre: 'Juan Pérez' },
-    { email: 'maria.garcia@example.com', password: 'Password123', rol: 'TUTOR', nombre: 'María García' },
-    { email: 'carlos.lopez@example.com', password: 'SecurePass456', rol: 'TUTOR', nombre: 'Carlos López' },
-    { email: 'coordinador@escuela.com', password: 'Coord123', rol: 'Admin', nombre: 'Coordinador Académico' },
-    { email: 'director@escuela.com', password: 'Director456', rol: 'SuperAdmin', nombre: 'Director General' }
+  private readonly CREDENCIALES_PRUEBA: CredencialPrueba[] = [
+    // Administrador
+    { 
+      email: 'admin@escuela.com', 
+      password: 'Admin123', 
+      rol: 'ADMIN', 
+      nombre: 'Administrador Principal',
+      admin_nombre: 'Administrador Principal'
+    },
+    
+    // Super Admin
+    { 
+      email: 'superadmin@escuela.com', 
+      password: 'Super123', 
+      rol: 'SUPERADMIN', 
+      nombre: 'Super Administrador',
+      admin_nombre: 'Super Administrador'
+    },
+    
+    // Usuario (Tutor)
+    { 
+      email: 'tutor@example.com', 
+      password: 'Tutor123', 
+      rol: 'TUTOR', 
+      nombre: 'María Rodríguez',
+      tutor_nombre: 'María Rodríguez',
+      nino_nombre: 'Ana Rodríguez'
+    },
+    
+    // Otro Usuario (Tutor)
+    { 
+      email: 'padre@familia.com', 
+      password: 'Padre123', 
+      rol: 'TUTOR', 
+      nombre: 'Juan Pérez',
+      tutor_nombre: 'Juan Pérez',
+      nino_nombre: 'Carlos Pérez'
+    }
   ];
 
   // Mensajes del mono
@@ -60,26 +101,42 @@ export class LoginComponent implements OnInit, OnDestroy {
     CONNECTION_ERROR: '¡No puedo conectarme! 😭',
     RECOVERY: '¡Función de recuperación próximamente! 🔧',
     REGISTER: '¡Nos vemos en el registro! 🐵➡️',
-    VALIDATING: '¡Verificando! ⏳'
+    VALIDATING: '¡Verificando! ⏳',
+    ADMIN_DETECTED: '¡Eres administrador! ⚙️',
+    TUTOR_DETECTED: '¡Eres un tutor/padre! 👨‍👩‍👧‍👦'
   };
 
   ngOnInit(): void {
-    // ================= MODIFICACIÓN =================
-    // Limpiar sesión previa guardada para evitar redirecciones automáticas
-    try {
-      localStorage.removeItem('userData');
-      localStorage.removeItem('token');
-      console.log('Local session cleared on login screen.');
-    } catch (e) {
-      console.warn('Could not clear localStorage:', e);
+    // ✅ VERIFICAR PRIMERO si ya está autenticado
+    if (this.authService.isAuthenticated()) {
+      console.log('🔍 Usuario ya autenticado, verificando rol...');
+      this.redirectToDashboard();
+      return;
     }
-    // =================================================
+
+    // ✅ Limpiar sesión previa solo si no está autenticado
+    this.limpiarSesionCompleta();
+    console.log('🧹 Sesión anterior limpiada para nuevo login.');
 
     this.inicializarComponente();
   }
 
   ngOnDestroy(): void {
     this.cleanup();
+  }
+
+  private limpiarSesionCompleta(): void {
+    try {
+      const claves = [
+        'userData', 'authToken', 'token', 'userId', 'tutorId',
+        'userEmail', 'correo', 'userNombre', 'userRole', 'userType',
+        'ninoNombre', 'tutorTelefono', 'ninoCondiciones'
+      ];
+      
+      claves.forEach(clave => localStorage.removeItem(clave));
+    } catch (e) {
+      console.warn('Error limpiando localStorage:', e);
+    }
   }
 
   private inicializarComponente(): void {
@@ -92,13 +149,6 @@ export class LoginComponent implements OnInit, OnDestroy {
     // Mostrar credenciales de prueba en consola para desarrollo
     this.mostrarCredencialesPrueba();
 
-    // Redirigir si ya está autenticado (comportamiento normal está ahora desactivado
-    // mientras forzamos limpieza en ngOnInit para evitar redirecciones fantasma)
-    if (this.authService.isAuthenticated()) {
-      this.redirectToDashboard();
-      return;
-    }
-
     this.mostrarMensajeBienvenida();
     this.enfocarCampoEmail();
   }
@@ -106,9 +156,13 @@ export class LoginComponent implements OnInit, OnDestroy {
   private mostrarCredencialesPrueba(): void {
     console.log('🔐 CREDENCIALES DE PRUEBA DISPONIBLES:');
     console.log('=========================================');
-    this.CREDENCIALES_PRUEBA.forEach(credencial => {
-      console.log(`📧 ${credencial.email} | 🔐 ${credencial.password} | 👤 ${credencial.nombre} | 🎯 ${credencial.rol}`);
-    });
+    console.log('⚙️ ADMINISTRADORES:');
+    console.log('📧 admin@escuela.com | 🔐 Admin123 | 🎯 ADMIN');
+    console.log('📧 superadmin@escuela.com | 🔐 Super123 | 🎯 SUPERADMIN');
+    console.log('');
+    console.log('👨‍👩‍👧‍👦 TUTORES/PADRES:');
+    console.log('📧 tutor@example.com | 🔐 Tutor123 | 🎯 TUTOR');
+    console.log('📧 padre@familia.com | 🔐 Padre123 | 🎯 TUTOR');
     console.log('=========================================');
   }
 
@@ -142,10 +196,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.iniciarLogin();
     
     try {
-      // 🔄 ELIGE EL MODO AQUÍ:
-      const respuesta = await this.ejecutarLogin(); // MODO REAL - Backend Node.js
-      // const respuesta = await this.ejecutarLoginTesting(); // MODO TESTING - Sin backend
-      
+      // Usar siempre el modo real (backend)
+      const respuesta = await this.ejecutarLogin();
       await this.procesarRespuestaLogin(respuesta);
     } catch (error: any) {
       this.manejarErrorLogin(error);
@@ -209,50 +261,169 @@ export class LoginComponent implements OnInit, OnDestroy {
   private async procesarRespuestaLogin(respuesta: any): Promise<void> {
     console.log('🔍 Procesando respuesta del servidor:', respuesta);
 
-    // Validar múltiples formatos de respuesta
+    // Validar respuesta exitosa
     const isSuccess = 
       respuesta?.success === true || 
       respuesta?.status === 'success' ||
-      (respuesta?.user !== undefined && respuesta?.user !== null) ||
-      (respuesta?.data !== undefined && respuesta?.data !== null);
+      respuesta?.status === 200 ||
+      (respuesta?.user !== undefined && respuesta?.user !== null);
 
-    const userData = respuesta?.user || respuesta?.data;
-    const token = respuesta?.token || respuesta?.access_token;
+    const userData = respuesta?.user || respuesta?.data || respuesta;
+    const token = respuesta?.token || respuesta?.access_token || respuesta?.jwt;
 
     console.log('✅ Validación de respuesta:', {
       isSuccess,
-      userData,
-      token,
       hasUser: !!userData,
       hasToken: !!token
     });
 
     if (!isSuccess || !userData) {
       const errorMsg = respuesta?.message || 'Credenciales incorrectas o servidor no disponible';
-      console.warn('❌ Login fallido - Detalles:', {
-        respuesta,
-        isSuccess,
-        userData,
-        errorMsg
-      });
+      console.warn('❌ Login fallido:', errorMsg);
       throw new Error(errorMsg);
     }
 
-    await this.manejarLoginExitoso(userData, token);
+    // Normalizar usuario según estructura de tu backend
+    const usuarioNormalizado = this.normalizarUsuario(userData);
+    
+    // Completar datos faltantes si es necesario
+    const usuarioCompleto = this.completarDatosFaltantes(usuarioNormalizado);
+    
+    // Depurar información
+    this.debugUserDetection(usuarioCompleto);
+    
+    await this.manejarLoginExitoso(usuarioCompleto, token);
+  }
+
+  private normalizarUsuario(user: any): any {
+    console.log('🔍 Normalizando usuario recibido:', user);
+    
+    // Obtener rol del backend (ya viene normalizado)
+    const rol = (user.rol || 'TUTOR').toUpperCase().trim();
+    
+    // Determinar tipo de usuario basado en propiedades
+    let tipoUsuario = 'TUTOR';
+    let nombre = user.nombre || '';
+    let email = user.email || this.model.email;
+    let nino_nombre = user.nino_nombre || '';
+    let tutor_telefono = user.tutor_telefono || '';
+    let nino_condiciones = user.nino_condiciones || '';
+    
+    // Si tiene propiedades de administrador
+    if (user.admin_nombre || rol.includes('ADMIN') || user.isAdmin) {
+      tipoUsuario = 'ADMINISTRADOR';
+      nombre = user.admin_nombre || user.nombre || 'Administrador';
+      email = user.admin_email || user.email || this.model.email;
+    }
+    // Si tiene propiedades de tutor
+    else if (user.tutor_nombre || rol.includes('TUTOR') || rol.includes('PADRE')) {
+      tipoUsuario = 'TUTOR';
+      nombre = user.tutor_nombre || user.nombre || 'Tutor';
+      email = user.tutor_email || user.email || this.model.email;
+      nino_nombre = user.nino_nombre || '';
+      tutor_telefono = user.tutor_telefono || '';
+      nino_condiciones = user.nino_condiciones || '';
+    }
+    
+    // Construir objeto normalizado con TODAS las propiedades importantes
+    const usuarioNormalizado = {
+      id: user.id || 0,
+      nombre: nombre,
+      email: email,
+      rol: rol,
+      tipo: tipoUsuario,
+      nino_nombre: nino_nombre,
+      tutor_telefono: tutor_telefono,
+      nino_condiciones: nino_condiciones,
+      // Preservar todas las propiedades originales
+      ...user
+    };
+    
+    console.log('✅ Usuario normalizado:', usuarioNormalizado);
+    return usuarioNormalizado;
+  }
+
+  private completarDatosFaltantes(user: any): any {
+    console.log('🔧 Completando datos faltantes para el usuario...');
+    
+    const usuarioCompleto = { ...user };
+    
+    // Si el email es de usuarios conocidos, completar datos
+    switch (usuarioCompleto.email) {
+      case 'juan.perez1@example.com':
+        if (!usuarioCompleto.id) usuarioCompleto.id = 8;
+        if (!usuarioCompleto.nombre) usuarioCompleto.nombre = 'Juan Pérez';
+        if (!usuarioCompleto.nino_nombre) usuarioCompleto.nino_nombre = 'Luis Pérez';
+        if (!usuarioCompleto.tutor_telefono) usuarioCompleto.tutor_telefono = '(555) 1234-5678';
+        usuarioCompleto.rol = 'tutor';
+        usuarioCompleto.tipo = 'TUTOR';
+        console.log('📋 Datos completados para Juan Pérez');
+        break;
+        
+      case 'ana.garcia@example.com':
+        if (!usuarioCompleto.id) usuarioCompleto.id = 9;
+        if (!usuarioCompleto.nombre) usuarioCompleto.nombre = 'Ana García';
+        if (!usuarioCompleto.nino_nombre) usuarioCompleto.nino_nombre = 'Carla Pérez';
+        if (!usuarioCompleto.tutor_telefono) usuarioCompleto.tutor_telefono = '(555) 9876-5432';
+        usuarioCompleto.rol = 'tutor';
+        usuarioCompleto.tipo = 'TUTOR';
+        console.log('📋 Datos completados para Ana García');
+        break;
+        
+      case 'carlos.lopez@example.com':
+        if (!usuarioCompleto.id) usuarioCompleto.id = 10;
+        if (!usuarioCompleto.nombre) usuarioCompleto.nombre = 'Carlos López';
+        if (!usuarioCompleto.nino_nombre) usuarioCompleto.nino_nombre = 'Pedro Gómez';
+        if (!usuarioCompleto.tutor_telefono) usuarioCompleto.tutor_telefono = '(555) 1122-3344';
+        if (!usuarioCompleto.nino_condiciones) usuarioCompleto.nino_condiciones = 'Alergia a la penicilina';
+        usuarioCompleto.rol = 'tutor';
+        usuarioCompleto.tipo = 'TUTOR';
+        console.log('📋 Datos completados para Carlos López');
+        break;
+        
+      default:
+        // Si no hay ID, generar uno temporal
+        if (!usuarioCompleto.id) {
+          usuarioCompleto.id = Math.floor(Math.random() * 100) + 100;
+          console.log('🔢 ID temporal generado:', usuarioCompleto.id);
+        }
+    }
+    
+    return usuarioCompleto;
+  }
+
+  private debugUserDetection(user: any): void {
+    console.group('🔎 DEBUG: Detección de Usuario');
+    console.log('📧 Email del formulario:', this.model.email);
+    console.log('👤 Usuario completo:', user);
+    console.log('🎭 Rol:', user.rol);
+    console.log('🏷️ Tipo:', user.tipo);
+    console.log('🆔 ID:', user.id);
+    console.log('👶 Niño:', user.nino_nombre);
+    console.log('📋 Propiedades disponibles:', Object.keys(user));
+    console.groupEnd();
+  }
+
+  private getUserType(user: any): string {
+    return user.tipo || 'TUTOR';
   }
 
   private async manejarLoginExitoso(user: any, token?: string): Promise<void> {
-    console.log('🎉 Login exitoso - Usuario completo:', user);
-    console.log('🔍 Rol detectado:', user.rol);
-    console.log('📧 Email del usuario:', user.email);
+    console.log('🎉 Login exitoso - Usuario:', user);
+    console.log('🔍 Rol:', user.rol);
+    console.log('📧 Email:', user.email);
+    console.log('🆔 ID:', user.id);
     
-    // Mostrar mensaje según el rol
-    const mensajeRol = this.obtenerMensajeRol(user.rol);
-    this.showMonkeyMessage(`¡${mensajeRol}! 🎉`);
-    this.transitionMessage = `Redirigiendo a ${user.rol}...`;
+    // Mostrar mensaje según el tipo de usuario
+    const mensajeUsuario = this.obtenerMensajeUsuario(user.rol, user.tipo);
+    this.showMonkeyMessage(mensajeUsuario);
+    this.transitionMessage = `Redirigiendo a ${user.tipo}...`;
 
-    // Guardar sesión
+    // Guardar sesión con datos normalizados
     this.guardarSesion(user, token);
+    
+    // Verificar que los datos se guardaron correctamente
+    this.verificarDatosGuardados();
 
     await this.delay(1500);
     
@@ -262,87 +433,194 @@ export class LoginComponent implements OnInit, OnDestroy {
     
     await this.delay(600);
 
-    // Redirigir según rol
+    // Redirigir según rol y tipo
     await this.redirigirSegunRol(user);
-  }
-
-  private obtenerMensajeRol(rol: string): string {
-    const mensajes: { [key: string]: string } = {
-      'SuperAdmin': 'Bienvenido Super Administrador',
-      'Admin': 'Bienvenido Administrador',
-      'TUTOR': 'Bienvenido Tutor',
-      'PROFESOR': 'Bienvenido Profesor',
-      'MAESTRO': 'Bienvenido Maestro',
-      'COORDINADOR': 'Bienvenido Coordinador'
-    };
-    
-    return mensajes[rol] || `Bienvenido ${rol}`;
   }
 
   private guardarSesion(user: any, token?: string): void {
     try {
-      localStorage.setItem('userData', JSON.stringify(user));
+      console.log('💾 GUARDANDO SESIÓN COMPLETA...');
+      
+      // 1. Guardar datos completos del usuario
+      const userData = {
+        ...user,
+        correo: user.email || user.correo || this.model.email
+      };
+      
+      localStorage.setItem('userData', JSON.stringify(userData));
+      
+      // 2. GUARDAR TODAS LAS CLAVES NECESARIAS PARA COMPATIBILIDAD
+      // Tokens
       if (token) {
+        localStorage.setItem('authToken', token);
         localStorage.setItem('token', token);
+      } else {
+        const fakeToken = `fake-token-${Date.now()}-${user.id}`;
+        localStorage.setItem('authToken', fakeToken);
+        localStorage.setItem('token', fakeToken);
       }
-      console.log('💾 Sesión guardada - Rol:', user.rol);
-      console.log('💾 Datos guardados en localStorage:', user);
+      
+      // IDs (IMPORTANTE: Estos deben ser números válidos)
+      const userId = user.id ? parseInt(user.id) : 0;
+      localStorage.setItem('userId', userId.toString());
+      localStorage.setItem('tutorId', userId.toString()); // Para tutores
+      
+      // Información personal
+      localStorage.setItem('userEmail', user.email || user.correo || this.model.email);
+      localStorage.setItem('correo', user.email || user.correo || this.model.email);
+      localStorage.setItem('userNombre', user.nombre || user.tutor_nombre || user.admin_nombre || 'Usuario');
+      
+      // Rol y tipo
+      localStorage.setItem('userRole', user.rol || 'tutor');
+      localStorage.setItem('userType', user.tipo || 'TUTOR');
+      
+      // Información del niño (si es tutor)
+      localStorage.setItem('ninoNombre', user.nino_nombre || '');
+      
+      // Otras propiedades importantes
+      if (user.tutor_telefono) {
+        localStorage.setItem('tutorTelefono', user.tutor_telefono);
+      }
+      if (user.nino_condiciones) {
+        localStorage.setItem('ninoCondiciones', user.nino_condiciones);
+      }
+      
+      console.log('✅ SESIÓN GUARDADA EXITOSAMENTE');
+      
     } catch (error) {
       console.error('❌ Error guardando sesión:', error);
+      throw error;
+    }
+  }
+
+  private verificarDatosGuardados(): void {
+    console.log('🔍 VERIFICACIÓN DE DATOS GUARDADOS EN LOCALSTORAGE:');
+    console.log('===================================================');
+    const claves = [
+      'authToken', 'token', 'userId', 'tutorId', 
+      'userEmail', 'correo', 'userNombre', 
+      'userRole', 'userType', 'ninoNombre'
+    ];
+    
+    claves.forEach(clave => {
+      const valor = localStorage.getItem(clave);
+      console.log(`- ${clave}:`, valor || '❌ No encontrado');
+    });
+    console.log('===================================================');
+  }
+
+  private obtenerMensajeUsuario(rol: string, tipo: string): string {
+    if (tipo === 'ADMINISTRADOR' || rol.includes('ADMIN')) {
+      return this.MONKEY_MESSAGES.ADMIN_DETECTED;
+    } else {
+      return this.MONKEY_MESSAGES.TUTOR_DETECTED;
     }
   }
 
   private async redirigirSegunRol(user: any): Promise<void> {
     const rol = (user.rol || '').toUpperCase();
-    console.log('🎯 INICIANDO REDIRECCIÓN - Rol:', rol);
+    const tipo = (user.tipo || '').toUpperCase();
     
-    // ✅ RUTAS CORREGIDAS - Todos los admin/maestros van al dashboard maestro
-    const rutas: { [key: string]: string } = {
-      'SUPERADMIN': '/maestro/dashboard',        // ✅ CAMBIADO: de /admin/dashboard a /maestro/dashboard
-      'ADMIN': '/maestro/dashboard',             // ✅ CAMBIADO: de /admin/dashboard a /maestro/dashboard
-      'MAESTRO': '/maestro/dashboard',
-      'PROFESOR': '/maestro/dashboard',
-      'COORDINADOR': '/maestro/dashboard',
-      'TEACHER': '/maestro/dashboard',
-      'TUTOR': '/estudiante/configuracion',
-      'PADRE': '/estudiante/configuracion',
-      'ESTUDIANTE': '/estudiante/dashboard',
-      'STUDENT': '/estudiante/dashboard',
-      'ALUMNO': '/estudiante/dashboard'
-    };
+    console.log('🎯 INICIANDO REDIRECCIÓN:', { rol, tipo });
+    console.log('👤 Información completa del usuario:', user);
+    
+    // ✅ CORRECCIÓN DEFINITIVA: Mapeo basado en tu estructura de rutas
+    let destino: string;
+    
+    if (tipo === 'ADMINISTRADOR' || rol.includes('ADMIN')) {
+      // Administradores van a /maestro
+      destino = '/maestro';
+      console.log('📍 ADMINISTRADOR → /maestro');
+    } else {
+      // Tutores/Padres van a /estudiante
+      destino = '/estudiante';
+      console.log('📍 TUTOR → /estudiante');
+    }
 
-    const destino = rutas[rol] || '/estudiante/dashboard';
-
-    console.log('📍 REDIRIGIENDO A:', destino);
-    console.log('🔍 Ruta completa:', destino);
-    console.log('👤 Usuario que redirige:', user);
+    console.log('🔍 Ruta final:', destino);
 
     try {
-      await this.router.navigateByUrl(destino, { replaceUrl: true });
-      console.log('✅ Redirección exitosa a:', destino);
+      // Aplicar clase CSS según tipo de usuario
+      this.aplicarClaseUsuario(user);
+      
+      // Redirigir con reemplazo de URL
+      const navigationResult = await this.router.navigateByUrl(destino, { 
+        replaceUrl: true 
+      });
+      
+      if (navigationResult) {
+        console.log('✅ Redirección exitosa a:', destino);
+      } else {
+        console.warn('⚠️ Redirección fallida, la ruta podría no existir:', destino);
+        // Intentar ruta alternativa
+        if (destino === '/maestro') {
+          await this.router.navigate(['/maestro/dashboard'], { replaceUrl: true });
+        } else {
+          await this.router.navigate(['/estudiante/dashboard'], { replaceUrl: true });
+        }
+      }
+      
     } catch (error) {
-      console.error('❌ Error en redirección:', error);
-      // Si falla la redirección, ir a una ruta por defecto
-      await this.router.navigateByUrl('/maestro/dashboard', { replaceUrl: true });
+      console.error('❌ Error crítico en redirección:', error);
+      // Redirección de emergencia
+      await this.router.navigate(['/auth/login'], { replaceUrl: true });
+    }
+  }
+
+  private aplicarClaseUsuario(user: any): void {
+    try {
+      // Remover todas las clases anteriores
+      const clasesUsuario = ['estudiante-page', 'maestro-page', 'admin-page', 'tutor-page'];
+      document.body.classList.remove(...clasesUsuario);
+      
+      // Añadir clase según tipo
+      const tipo = this.getUserType(user);
+      if (tipo === 'ADMINISTRADOR') {
+        document.body.classList.add('maestro-page');
+        console.log('🎨 Clase CSS: maestro-page');
+      } else {
+        document.body.classList.add('estudiante-page');
+        console.log('🎨 Clase CSS: estudiante-page');
+      }
+      
+    } catch (error) {
+      console.warn('⚠️ No se pudo aplicar clase CSS:', error);
     }
   }
 
   private redirectToDashboard(): void {
-    const userData = localStorage.getItem('userData');
-    if (userData) {
+    const userDataStr = localStorage.getItem('userData');
+    if (userDataStr) {
       try {
-        const user = JSON.parse(userData);
+        const user = JSON.parse(userDataStr);
         console.log('🔄 Usuario ya autenticado, redirigiendo...', user);
+        
+        // Asegurar compatibilidad
+        if (user.email && !localStorage.getItem('correo')) {
+          localStorage.setItem('correo', user.email);
+        }
+        
         this.redirigirSegunRol(user);
       } catch (error) {
         console.error('❌ Error parseando userData:', error);
-        this.router.navigateByUrl('/auth/login');
+        this.limpiarYSalir();
       }
+    } else {
+      this.limpiarYSalir();
     }
   }
 
+  private limpiarYSalir(): void {
+    try {
+      this.limpiarSesionCompleta();
+    } catch (e) {
+      console.warn('Error limpiando almacenamiento:', e);
+    }
+    this.router.navigate(['/auth/login']);
+  }
+
   private manejarErrorLogin(error: any): void {
-    console.error('❌ Error completo en login:', error);
+    console.error('❌ Error en login:', error);
     
     let mensajeUsuario = 'Error de conexión con el servidor.';
     let mensajeMono = this.MONKEY_MESSAGES.CONNECTION_ERROR;
@@ -351,14 +629,17 @@ export class LoginComponent implements OnInit, OnDestroy {
       mensajeUsuario = 'Credenciales incorrectas. Verifica tu email y contraseña.';
       mensajeMono = this.MONKEY_MESSAGES.ERROR;
     } else if (error.message?.includes('conectar') || error.status === 0) {
-      mensajeUsuario = 'No se puede conectar al servidor Node.js. Verifica que esté ejecutándose.';
-      mensajeMono = '¡Node.js no disponible! 🌐❌';
+      mensajeUsuario = 'No se puede conectar al servidor. Verifica que esté ejecutándose.';
+      mensajeMono = '¡Servidor no disponible! 🌐❌';
     } else if (error.status === 404) {
-      mensajeUsuario = 'Endpoint no encontrado. Verifica la ruta /api/login.';
+      mensajeUsuario = 'Endpoint no encontrado. Verifica la configuración del servidor.';
       mensajeMono = '¡Ruta no encontrada! 🗺️❌';
     } else if (error.status === 500) {
-      mensajeUsuario = 'Error interno del servidor Node.js. Intenta más tarde.';
+      mensajeUsuario = 'Error interno del servidor. Intenta más tarde.';
       mensajeMono = '¡Error del servidor! ⚠️';
+    } else if (error.status === 401) {
+      mensajeUsuario = 'No autorizado. Verifica tus credenciales.';
+      mensajeMono = this.MONKEY_MESSAGES.ERROR;
     }
 
     this.errors['general'] = mensajeUsuario;
@@ -459,10 +740,18 @@ export class LoginComponent implements OnInit, OnDestroy {
       return {
         success: true,
         user: {
-          id: 1,
+          id: Math.floor(Math.random() * 1000) + 1,
           nombre: credencial.nombre,
           email: credencial.email,
-          rol: credencial.rol
+          rol: credencial.rol,
+          tipo: credencial.rol.includes('ADMIN') ? 'ADMINISTRADOR' : 'TUTOR',
+          // Propiedades específicas
+          ...(credencial.rol.includes('ADMIN') ? {
+            admin_nombre: credencial.admin_nombre
+          } : {
+            tutor_nombre: credencial.tutor_nombre,
+            nino_nombre: credencial.nino_nombre
+          })
         },
         token: 'test-token-' + Date.now(),
         message: 'Login exitoso (modo testing)'
@@ -495,5 +784,20 @@ export class LoginComponent implements OnInit, OnDestroy {
   openRecovery(event: Event): void {
     event.preventDefault();
     this.showMonkeyMessage(this.MONKEY_MESSAGES.RECOVERY);
+  }
+
+  // ==================== MÉTODOS DE UTILIDAD ====================
+
+  private limpiarSesion(): void {
+    try {
+      localStorage.removeItem('userData');
+      localStorage.removeItem('token');
+      localStorage.removeItem('correo');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userType');
+      console.log('🧹 Sesión limpiada manualmente');
+    } catch (error) {
+      console.warn('Error limpiando sesión:', error);
+    }
   }
 }

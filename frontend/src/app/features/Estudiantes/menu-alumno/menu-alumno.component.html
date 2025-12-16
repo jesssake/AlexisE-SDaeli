@@ -1,4 +1,5 @@
-﻿﻿<div class="layout">
+﻿﻿<!-- C:\Codigos\HTml\gestion-educativa\frontend\src\app\features\Estudiantes\menu-alumno\menu-alumno.component.html -->
+<div class="layout">
   <!-- PARTÍCULAS DE FONDO -->
   <div class="particles" #particlesContainer></div>
   
@@ -51,7 +52,7 @@
 
   <!-- CONTENIDO PRINCIPAL -->
   <main class="content" [class.menu-abierto]="sidebarColapsada" role="main">
-    <!-- Tarjeta de Bienvenida SOLO CON EL TÍTULO -->
+    <!-- Tarjeta de Bienvenida -->
     <article class="bienvenida" *ngIf="datosAlumno && !cargando">
       <header class="encabezado">
         <div class="avatar" role="img" aria-label="Avatar del estudiante">
@@ -62,7 +63,6 @@
           <p class="sub">Tu centro de excelencia académica y desarrollo personal</p>
         </div>
       </header>
-      <!-- 👇 aquí estaba el <ul class="datos">, ya lo quité -->
     </article>
 
     <!-- ESTADOS DE CARGA Y ERROR -->
@@ -76,7 +76,7 @@
       <span><strong>Atención:</strong> {{ error }}</span>
     </div>
 
-    <!-- MÓDULO (Tareas, Reportes, etc.) -->
+    <!-- MÓDULO (Tareas, Reportes, Chat, etc.) -->
     <section class="modulo">
       <router-outlet></router-outlet>
     </section>

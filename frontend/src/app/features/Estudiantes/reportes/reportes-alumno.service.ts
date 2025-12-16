@@ -1,83 +1,86 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+// reportes-alumno.service.ts
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
-export type Estado = 'pendiente' | 'revisado' | 'resuelto';
-export type Prioridad = 'baja' | 'media' | 'alta';
+export type TipoReporte = 'academico'|'conducta'|'asistencia'|'personal'|'salud'|'familiar';
+export type EstadoReporte = 'pendiente'|'revisado'|'resuelto';
+export type Prioridad = 'baja'|'media'|'alta';
 
-export interface ReporteAlumno {
+export interface ReporteAlumnoDTO {
   id: number;
-  estudianteId: number;
-  estudianteNombre: string;
-  tipo: string;
+  tipo: TipoReporte;
   motivo: string;
   descripcion: string;
+  estado: EstadoReporte;
   prioridad: Prioridad;
-  estado: Estado;
-  folio: string;
   fecha: string;
+  fechaCreacion: string;
+  maestro: string;
+  grupo: string;
+  accionesTomadas?: string;
+  observaciones?: string;
+}
+
+export interface ResumenAlumno {
+  total: number;
+  pendientes: number;
+  resueltos: number;
+  altaPrioridad: number;
+  ultimoReporte?: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class ReportesAlumnoService {
-  private http = inject(HttpClient);
+  private baseUrl = 'http://localhost:3000/api/reportes-alumno';
 
-  private base = 'http://localhost/gestion_e/reportes';
-  private listaUrl = `${this.base}/lista.php`;
-  private wordUrl  = `${this.base}/export_word.php`;
-  private estUrl   = `${this.base}/estudiantes.php`;
+  constructor(private http: HttpClient) {}
 
-  private takeArray(resp: any): any[] {
-    if (Array.isArray(resp)) return resp;
-    if (resp?.data && Array.isArray(resp.data)) return resp.data;
-    if (resp?.rows && Array.isArray(resp.rows)) return resp.rows;
-    return [];
+  // Obtener reportes de un estudiante específico
+  getReportesPorEstudiante(estudianteId: number, filtros?: any): Observable<{reportes: ReporteAlumnoDTO[], resumen: ResumenAlumno}> {
+    let params = new HttpParams().set('estudianteId', estudianteId.toString());
+    
+    if (filtros) {
+      if (filtros.tipo && filtros.tipo !== 'todos') params = params.set('tipo', filtros.tipo);
+      if (filtros.estado && filtros.estado !== 'todos') params = params.set('estado', filtros.estado);
+      if (filtros.prioridad && filtros.prioridad !== 'todos') params = params.set('prioridad', filtros.prioridad);
+      if (filtros.mes) params = params.set('mes', filtros.mes);
+      if (filtros.anio) params = params.set('anio', filtros.anio);
+    }
+
+    return this.http.get<{success: boolean, reportes: ReporteAlumnoDTO[], resumen: ResumenAlumno}>(`${this.baseUrl}`, { params })
+      .pipe(map(response => ({
+        reportes: response.reportes || [],
+        resumen: response.resumen || { total: 0, pendientes: 0, resueltos: 0, altaPrioridad: 0 }
+      })));
   }
 
-  async getPorAlumnoId(alumnoId: number): Promise<ReporteAlumno[]> {
-    const resp = await firstValueFrom(
-      this.http.get<any>(`${this.listaUrl}?nino_id=${alumnoId}`)
-    );
-    return this.mapear(this.takeArray(resp));
+  // Obtener resumen general del estudiante
+  getResumenEstudiante(estudianteId: number): Observable<ResumenAlumno> {
+    return this.http.get<{success: boolean, resumen: ResumenAlumno}>(`${this.baseUrl}/resumen`, {
+      params: new HttpParams().set('estudianteId', estudianteId.toString())
+    }).pipe(map(response => response.resumen || { total: 0, pendientes: 0, resueltos: 0, altaPrioridad: 0 }));
   }
 
-  async getPorEmail(email: string): Promise<ReporteAlumno[]> {
-    const resp = await firstValueFrom(
-      this.http.get<any>(`${this.listaUrl}?email=${encodeURIComponent(email)}`)
-    );
-    return this.mapear(this.takeArray(resp));
+  // Marcar reporte como leído
+  marcarComoLeido(reporteId: number): Observable<any> {
+    return this.http.post(`${this.baseUrl}/${reporteId}/leido`, {});
   }
 
-  async getHijosDeTutor(tutorId: number) {
-    const resp = await firstValueFrom(
-      this.http.get<any>(`${this.estUrl}?tutor_id=${tutorId}`)
-    );
-    return this.takeArray(resp).map((x: any) => ({
-      id: Number(x.id),
-      nombre: String(x.nombre)
-    }));
+  // Agregar comentario/observación del estudiante/padre
+  agregarObservacion(reporteId: number, observacion: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/${reporteId}/observacion`, { observacion });
   }
 
-  descargarWord(id: number) {
-    const a = document.createElement('a');
-    a.href = `${this.wordUrl}?id=${id}`;
-    a.target = '_blank';
-    a.click();
-    a.remove();
+  // Exportar reportes del estudiante a PDF
+  exportarPDF(estudianteId: number): void {
+    const url = `${this.baseUrl}/exportar/pdf?estudianteId=${estudianteId}`;
+    window.open(url, '_blank');
   }
 
-  private mapear(rows: any[]): ReporteAlumno[] {
-    return rows.map((x: any) => ({
-      id: Number(x.id || 0),
-      estudianteId: Number(x.nino_id || x.estudianteId || 0),
-      estudianteNombre: String(x.estudianteNombre || x.nombre || ''),
-      tipo: String(x.tipo || ''),
-      motivo: String(x.motivo || ''),
-      descripcion: String(x.descripcion || ''),
-      prioridad: (String(x.prioridad || 'media') as Prioridad),
-      estado: (String(x.estado || 'pendiente') as Estado),
-      folio: String(x.folio || '—'),
-      fecha: String(x.fecha || x.created_at || new Date().toISOString()),
-    }));
+  // Test de conexión
+  testConnection(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/test`);
   }
 }

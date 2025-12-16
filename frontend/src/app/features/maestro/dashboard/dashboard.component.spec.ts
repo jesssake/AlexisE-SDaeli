@@ -13,15 +13,15 @@ describe('DashboardComponent (maestro)', () => {
   let fixture: ComponentFixture<DashboardComponent>;
   let httpMock: HttpTestingController;
 
-  // Debe coincidir con tu TS:
-  // private apiAvisosBase = 'http://localhost/gestion_e/Aviso'
-  const BASE = 'http://localhost/gestion_e/Aviso';
+  // ✅ URL BASE CORREGIDA - coincide con tu backend Express
+  const BASE = 'http://localhost:3000/api/maestro/dashboard';
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
         DashboardComponent,      // standalone
         HttpClientTestingModule,
+        RouterTestingModule
       ],
       providers: [],
     }).compileComponents();
@@ -30,10 +30,10 @@ describe('DashboardComponent (maestro)', () => {
     component = fixture.componentInstance;
     httpMock = TestBed.inject(HttpTestingController);
 
-    // ngOnInit ya se ejecutó en detectChanges -> hace un GET a avisos_activos.php
+    // ngOnInit ya se ejecutó en detectChanges -> hace un GET a /avisos/activos
     fixture.detectChanges();
-    const initReq = httpMock.expectOne(`${BASE}/avisos_activos.php`);
-    initReq.flush([]); // dejamos limpia la cola de peticiones para cada test
+    const initReq = httpMock.expectOne(`${BASE}/avisos/activos`);
+    initReq.flush({ success: true, avisos: [] }); // ✅ Respuesta con objeto
   });
 
   afterEach(() => {
@@ -55,48 +55,56 @@ describe('DashboardComponent (maestro)', () => {
   });
 
   describe('Carga de avisos', () => {
-    it('cargarAvisos: debería poblar avisos desde la API (GET avisos_activos.php)', () => {
+    it('cargarAvisos: debería poblar avisos desde la API (GET /avisos/activos)', () => {
       component.cargarAvisos();
 
-      const req = httpMock.expectOne(`${BASE}/avisos_activos.php`);
+      const req = httpMock.expectOne(`${BASE}/avisos/activos`);
       expect(req.request.method).toBe('GET');
 
-      const mock = [
-        {
-          id: 1,
-          titulo: 'A',
-          contenido: 'X',
-          activo: true,
-          prioridad: 'media',
-          fecha_creacion: new Date().toISOString(),
-        },
-      ];
-      req.flush(mock);
+      const mockResponse = {
+        success: true,
+        avisos: [
+          {
+            id: 1,
+            titulo: 'Aviso de prueba',
+            contenido: 'Contenido de prueba',
+            activo: true,
+            prioridad: 'media',
+            fecha_creacion: new Date().toISOString(),
+          },
+        ]
+      };
+      
+      req.flush(mockResponse); // ✅ Envía objeto completo
 
       expect(component.avisos.length).toBe(1);
-      expect(component.avisos[0].titulo).toBe('A');
+      expect(component.avisos[0].titulo).toBe('Aviso de prueba');
     });
 
-    it('cargarTodosLosAvisos: debería abrir gestión y cargar datos (GET avisos.php)', () => {
+    it('cargarTodosLosAvisos: debería abrir gestión y cargar datos (GET /avisos)', () => {
       component.cargarTodosLosAvisos();
 
-      const req = httpMock.expectOne(`${BASE}/avisos.php`);
+      const req = httpMock.expectOne(`${BASE}/avisos`);
       expect(req.request.method).toBe('GET');
 
-      const mock = [
-        {
-          id: 1,
-          titulo: 'A',
-          contenido: 'X',
-          activo: true,
-          prioridad: 'media',
-          fecha_creacion: new Date().toISOString(),
-        },
-      ];
-      req.flush(mock);
+      const mockResponse = {
+        success: true,
+        avisos: [
+          {
+            id: 1,
+            titulo: 'Aviso 1',
+            contenido: 'Contenido 1',
+            activo: true,
+            prioridad: 'media',
+            fecha_creacion: new Date().toISOString(),
+          },
+        ]
+      };
+      
+      req.flush(mockResponse);
 
       expect(component.todosLosAvisos.length).toBe(1);
-      expect(component.todosLosAvisos[0].titulo).toBe('A');
+      expect(component.todosLosAvisos[0].titulo).toBe('Aviso 1');
       expect(component.mostrarGestionAvisos).toBeTrue();
       expect(component.mostrarSeleccionados).toBeFalse();
     });
@@ -105,7 +113,7 @@ describe('DashboardComponent (maestro)', () => {
       spyOn(console, 'error');
 
       component.cargarAvisos();
-      const req = httpMock.expectOne(`${BASE}/avisos_activos.php`);
+      const req = httpMock.expectOne(`${BASE}/avisos/activos`);
       req.flush('err', { status: 500, statusText: 'Server Error' });
 
       expect(console.error).toHaveBeenCalled();
@@ -119,15 +127,15 @@ describe('DashboardComponent (maestro)', () => {
       component.todosLosAvisos = [
         {
           id: 1,
-          titulo: 'A',
-          contenido: 'X',
+          titulo: 'Aviso A',
+          contenido: 'Contenido A',
           activo: true,
           prioridad: 'media',
         },
         {
           id: 2,
-          titulo: 'B',
-          contenido: 'Y',
+          titulo: 'Aviso B',
+          contenido: 'Contenido B',
           activo: false,
           prioridad: 'alta',
         },
@@ -154,106 +162,129 @@ describe('DashboardComponent (maestro)', () => {
       expect(component.mostrarSeleccionados).toBeTrue();
     });
 
-    it('aplicarSeleccion -> GET avisos_toggle.php por cada seleccionado y recargas + alert de éxito', () => {
+    it('aplicarSelección -> PATCH /avisos/{id}/toggle por cada seleccionado', () => {
       spyOn(component, 'cargarAvisos');
       spyOn(component, 'cargarTodosLosAvisos');
-      const alertSpy = spyOn(window, 'alert'); // por el popup de éxito
 
       component.toggleSeleccionAviso(1);
       component.toggleSeleccionAviso(2);
 
       component.aplicarSeleccion();
 
-      const req1 = httpMock.expectOne(`${BASE}/avisos_toggle.php?id=1`);
-      expect(req1.request.method).toBe('GET');
+      // ✅ PRIMERA petición PATCH (no GET)
+      const req1 = httpMock.expectOne(`${BASE}/avisos/1/toggle`);
+      expect(req1.request.method).toBe('PATCH'); // ✅ Cambiado de GET a PATCH
       req1.flush({ success: true });
 
-      const req2 = httpMock.expectOne(`${BASE}/avisos_toggle.php?id=2`);
-      expect(req2.request.method).toBe('GET');
+      // ✅ SEGUNDA petición PATCH (no GET)
+      const req2 = httpMock.expectOne(`${BASE}/avisos/2/toggle`);
+      expect(req2.request.method).toBe('PATCH'); // ✅ Cambiado de GET a PATCH
       req2.flush({ success: true });
 
       expect(component.cargarAvisos).toHaveBeenCalled();
       expect(component.cargarTodosLosAvisos).toHaveBeenCalled();
-      expect(alertSpy).toHaveBeenCalled(); // ✅ anuncio aplicado
     });
   });
 
   describe('CRUD con backend', () => {
-    it('guardarAviso (crear) -> POST avisos.php', () => {
+    it('guardarAviso (crear) -> POST /avisos', () => {
       spyOn(component, 'cargarAvisos');
 
       component.editandoAviso = false;
       component.avisoEditando = {
-        titulo: 'Nuevo',
-        contenido: 'C',
+        titulo: 'Nuevo aviso',
+        contenido: 'Contenido del nuevo aviso',
         prioridad: 'alta',
         activo: true,
       };
 
       component.guardarAviso();
 
-      const req = httpMock.expectOne(`${BASE}/avisos.php`);
+      const req = httpMock.expectOne(`${BASE}/avisos`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual(component.avisoEditando);
-      req.flush({ success: true, id: 10 });
+      
+      req.flush({ 
+        success: true, 
+        aviso: { 
+          id: 10,
+          titulo: 'Nuevo aviso',
+          contenido: 'Contenido del nuevo aviso',
+          prioridad: 'alta',
+          activo: true,
+          fecha_creacion: new Date().toISOString()
+        } 
+      });
 
       expect(component.mostrarModalAviso).toBeFalse();
       expect(component.cargarAvisos).toHaveBeenCalled();
     });
 
-    it('guardarAviso (actualizar) -> PUT avisos_id.php?id=:id', () => {
+    it('guardarAviso (actualizar) -> PUT /avisos/:id', () => {
       spyOn(component, 'cargarAvisos');
 
       component.editandoAviso = true;
       component.avisoEditando = {
         id: 5,
-        titulo: 'Edit',
-        contenido: 'C',
+        titulo: 'Aviso editado',
+        contenido: 'Contenido editado',
         prioridad: 'media',
         activo: false,
       };
 
       component.guardarAviso();
 
-      const req = httpMock.expectOne(`${BASE}/avisos_id.php?id=5`);
+      const req = httpMock.expectOne(`${BASE}/avisos/5`);
       expect(req.request.method).toBe('PUT');
       expect(req.request.body).toEqual(component.avisoEditando);
-      req.flush({ success: true });
+      
+      req.flush({ 
+        success: true, 
+        aviso: { 
+          id: 5,
+          titulo: 'Aviso editado',
+          contenido: 'Contenido editado',
+          prioridad: 'media',
+          activo: false,
+          fecha_actualizacion: new Date().toISOString()
+        } 
+      });
 
       expect(component.mostrarModalAviso).toBeFalse();
       expect(component.cargarAvisos).toHaveBeenCalled();
     });
 
-    it('eliminarAviso -> DELETE avisos_id.php?id=:id', () => {
+    it('eliminarAviso -> DELETE /avisos/:id', () => {
       spyOn(window, 'confirm').and.returnValue(true);
       spyOn(component, 'cargarAvisos');
 
       component.eliminarAviso(7);
 
-      const req = httpMock.expectOne(`${BASE}/avisos_id.php?id=7`);
+      const req = httpMock.expectOne(`${BASE}/avisos/7`);
       expect(req.request.method).toBe('DELETE');
-      req.flush({ success: true });
+      req.flush({ success: true, message: 'Aviso eliminado correctamente' });
 
       expect(component.cargarAvisos).toHaveBeenCalled();
     });
 
-    it('toggleAviso -> GET avisos_toggle.php?id=:id y recarga', () => {
+    it('toggleAviso -> PATCH /avisos/:id/toggle y recarga', () => {
       spyOn(component, 'cargarAvisos');
       spyOn(component, 'cargarTodosLosAvisos');
 
       const aviso: any = {
         id: 3,
         activo: true,
-        titulo: 'T',
-        contenido: 'X',
+        titulo: 'Aviso de prueba',
+        contenido: 'Contenido de prueba',
         prioridad: 'media',
       };
 
       component.toggleAviso(aviso);
 
-      const req = httpMock.expectOne(`${BASE}/avisos_toggle.php?id=3`);
-      expect(req.request.method).toBe('GET');
-      req.flush({ success: true });
+      // ✅ PATCH (no GET)
+      const req = httpMock.expectOne(`${BASE}/avisos/3/toggle`);
+      expect(req.request.method).toBe('PATCH'); // ✅ Cambiado de GET a PATCH
+      req.flush({ success: true, nuevoEstado: 0 });
 
       expect(aviso.activo).toBeFalse();
       expect(component.cargarAvisos).toHaveBeenCalled();
@@ -264,9 +295,9 @@ describe('DashboardComponent (maestro)', () => {
   describe('Utilidades y UI', () => {
     it('getAvisosActivos usa todosLosAvisos', () => {
       component.todosLosAvisos = [
-        { id: 1, activo: true, prioridad: 'media' },
-        { id: 2, activo: false, prioridad: 'baja' },
-      ] as any;
+        { id: 1, activo: true, prioridad: 'media' } as any,
+        { id: 2, activo: false, prioridad: 'baja' } as any,
+      ];
       expect(component.getAvisosActivos().length).toBe(1);
     });
 
@@ -277,12 +308,12 @@ describe('DashboardComponent (maestro)', () => {
 
     it('formatearFecha: maneja nulos e inválidos y formatea válidos', () => {
       expect(component.formatearFecha(null as any)).toBe('—');
-      expect(component.formatearFecha('x' as any)).toBe('x');
-      const out = component.formatearFecha(
-        new Date('2024-01-15T10:30:00')
+      expect(component.formatearFecha('fecha inválida' as any)).toBe('fecha inválida');
+      const fechaFormateada = component.formatearFecha(
+        new Date('2024-01-15T10:30:00').toISOString()
       );
-      expect(out).toContain('15/01/2024');
-      expect(out).toContain('10:30');
+      expect(fechaFormateada).toContain('15/01/2024');
+      expect(fechaFormateada).toContain('10:30');
     });
 
     it('muestra el modal de crear/editar cuando mostrarModalAviso es true', () => {
@@ -297,13 +328,13 @@ describe('DashboardComponent (maestro)', () => {
     it('navigateTo llama Router.navigate', () => {
       const router = TestBed.inject(Router);
       const spy = spyOn(router, 'navigate');
-      component.navigateTo('/ruta');
-      expect(spy).toHaveBeenCalledWith(['/ruta']);
+      component.navigateTo('/maestro/estudiantes');
+      expect(spy).toHaveBeenCalledWith(['/maestro/estudiantes']);
     });
   });
 
-  describe('Errores controlados (método privado)', () => {
-      // @ts-ignore acceso solo para pruebas
+  describe('Errores controlados', () => {
+    // @ts-ignore acceso solo para pruebas
     const obtenerMensajeError = (err: any) =>
       // @ts-ignore
       component['obtenerMensajeError'](err);

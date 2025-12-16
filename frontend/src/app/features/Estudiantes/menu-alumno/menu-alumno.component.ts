@@ -1,4 +1,5 @@
-﻿﻿import {
+﻿﻿// C:\Codigos\HTml\gestion-educativa\frontend\src\app\features\Estudiantes\menu-alumno\menu-alumno.component.ts
+import {
   Component,
   OnInit,
   OnDestroy,
@@ -70,7 +71,7 @@ export class MenuAlumnoComponent implements OnInit, AfterViewInit, OnDestroy {
       key: 'dashboard',
       titulo: 'Dashboard',
       desc: 'Panel principal interactivo',
-      icono: '🚀',
+      icono: '📊',
       link: '/estudiante/dashboard',
     },
     {
@@ -90,17 +91,17 @@ export class MenuAlumnoComponent implements OnInit, AfterViewInit, OnDestroy {
     },
     {
       key: 'calificaciones',
-      titulo: 'Calificaciònes',
-      desc: 'Consulta tus calificaciònes',
-      icono: '📊',
+      titulo: 'Calificaciones',
+      desc: 'Consulta tus calificaciones',
+      icono: '🏆',
       link: '/estudiante/calificaciones',
     },
     {
-      key: 'padres',
+      key: 'chat',
       titulo: 'Chat con mi Profesor',
       desc: 'Comunicación con el Profesor',
-      icono: '👨‍👩‍👦',
-      link: '/estudiante/padres',
+      icono: '💬',
+      link: '/estudiante/chat',
     },
     {
       key: 'reportes',
@@ -125,7 +126,7 @@ export class MenuAlumnoComponent implements OnInit, AfterViewInit, OnDestroy {
     },
     {
       key: 'configuracion',
-      titulo: 'Configuración ',
+      titulo: 'Configuración',
       desc: 'Personalización avanzada',
       icono: '⚙️',
       link: '/estudiante/configuracion',
@@ -299,6 +300,12 @@ export class MenuAlumnoComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onItemClick(event: MouseEvent): void {
+    // DEBUG: Verificar qué enlace se está clickeando
+    const linkElement = (event.currentTarget as HTMLElement).closest('a');
+    if (linkElement) {
+      console.log('🔍 Navegando a:', linkElement.getAttribute('href'));
+    }
+    
     if (this.prefs.animaciones) {
       this.crearEfectoRipple(event);
     }
@@ -410,7 +417,7 @@ export class MenuAlumnoComponent implements OnInit, AfterViewInit, OnDestroy {
       )
     ) {
       localStorage.clear();
-      window.location.href = '/login';
+      window.location.href = '/auth/login';
     }
   }
 

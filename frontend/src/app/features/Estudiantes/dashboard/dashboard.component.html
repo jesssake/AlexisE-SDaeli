@@ -1,11 +1,11 @@
-<div class="dashboard formal-theme">
-  <!-- Topbar -->
+<div class="dashboard estudiante-theme">
+  <!-- ========== TOPBAR ========== -->
   <header class="topbar">
     <div class="brand">
-      <div class="logo">🎓</div>
+      <div class="logo">👩‍🎓</div>
       <div class="titles">
-        <h1>Panel del Estudiante</h1>
-        <p>Tus avisos importantes</p>
+        <h1>Avisos Activos</h1>
+        <p>Solo los avisos que tu maestra ha activado</p>
       </div>
     </div>
 
@@ -17,52 +17,135 @@
     </div>
   </header>
 
-  <!-- Panel de avisos -->
-  <section class="panel">
-    <div class="panel-head">
-      <h2>Avisos del maestro</h2>
-      <button class="btn ghost" (click)="cargarAvisos()">↻ ACTUALIZAR</button>
+  <!-- ========== ESTADÍSTICAS ========== -->
+  <section class="estadisticas-grid">
+    <div class="estadistica-card total">
+      <div class="est-icon">📋</div>
+      <div class="est-content">
+        <div class="est-value">{{ estadisticas.total }}</div>
+        <div class="est-label">Avisos Activos</div>
+      </div>
     </div>
 
-    <div class="status" *ngIf="loadingAvisos || errorAvisos">
-      <span *ngIf="loadingAvisos">Cargando avisos…</span>
-      <span *ngIf="errorAvisos" class="bad">⚠ {{ errorAvisos }}</span>
+    <div class="estadistica-card alta">
+      <div class="est-icon">🔴</div>
+      <div class="est-content">
+        <div class="est-value">{{ estadisticas.altos }}</div>
+        <div class="est-label">Importantes</div>
+      </div>
     </div>
 
-    <div class="cards">
-      <article
-        class="card card-formal"
-        *ngFor="let a of avisos"
-        [class.muted]="!a.activo"
-      >
-        <header>
-          <h3>{{ a.titulo }}</h3>
-          <span class="badge" [class.ok]="a.activo" [class.off]="!a.activo">
-            {{ a.activo ? 'Activo' : 'Oculto' }}
-          </span>
-        </header>
+    <div class="estadistica-card media">
+      <div class="est-icon">🟡</div>
+      <div class="est-content">
+        <div class="est-value">{{ estadisticas.medios }}</div>
+        <div class="est-label">Normales</div>
+      </div>
+    </div>
 
-        <p class="content">
-          {{ a.contenido }}
-        </p>
-
-        <footer>
-          <span class="chip" [attr.data-level]="a.prioridad">
-            Prioridad: {{ a.prioridad || 'media' }}
-          </span>
-          <span class="meta" *ngIf="a.fecha_creacion">
-            Publicado: {{ a.fecha_creacion | date: 'short' }}
-          </span>
-        </footer>
-      </article>
-
-      <div
-        class="empty"
-        *ngIf="!loadingAvisos && (!avisos || avisos.length === 0)"
-      >
-        <div class="emoji">📭</div>
-        <p>No tienes avisos por ahora.</p>
+    <div class="estadistica-card baja">
+      <div class="est-icon">🟢</div>
+      <div class="est-content">
+        <div class="est-value">{{ estadisticas.bajos }}</div>
+        <div class="est-label">Informativos</div>
       </div>
     </div>
   </section>
+
+  <!-- ========== AVISOS ACTIVOS ========== -->
+  <section class="panel">
+    <div class="panel-head">
+      <h2>📢 Avisos Publicados</h2>
+      
+      <div class="panel-actions">
+        <button class="btn ghost" (click)="actualizarDashboard()" [disabled]="loading">
+          ↻ Actualizar
+        </button>
+        <div class="ultimo-aviso" *ngIf="estadisticas.ultimo_aviso !== 'Sin avisos activos'">
+          Último: {{ estadisticas.ultimo_aviso }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Estado de carga/error -->
+    <div class="status" *ngIf="loading || error">
+      <div class="status-content">
+        <span *ngIf="loading">Cargando avisos activos…</span>
+        <span *ngIf="error" class="bad">⚠ {{ error }}</span>
+      </div>
+    </div>
+
+    <!-- Grid de avisos -->
+    <div class="avisos-grid">
+      <!-- Tarjeta de aviso ACTIVO -->
+      <article 
+        class="aviso-card" 
+        *ngFor="let aviso of avisos"
+        [class]="getPrioridadClass(aviso.prioridad)"
+        (click)="verDetalleAviso(aviso)"
+      >
+        <div class="aviso-header">
+          <span class="prioridad-badge">
+            {{ getPrioridadIcon(aviso.prioridad) }} 
+            {{ getPrioridadTexto(aviso.prioridad) }}
+          </span>
+          <span class="aviso-fecha">{{ aviso.fecha_formateada }}</span>
+        </div>
+        
+        <div class="aviso-content">
+          <h3>{{ aviso.titulo }}</h3>
+          <p class="aviso-resumen">{{ aviso.contenido | slice:0:120 }}{{ aviso.contenido.length > 120 ? '…' : '' }}</p>
+        </div>
+        
+        <div class="aviso-footer">
+          <button class="btn-ver-mas">Ver detalles →</button>
+        </div>
+      </article>
+
+      <!-- Sin avisos -->
+      <div class="empty-state" *ngIf="!loading && avisos.length === 0">
+        <div class="empty-icon">📭</div>
+        <h3>No hay avisos activos disponibles</h3>
+        <p>Tus maestros aún no han activado ningún aviso para que sea visible.</p>
+        <button class="btn primary" (click)="actualizarDashboard()">
+          ↻ Intentar de nuevo
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== MODAL DETALLE ========== -->
+  <div class="overlay" *ngIf="mostrarModalDetalle" (click)="cerrarModalDetalle()">
+    <div class="modal detalle" (click)="$event.stopPropagation()">
+      <header class="modal-head">
+        <h3>📄 Detalle del Aviso</h3>
+        <button class="x" (click)="cerrarModalDetalle()">×</button>
+      </header>
+
+      <div class="modal-body" *ngIf="avisoSeleccionado">
+        <div class="detalle-header">
+          <span class="prioridad-detalle" [class]="getPrioridadClass(avisoSeleccionado.prioridad)">
+            {{ getPrioridadIcon(avisoSeleccionado.prioridad) }} 
+            {{ getPrioridadTexto(avisoSeleccionado.prioridad) }}
+          </span>
+          <span class="fecha-detalle">
+            📅 {{ avisoSeleccionado.fecha_formateada }}
+          </span>
+        </div>
+
+        <div class="detalle-content">
+          <h2>{{ avisoSeleccionado.titulo }}</h2>
+          <div class="contenido-completo">
+            {{ avisoSeleccionado.contenido }}
+          </div>
+        </div>
+      </div>
+
+      <footer class="modal-actions">
+        <button class="btn primary" (click)="cerrarModalDetalle()">
+          Cerrar
+        </button>
+      </footer>
+    </div>
+  </div>
 </div>

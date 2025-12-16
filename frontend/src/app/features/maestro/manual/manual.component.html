@@ -5,23 +5,23 @@
       <h1 class="page-title">Manual de Usuario</h1>
       <div class="header-actions">
         <button class="btn-secondary" (click)="imprimirManual()">
-          <span class="btn-icon">ðŸ–¨ï¸</span>
+          <span class="btn-icon">🖨️</span>
           Imprimir
         </button>
         <button class="btn-primary" (click)="descargarManualPDF()">
-          <span class="btn-icon">ðŸ“¥</span>
+          <span class="btn-icon">📥</span>
           Descargar PDF
         </button>
       </div>
     </div>
   </div>
 
-  <p class="page-subtitle">GuÃ­a completa para utilizar el sistema NexusEdu</p>
+  <p class="page-subtitle">Guía completa para utilizar el sistema NexusEdu</p>
 
-  <!-- NavegaciÃ³n rÃ¡pida -->
+  <!-- Navegación rápida -->
   <div class="navegacion-rapida">
     <div class="navegacion-card">
-      <h3 class="navegacion-title">NavegaciÃ³n RÃ¡pida</h3>
+      <h3 class="navegacion-title">Navegación Rápida</h3>
       <div class="navegacion-grid">
         <button *ngFor="let seccion of secciones" 
                 class="navegacion-btn" 
@@ -36,7 +36,7 @@
 
   <!-- Contenido del manual -->
   <div class="contenido-manual">
-    <!-- SecciÃ³n activa -->
+    <!-- Sección activa -->
     <div class="seccion-activa" id="{{ seccionActiva }}">
       <div class="seccion-header">
         <div class="seccion-titulo">
@@ -55,8 +55,8 @@
       <!-- Pasos de uso -->
       <div class="pasos-section">
         <h3 class="pasos-title">
-          <span class="pasos-icono">ðŸ“‹</span>
-          Pasos para usar esta funciÃ³n
+          <span class="pasos-icono">📋</span>
+          Pasos para usar esta función
         </h3>
         <div class="pasos-lista">
           <div *ngFor="let paso of obtenerSeccionActiva().pasos; let i = index" class="paso-item">
@@ -71,19 +71,19 @@
       <!-- Consejos -->
       <div *ngIf="obtenerSeccionActiva().consejos" class="consejos-section">
         <h3 class="consejos-title">
-          <span class="consejos-icono">ðŸ’¡</span>
-          Consejos y Mejores PrÃ¡cticas
+          <span class="consejos-icono">💡</span>
+          Consejos y Mejores Prácticas
         </h3>
         <div class="consejos-lista">
           <div *ngFor="let consejo of obtenerSeccionActiva().consejos" class="consejo-item">
-            <span class="consejo-icono">â­</span>
+            <span class="consejo-icono">✏️</span>
             <span class="consejo-texto">{{ consejo }}</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Todas las secciones (para impresiÃ³n) -->
+    <!-- Todas las secciones (para impresión) -->
     <div class="todas-secciones" id="todas-secciones">
       <div *ngFor="let seccion of secciones" class="seccion-completa" id="seccion-{{ seccion.id }}">
         <div class="seccion-header">
@@ -98,7 +98,7 @@
         </div>
 
         <div class="pasos-section">
-          <h3 class="pasos-title">Pasos para usar esta funciÃ³n</h3>
+          <h3 class="pasos-title">Pasos para usar esta función</h3>
           <div class="pasos-lista">
             <div *ngFor="let paso of seccion.pasos; let i = index" class="paso-item">
               <div class="paso-numero">{{ i + 1 }}</div>
@@ -110,10 +110,10 @@
         </div>
 
         <div *ngIf="seccion.consejos" class="consejos-section">
-          <h3 class="consejos-title">Consejos y Mejores PrÃ¡cticas</h3>
+          <h3 class="consejos-title">Consejos y Mejores Prácticas</h3>
           <div class="consejos-lista">
             <div *ngFor="let consejo of seccion.consejos" class="consejo-item">
-              <span class="consejo-icono">â­</span>
+              <span class="consejo-icono">✏️</span>
               <span class="consejo-texto">{{ consejo }}</span>
             </div>
           </div>
@@ -125,23 +125,23 @@
   <!-- Preguntas frecuentes -->
   <div class="faq-section">
     <div class="faq-card">
-      <h3 class="faq-title">â“ Preguntas Frecuentes</h3>
+      <h3 class="faq-title">❓ Preguntas Frecuentes</h3>
       <div class="faq-grid">
         <div class="faq-item">
-          <h4>Â¿CÃ³mo restablezco mi contraseÃ±a?</h4>
-          <p>En la pantalla de login, haz clic en "Â¿Olvidaste tu contraseÃ±a?" y sigue las instrucciones enviadas a tu email.</p>
+          <h4>¿Cómo restablezco mi contraseña?</h4>
+          <p>En la pantalla de login, haz clic en "¿Olvidaste tu contraseña?" y sigue las instrucciones enviadas a tu email.</p>
         </div>
         <div class="faq-item">
-          <h4>Â¿Puedo usar el sistema en mi telÃ©fono?</h4>
-          <p>SÃ­, NexusEdu es completamente responsive y funciona en dispositivos mÃ³viles, tablets y computadoras.</p>
+          <h4>¿Puedo usar el sistema en mi teléfono?</h4>
+          <p>Sí, NexusEdu es completamente responsive y funciona en dispositivos móviles, tablets y computadoras.</p>
         </div>
         <div class="faq-item">
-          <h4>Â¿CÃ³mo contacto con soporte tÃ©cnico?</h4>
-          <p>Puedes enviar un email a soporte&#64;nexusedu.com o usar el chat en lÃ­nea disponible en la esquina inferior derecha.</p>
+          <h4>¿Cómo contacto con soporte técnico?</h4>
+          <p>Puedes enviar un email a soporte&#64;nexusedu.com o usar el chat en línea disponible en la esquina inferior derecha.</p>
         </div>
         <div class="faq-item">
-          <h4>Â¿Los datos estÃ¡n respaldados?</h4>
-          <p>SÃ­, realizamos respaldos automÃ¡ticos diarios de toda la informaciÃ³n del sistema.</p>
+          <h4>¿Los datos están respaldados?</h4>
+          <p>Sí, realizamos respaldos automáticos diarios de toda la información del sistema.</p>
         </div>
       </div>
     </div>
@@ -152,20 +152,20 @@
     <div class="soporte-card">
       <div class="soporte-content">
         <div class="soporte-info">
-          <h3>Â¿Necesitas ayuda adicional?</h3>
-          <p>Nuestro equipo de soporte estÃ¡ disponible para asistirte</p>
+          <h3>¿Necesitas ayuda adicional?</h3>
+          <p>Nuestro equipo de soporte está disponible para asistirte</p>
         </div>
         <div class="soporte-contactos">
           <div class="contacto-item">
-            <span class="contacto-icono">ðŸ“§</span>
+            <span class="contacto-icono">📧</span>
             <span class="contacto-texto">soporte&#64;nexusedu.com</span>
           </div>
           <div class="contacto-item">
-            <span class="contacto-icono">ðŸ“ž</span>
+            <span class="contacto-icono">📞</span>
             <span class="contacto-texto">+1 (555) 123-4567</span>
           </div>
           <div class="contacto-item">
-            <span class="contacto-icono">ðŸ•’</span>
+            <span class="contacto-icono">🕓</span>
             <span class="contacto-texto">Lunes a Viernes: 8:00 - 18:00</span>
           </div>
         </div>
@@ -173,4 +173,3 @@
     </div>
   </div>
 </div>
-

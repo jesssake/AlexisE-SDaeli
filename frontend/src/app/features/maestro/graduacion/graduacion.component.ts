@@ -1,10 +1,11 @@
-// src/app/features/maestro/graduacion/graduacion.component.ts
+// C:\Codigos\HTml\gestion-educativa\frontend\src\app\features\maestro\graduacion\graduacion.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   HttpClient,
   HttpClientModule,
+  HttpHeaders,
   HttpParams,
 } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
@@ -38,9 +39,9 @@ interface Certificado {
   styleUrls: ['./graduacion.component.scss'],
 })
 export class GraduacionComponent implements OnInit {
-  // Base para endpoints usando el proxy /api
-  private apiBase = '/api/graduacion/';
-  
+  // ✅ URL completa del backend Node.js
+  private apiBase = 'http://localhost:3000/api/maestro/graduacion/';
+
   // ID del maestro (debería venir del login)
   maestroId = 16;
 
@@ -49,12 +50,13 @@ export class GraduacionComponent implements OnInit {
   alumnos: Alumno[] = [];
   certificados: Certificado[] = [];
 
-  // Totales para las tarjetas
+  // ✅ Totales para las tarjetas
   stats = {
     total: 0,
     excelencia: 0,
     cierre: 0,
     enviados: 0,
+    pendientes: 0
   };
 
   // Filtros de la parte de arriba
@@ -90,6 +92,15 @@ export class GraduacionComponent implements OnInit {
     folioActual: 1,
   };
 
+  // Headers para incluir token si es necesario
+  private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('authToken');
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    });
+  }
+
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
@@ -97,6 +108,8 @@ export class GraduacionComponent implements OnInit {
     this.cargarAlumnos();
     this.cargarCertificados();
     this.cargarFolio();
+    this.cargarConfiguracionBackend();
+    this.getEstadisticas();
   }
 
   // =======================================
@@ -147,88 +160,110 @@ export class GraduacionComponent implements OnInit {
     return `CERT-${String(this.settings.folioActual).padStart(4,'0')}`;
   }
 
+  // ✅ Cargar configuración desde el backend
+  cargarConfiguracionBackend(): void {
+    const url = `${this.apiBase}${this.maestroId}/config`;
+    
+    console.log('🔗 URL configuración:', url);
+    
+    this.http.get<any>(url, { headers: this.getHeaders() }).subscribe({
+      next: (resp) => {
+        console.log('✅ Configuración del backend:', resp);
+        if (resp) {
+          // Actualizar el ciclo y nombre del maestro desde el backend
+          if (resp.ciclo_actual) {
+            this.form.cicloEscolar = resp.ciclo_actual;
+          }
+          if (resp.nombre_maestro_firma) {
+            this.settings.maestro = resp.nombre_maestro_firma;
+            this.form.teacherName = resp.nombre_maestro_firma;
+          }
+        }
+      },
+      error: (err) => {
+        console.error('❌ Error cargando configuración del backend:', err);
+        console.error('Detalles:', err.message);
+      }
+    });
+  }
+
   // =======================================
   // CARGAR ALUMNOS (para selects)
   // =======================================
   cargarAlumnos(): void {
-    const url = `${this.apiBase}alumnos_listar.php`;
-    this.http.get<any>(url, { params: { maestro_id: this.maestroId } }).subscribe({
+    const url = `${this.apiBase}${this.maestroId}/alumnos`;
+    
+    console.log('🔗 URL alumnos:', url);
+    
+    this.http.get<any>(url, { headers: this.getHeaders() }).subscribe({
       next: (resp) => {
-        console.log('Respuesta cargar alumnos:', resp);
+        console.log('✅ Respuesta cargar alumnos:', resp);
 
-        if (resp && resp.ok && Array.isArray(resp.data)) {
-          this.alumnos = resp.data as Alumno[];
-        } else if (Array.isArray(resp)) {
-          // Si la respuesta es directamente un array
+        if (Array.isArray(resp)) {
           this.alumnos = resp as Alumno[];
+          console.log(`✅ Alumnos cargados: ${this.alumnos.length}`);
         } else {
-          console.warn('Formato inesperado al cargar alumnos', resp);
+          console.warn('⚠️ Formato inesperado al cargar alumnos', resp);
           this.alumnos = [];
         }
       },
       error: (err) => {
         console.error('❌ Error HTTP al cargar alumnos:', err);
+        console.error('URL que falló:', url);
+        console.error('Status:', err.status);
+        console.error('Error completo:', err);
         this.alumnos = [];
       },
     });
   }
 
   // =======================================
-  // CARGAR CERTIFICADOS (tabla principal)
+  // CARGAR CERTIFICADOS (tabla principal) - ✅ CORREGIDO
   // =======================================
   cargarCertificados(): void {
-    const url = `${this.apiBase}certificados_listar.php`;
+    const url = `${this.apiBase}${this.maestroId}/certificados`;
     this.cargando = true;
 
-    let params = new HttpParams()
-      .set('maestroId', String(this.maestroId));
-
-    if (this.filtros.tipo !== 'todos') {
-      params = params.set('tipo', this.filtros.tipo);
-    }
-    if (this.filtros.estado !== 'todos') {
-      params = params.set('estado', this.filtros.estado);
-    }
-    if (this.filtros.alumnoId > 0) {
-      params = params.set('alumnoId', String(this.filtros.alumnoId));
-    }
-
-    this.http.get<any>(url, { params }).subscribe({
+    console.log('🔗 URL certificados:', url);
+    
+    this.http.get<any>(url, { headers: this.getHeaders() }).subscribe({
       next: (resp) => {
-        console.log('Respuesta cargar certificados:', resp);
+        console.log('✅ Respuesta cargar certificados:', resp);
+        console.log('🔍 Detalle de la respuesta:', JSON.stringify(resp, null, 2));
 
-        if (resp && resp.ok && Array.isArray(resp.data)) {
-          this.certificados = (resp.data as any[]).map((c) => {
-            const promedioNum = Number(c.promedio);
-            return {
+        if (Array.isArray(resp)) {
+          this.certificados = resp.map((c: any) => {
+            console.log('📊 Procesando certificado RAW:', c);
+            
+            const certificadoMapeado = {
               id: Number(c.id),
-              id_nino: Number(c.id_nino),
-              alumno: c.alumno ?? c.estudianteNombre ?? null,
-              promedio: isNaN(promedioNum) ? 0 : promedioNum,
-              tipo: c.tipo ?? 'cierre',
-              ciclo: c.ciclo ?? '',
-              creado_en: c.creado_en ?? c.fecha ?? '',
-              estado: c.estado ?? 'pendiente',
-              archivo_path: c.archivo_path ?? null,
-              nombre_archivo: c.nombre_archivo ?? null,
+              id_nino: Number(c.alumno_id),
+              // ✅ CORREGIDO: Usar alumno_nombre directamente del backend
+              alumno: c.alumno_nombre || 'Sin nombre',
+              promedio: Number(c.promedio) || 0,
+              tipo: 'excelencia',
+              ciclo: c.ciclo || '',
+              creado_en: c.fecha_creacion || '',
+              estado: c.estado || 'pendiente',
+              archivo_path: null,
+              nombre_archivo: null,
             } as Certificado;
+            
+            console.log('📊 Certificado mapeado:', certificadoMapeado);
+            return certificadoMapeado;
           });
-        } else if (Array.isArray(resp)) {
-          // Si la respuesta es directamente un array
-          this.certificados = resp.map((c: any) => ({
-            id: Number(c.id),
-            id_nino: Number(c.id_nino),
-            alumno: c.alumno ?? c.estudianteNombre ?? null,
-            promedio: Number(c.promedio) || 0,
-            tipo: c.tipo ?? 'cierre',
-            ciclo: c.ciclo ?? '',
-            creado_en: c.creado_en ?? c.fecha ?? '',
-            estado: c.estado ?? 'pendiente',
-            archivo_path: c.archivo_path ?? null,
-            nombre_archivo: c.nombre_archivo ?? null,
-          }));
+          console.log(`✅ Certificados cargados: ${this.certificados.length}`);
+          
+          // Verificar que el nombre del alumno se cargó correctamente
+          if (this.certificados.length > 0) {
+            console.log('🔍 Verificación - Primer certificado:');
+            console.log('  ID:', this.certificados[0].id);
+            console.log('  Alumno:', this.certificados[0].alumno);
+            console.log('  Alumno ID:', this.certificados[0].id_nino);
+            console.log('  Promedio:', this.certificados[0].promedio);
+          }
         } else {
-          console.warn('Formato inesperado en certificados_listar.php', resp);
+          console.warn('⚠️ Formato inesperado al cargar certificados', resp);
           this.certificados = [];
         }
 
@@ -237,6 +272,8 @@ export class GraduacionComponent implements OnInit {
       },
       error: (err) => {
         console.error('❌ Error HTTP al cargar certificados:', err);
+        console.error('URL que falló:', url);
+        console.error('Status:', err.status);
         this.certificados = [];
         this.actualizarStats();
         this.cargando = false;
@@ -245,8 +282,36 @@ export class GraduacionComponent implements OnInit {
   }
 
   // =======================================
-  // STATS
+  // GET ESTADÍSTICAS
   // =======================================
+  getEstadisticas(): void {
+    const url = `${this.apiBase}${this.maestroId}/estadisticas`;
+    
+    console.log('🔗 URL estadísticas:', url);
+    
+    this.http.get<any>(url, { headers: this.getHeaders() }).subscribe({
+      next: (resp) => {
+        console.log('✅ Estadísticas del backend:', resp);
+        if (resp) {
+          this.stats.total = resp.total || 0;
+          this.stats.enviados = resp.enviados || 0;
+          this.stats.pendientes = (resp.total || 0) - (resp.enviados || 0);
+          
+          if (resp.excelencia !== undefined) {
+            this.stats.excelencia = resp.excelencia;
+          }
+          if (resp.cierre !== undefined) {
+            this.stats.cierre = resp.cierre;
+          }
+        }
+      },
+      error: (err) => {
+        console.error('❌ Error cargando estadísticas:', err);
+        this.actualizarStats();
+      }
+    });
+  }
+
   private actualizarStats(): void {
     this.stats.total = this.certificados.length;
     this.stats.excelencia = this.certificados.filter(
@@ -258,6 +323,7 @@ export class GraduacionComponent implements OnInit {
     this.stats.enviados = this.certificados.filter(
       (x) => x.estado === 'enviado'
     ).length;
+    this.stats.pendientes = this.stats.total - this.stats.enviados;
   }
 
   // =======================================
@@ -271,9 +337,9 @@ export class GraduacionComponent implements OnInit {
       alumnoId: 0,
       nombreAlumno: '',
       promedio: 10,
-      cicloEscolar: '2025-2026',
+      cicloEscolar: this.form.cicloEscolar || '2025-2026',
       tipo: 'excelencia',
-      teacherName: this.settings.maestro, // Usar nombre del maestro configurado
+      teacherName: this.settings.maestro,
     };
   }
 
@@ -283,7 +349,6 @@ export class GraduacionComponent implements OnInit {
 
   cambiarCheckUsarUltimo(): void {
     console.log('usarUltimo:', this.usarUltimo);
-    // Aquí podrías cargar del backend la última config (ciclo, maestro), etc.
   }
 
   // Cuando eliges un alumno del select
@@ -314,34 +379,27 @@ export class GraduacionComponent implements OnInit {
       return;
     }
 
-    const url = `${this.apiBase}crear.php`;
+    const url = `${this.apiBase}${this.maestroId}/certificados`;
 
-    // Enviamos todo como JSON
+    // Enviamos los datos según espera el backend
     const payload = {
-      maestroId: this.maestroId,
-      alumnoId: this.form.alumnoId,
+      alumno_id: this.form.alumnoId,
       promedio: this.form.promedio,
-      cicloEscolar: this.form.cicloEscolar.trim(),
-      tipo: 'excelencia',
-      teacherName: this.form.teacherName.trim(),
-      
-      // Datos del encabezado
-      escuela: this.settings.escuela,
-      direccion: this.settings.direccion,
-      telefono: this.settings.telefono,
-      grupo: this.settings.grupo,
-      folio: this.settings.folioActual,
-      logoUrl: this.settings.logoUrl || ''
+      ciclo: this.form.cicloEscolar.trim(),
+      maestro_firma: this.form.teacherName.trim()
     };
+
+    console.log('🔗 URL crear certificado:', url);
+    console.log('📦 Payload:', payload);
 
     this.cargando = true;
 
-    this.http.post<any>(url, payload).subscribe({
+    this.http.post<any>(url, payload, { headers: this.getHeaders() }).subscribe({
       next: async (resp) => {
-        console.log('Respuesta crear certificado:', resp);
+        console.log('✅ Respuesta crear certificado:', resp);
 
-        if (resp && resp.ok) {
-          alert('✅ Certificado generado correctamente.');
+        if (resp && resp.success) {
+          alert('✅ Certificado creado exitosamente.');
 
           // Guardar configuración
           this.guardarSettings();
@@ -359,18 +417,16 @@ export class GraduacionComponent implements OnInit {
 
           this.cerrarModal();
           this.cargarCertificados(); // refresca la tabla
+          this.getEstadisticas(); // actualiza estadísticas
         } else {
-          alert(
-            resp?.message ||
-              'No se pudo generar el certificado.'
-          );
+          alert(resp?.message || 'No se pudo crear el certificado.');
         }
 
         this.cargando = false;
       },
       error: (err) => {
-        console.error('❌ Error HTTP al generar certificado:', err);
-        alert('Error HTTP al generar el certificado: ' + err.message);
+        console.error('❌ Error HTTP al crear certificado:', err);
+        alert('Error HTTP al crear el certificado: ' + err.message);
         this.cargando = false;
       },
     });
@@ -380,13 +436,13 @@ export class GraduacionComponent implements OnInit {
   // ACCIONES DE LA TABLA
   // =======================================
   descargar(id: number): void {
-    const url = `${this.apiBase}descargar.php?id=${id}`;
-    window.open(url, '_blank');
+    // TODO: Implementar cuando el backend tenga este endpoint
+    console.log('Descargar certificado ID:', id);
+    alert('Función de descarga pendiente de implementar en el backend');
   }
 
   ver(certificado: Certificado): void {
     console.log('👁️ Ver certificado:', certificado);
-    // Aquí podrías abrir un modal con más detalles
     alert(`Detalles del certificado:\nAlumno: ${certificado.alumno}\nPromedio: ${certificado.promedio}\nCiclo: ${certificado.ciclo}\nEstado: ${certificado.estado}`);
   }
 
@@ -394,15 +450,17 @@ export class GraduacionComponent implements OnInit {
     const confirmado = confirm('¿Marcar este certificado como ENVIADO?');
     if (!confirmado) return;
 
-    const url = `${this.apiBase}cambiar_estado.php`;
+    const url = `${this.apiBase}certificados/${id}/estado`;
+    
+    console.log('🔗 URL cambiar estado:', url);
 
-    const payload = { id: id, estado: 'enviado' };
+    const payload = { estado: 'enviado' };
 
-    this.http.post<any>(url, payload).subscribe({
+    this.http.put<any>(url, payload, { headers: this.getHeaders() }).subscribe({
       next: (resp) => {
-        console.log('Respuesta cambiar estado:', resp);
+        console.log('✅ Respuesta cambiar estado:', resp);
 
-        if (resp && resp.ok) {
+        if (resp && resp.success) {
           const cert = this.certificados.find((c) => c.id === id);
           if (cert) {
             cert.estado = 'enviado';
@@ -410,10 +468,7 @@ export class GraduacionComponent implements OnInit {
           this.actualizarStats();
           alert('✅ Certificado marcado como enviado.');
         } else {
-          alert(
-            resp?.message ||
-              'No se pudo cambiar el estado.'
-          );
+          alert(resp?.message || 'No se pudo cambiar el estado.');
         }
       },
       error: (err) => {
@@ -427,23 +482,22 @@ export class GraduacionComponent implements OnInit {
     const confirmado = confirm('¿Seguro que quieres eliminar este certificado?');
     if (!confirmado) return;
 
-    const url = `${this.apiBase}eliminar.php?id=${id}`;
+    const url = `${this.apiBase}certificados/${id}`;
+    
+    console.log('🔗 URL eliminar:', url);
 
-    this.http.delete<any>(url).subscribe({
+    this.http.delete<any>(url, { headers: this.getHeaders() }).subscribe({
       next: (resp) => {
-        console.log('Respuesta eliminar certificado:', resp);
+        console.log('✅ Respuesta eliminar certificado:', resp);
 
-        if (resp && resp.ok) {
+        if (resp && resp.success) {
           this.certificados = this.certificados.filter(
             (c) => c.id !== id
           );
           this.actualizarStats();
           alert('✅ Certificado eliminado exitosamente.');
         } else {
-          alert(
-            resp?.message ||
-              'No se pudo eliminar el certificado.'
-          );
+          alert(resp?.message || 'No se pudo eliminar el certificado.');
         }
       },
       error: (err) => {
@@ -474,7 +528,10 @@ export class GraduacionComponent implements OnInit {
     this.logoSubiendo = true;
     
     try {
-      const resp = await fetch(`${this.apiBase}upload_logo`, {
+      const url = `http://localhost:3000/api/maestro/graduacion/${this.maestroId}/upload-logo`;
+      console.log('🔗 URL upload logo:', url);
+      
+      const resp = await fetch(url, {
         method: 'POST',
         body: fd
       });
@@ -483,7 +540,7 @@ export class GraduacionComponent implements OnInit {
       
       const json = await resp.json();
       
-      if (!json.ok) throw new Error(json.error || 'Error subiendo logo');
+      if (!json.success) throw new Error(json.message || 'Error subiendo logo');
       
       this.settings.logoUrl = json.url;
       this.guardarSettings();
@@ -496,50 +553,6 @@ export class GraduacionComponent implements OnInit {
     } finally {
       this.logoSubiendo = false;
     }
-  }
-
-  // =======================================
-  // EXPORTAR (opcional)
-  // =======================================
-  exportarCertificados(): void {
-    const url = `${this.apiBase}exportar.php?maestroId=${this.maestroId}`;
-    window.open(url, '_blank');
-  }
-
-  exportarWord(certificado?: Certificado): void {
-    console.log('📄 Exportando certificado a Word');
-    this.guardarSettings();
-    
-    let url = `${this.apiBase}export_word?`;
-    const params = new URLSearchParams({
-      maestro: this.settings.maestro,
-      grupo: this.settings.grupo,
-      escuela: this.settings.escuela,
-      direccion: this.settings.direccion,
-      telefono: this.settings.telefono,
-      folioN: String(this.settings.folioActual),
-      logo: this.settings.logoUrl || ''
-    });
-    
-    if (certificado) {
-      params.append('id', String(certificado.id));
-      const alumno = this.alumnos.find(a => a.id === certificado.id_nino);
-      if (alumno) {
-        params.append('alumno', alumno.nombre);
-      }
-    } else {
-      // Exportar desde formulario
-      params.append('alumno', this.form.nombreAlumno);
-      params.append('promedio', String(this.form.promedio));
-      params.append('cicloEscolar', this.form.cicloEscolar);
-      params.append('teacherName', this.form.teacherName);
-    }
-    
-    url += params.toString();
-    console.log('🔗 URL de exportación Word:', url);
-    
-    window.open(url, '_blank');
-    this.incrementarFolio();
   }
 
   // =======================================
@@ -694,6 +707,7 @@ export class GraduacionComponent implements OnInit {
     console.log('🔄 Recargando datos...');
     this.cargarAlumnos();
     this.cargarCertificados();
+    this.getEstadisticas();
   }
 
   limpiarFiltros() {
@@ -707,7 +721,9 @@ export class GraduacionComponent implements OnInit {
   // Para mostrar la imagen del logo en la interfaz
   getLogoUrl(): string {
     if (!this.settings.logoUrl) return '';
-    return `http://localhost:3000/${this.settings.logoUrl}`;
+    return this.settings.logoUrl.startsWith('http') ? 
+      this.settings.logoUrl : 
+      `http://localhost:3000/${this.settings.logoUrl}`;
   }
 
   // Formatear fecha
@@ -727,5 +743,50 @@ export class GraduacionComponent implements OnInit {
       case 'cancelado': return '#ef4444'; // rojo
       default: return '#6b7280'; // gris
     }
+  }
+
+  // =======================================
+  // MÉTODO PARA VERIFICAR DATOS - NUEVO
+  // =======================================
+  verificarDatosCertificados() {
+    console.log('🔍 VERIFICANDO DATOS DE CERTIFICADOS:');
+    console.log('📊 Número de certificados:', this.certificados.length);
+    
+    if (this.certificados.length === 0) {
+      console.log('⚠️ No hay certificados cargados');
+      return;
+    }
+    
+    this.certificados.forEach((cert, index) => {
+      console.log(`📄 Certificado ${index + 1} (ID: ${cert.id}):`, {
+        id: cert.id,
+        alumno: cert.alumno,
+        '¿Tiene valor?': cert.alumno ? 'SÍ' : 'NO',
+        'Valor exacto': `"${cert.alumno}"`,
+        id_nino: cert.id_nino,
+        promedio: cert.promedio,
+        ciclo: cert.ciclo,
+        estado: cert.estado,
+        creado_en: cert.creado_en
+      });
+    });
+    
+    // Verificar también los datos crudos del backend
+    console.log('🔍 SOLICITANDO DATOS CRUDOS DEL BACKEND...');
+    const url = `${this.apiBase}${this.maestroId}/certificados`;
+    this.http.get<any>(url, { headers: this.getHeaders() }).subscribe({
+      next: (resp) => {
+        console.log('🔍 DATOS CRUDOS DEL BACKEND:', resp);
+        if (Array.isArray(resp) && resp.length > 0) {
+          console.log('🔍 Primer objeto crudo completo:', resp[0]);
+          console.log('🔍 Todas las propiedades del objeto crudo:', Object.keys(resp[0]));
+          console.log('🔍 Valor de alumno_nombre crudo:', resp[0].alumno_nombre);
+          console.log('🔍 Tipo de alumno_nombre:', typeof resp[0].alumno_nombre);
+        }
+      },
+      error: (err) => {
+        console.error('❌ Error al obtener datos crudos:', err);
+      }
+    });
   }
 }

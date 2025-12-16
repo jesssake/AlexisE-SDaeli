@@ -1,136 +1,263 @@
-﻿import { ComponentFixture, TestBed } from '@angular/core/testing';
+﻿import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { Router } from '@angular/router';
-import { RegistroComponent } from '../registro/registro.component'; // â† AsegÃºrate que esta ruta es correcta (mismo folder que el spec)
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { LoginComponent } from './login.component';
+import { LoginAuthService } from '../../../services/loginauth.service';
 
-describe('RegistroComponent', () => {
-  let component: RegistroComponent;
-  let fixture: ComponentFixture<RegistroComponent>;
+describe('LoginComponent', () => {
+  let component: LoginComponent;
+  let fixture: ComponentFixture<LoginComponent>;
   let routerSpy: jasmine.SpyObj<Router>;
+  let authServiceSpy: jasmine.SpyObj<LoginAuthService>;
 
   beforeEach(async () => {
-    // EspÃ­a del Router con solo 'navigate'
-    const routerSpyObj = jasmine.createSpyObj('Router', ['navigate']);
+    const routerSpyObj = jasmine.createSpyObj('Router', ['navigate', 'navigateByUrl']);
+    const authServiceSpyObj = jasmine.createSpyObj('LoginAuthService', [
+      'login',
+      'isAuthenticated',
+      'logout'
+    ]);
 
     await TestBed.configureTestingModule({
-      // Si es componente standalone, basta importarlo aquÃ­
-      imports: [RegistroComponent],
-      providers: [{ provide: Router, useValue: routerSpyObj }],
+      imports: [
+        LoginComponent,
+        HttpClientTestingModule
+      ],
+      providers: [
+        { provide: Router, useValue: routerSpyObj },
+        { provide: LoginAuthService, useValue: authServiceSpyObj }
+      ]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(RegistroComponent);
+    fixture = TestBed.createComponent(LoginComponent);
     component = fixture.componentInstance;
     routerSpy = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+    authServiceSpy = TestBed.inject(LoginAuthService) as jasmine.SpyObj<LoginAuthService>;
 
     fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it('should create the component', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should initialize with step 1', () => {
-    expect(component.step).toBe(1);
+  it('should initialize with empty model', () => {
+    expect(component.model.email).toBe('');
+    expect(component.model.password).toBe('');
   });
 
-  it('should have empty form initially', () => {
-    // Asegura que el modelo de form existe y con llaves esperadas
-    expect(component.form).toBeDefined();
-    expect(component.form.tutorName).toBe('');
-    expect(component.form.tutorEmail).toBe('');
-    expect(component.form.tutorPhone).toBe('');
-    expect(component.form.tutorPassword).toBe('');
-    expect(component.form.childName).toBe('');
-    expect(component.form.childCondition).toBe('');
-    expect(component.form.security).toEqual(['', '', '', '', '']);
-  });
-
-  it('should have correct days array', () => {
-    expect(component.days.length).toBe(31);
-    expect(component.days[0]).toBe(1);
-    expect(component.days[30]).toBe(31);
-  });
-
-  it('should have correct months array', () => {
-    expect(component.months.length).toBe(12);
-    expect(component.months[0]).toBe(1);
-    expect(component.months[11]).toBe(12);
-  });
-
-  it('should have years between 3 and 12 years ago', () => {
-    const currentYear = new Date().getFullYear();
-    expect(component.years.length).toBeGreaterThan(0);
-    expect(component.years[0]).toBe(currentYear - 12);
-    expect(component.years[component.years.length - 1]).toBe(currentYear - 3);
-  });
-
-  it('should have 5 recovery questions', () => {
-    expect(component.recoveryQuestions.length).toBe(5);
-    // Solo para validar que el contenido es el esperado (ej. incluye "mascota")
-    expect(component.recoveryQuestions[0].toLowerCase()).toContain('mascota');
-  });
-
-  it('should move to next step when nextFromStep1 is called with valid data', () => {
-    // Configurar datos vÃ¡lidos
-    component.form.tutorName = 'Juan PÃ©rez';
-    component.form.tutorEmail = 'juan@example.com';
-    component.form.tutorPhone = '+52 555 1234 567';
-    component.form.tutorPassword = 'Password123';
-    component.confirmPassword = 'Password123';
-
-    component.nextFromStep1();
-
-    expect(component.step).toBe(2);
-    expect(component.errors).toEqual({});
-  });
-
-  it('should not move to next step when nextFromStep1 is called with invalid data', () => {
-    // Dejar datos invÃ¡lidos (vacÃ­os)
-    component.confirmPassword = '';
-    component.form.tutorName = '';
-    component.form.tutorEmail = '';
-    component.form.tutorPhone = '';
-    component.form.tutorPassword = '';
-
-    component.nextFromStep1();
-
-    expect(component.step).toBe(1);
-    expect(Object.keys(component.errors).length).toBeGreaterThan(0);
+  it('should have initial state properties', () => {
+    expect(component.loading).toBeFalse();
+    expect(component.showPass).toBeFalse();
+    expect(component.showMonkey).toBeTrue();
+    expect(component.monkeyEyes).toBe('🙉');
   });
 
   it('should validate email format correctly', () => {
-    // Acceder a mÃ©todos privados usando bracket notation (si son privados)
-    expect((component as any).emailOk('test@example.com')).toBeTrue();
-    expect((component as any).emailOk('invalid-email')).toBeFalse();
+    const validEmail = 'test@example.com';
+    const invalidEmail = 'invalid-email';
+
+    // Test valid email
+    component.model.email = validEmail;
+    expect((component as any).validarEmail(validEmail)).toBeTrue();
+
+    // Test invalid email
+    component.model.email = invalidEmail;
+    expect((component as any).validarEmail(invalidEmail)).toBeFalse();
   });
 
-  it('should validate phone format correctly', () => {
-    expect((component as any).phoneOk('+52 555 1234 567')).toBeTrue();
-    expect((component as any).phoneOk('123')).toBeFalse();
+  it('should show validation errors for empty form', () => {
+    component.model.email = '';
+    component.model.password = '';
+    
+    const isValid = (component as any).validarFormulario();
+    
+    expect(isValid).toBeFalse();
+    expect(component.errors['email']).toBe('El email es requerido');
+    expect(component.errors['password']).toBe('La contraseña es requerida');
   });
 
-  it('should validate password format correctly', () => {
-    expect((component as any).passOk('Password123')).toBeTrue();
-    expect((component as any).passOk('weak')).toBeFalse();
+  it('should show error for invalid email format', () => {
+    component.model.email = 'invalid';
+    component.model.password = 'password123';
+    
+    const isValid = (component as any).validarFormulario();
+    
+    expect(isValid).toBeFalse();
+    expect(component.errors['email']).toBe('Formato de email inválido');
   });
 
-  it('should show password mismatch error', () => {
-    component.form.tutorPassword = 'Password123';
-    component.confirmPassword = 'DifferentPassword';
-
-    component.nextFromStep1();
-
-    expect(component.errors['confirmPassword']).toBe('Las contraseÃ±as no coinciden');
+  it('should pass validation with correct data', () => {
+    component.model.email = 'test@example.com';
+    component.model.password = 'Password123';
+    
+    const isValid = (component as any).validarFormulario();
+    
+    expect(isValid).toBeTrue();
+    expect(Object.keys(component.errors).length).toBe(0);
   });
 
-  it('should have transition properties initialized', () => {
-    expect(component.isTransitioning).toBeFalse();
-    expect(component.transitionMessage).toBe('Cargando...');
+  it('should toggle password visibility', () => {
+    expect(component.showPass).toBeFalse();
+    
+    component.togglePasswordVisibility();
+    expect(component.showPass).toBeTrue();
+    
+    component.togglePasswordVisibility();
+    expect(component.showPass).toBeFalse();
   });
 
-  it('should navigate to login when goToLogin is called', () => {
-    component.goToLogin();
+  it('should change monkey eyes on password input', () => {
+    component.model.password = '';
+    component.onPasswordInput();
+    expect(component.monkeyEyes).toBe('🙈');
+    
+    component.model.password = 'pass';
+    component.onPasswordInput();
+    expect(component.monkeyEyes).toBe('🙊');
+  });
+
+  it('should handle email focus/blur', () => {
+    component.onEmailFocus();
+    expect(component.monkeyEyes).toBe('🙉');
+    expect(component.showSpeech).toBeTrue();
+    
+    component.onEmailBlur();
+    expect(component.showSpeech).toBeFalse();
+  });
+
+  it('should handle password focus/blur', () => {
+    component.onPasswordFocus();
+    expect(component.monkeyEyes).toBe('🙈');
+    
+    component.model.password = 'test';
+    component.onPasswordBlur();
+    expect(component.monkeyEyes).toBe('🙊');
+  });
+
+  it('should show monkey message', () => {
+    const message = 'Test message';
+    component.showMonkeyMessage(message);
+    
+    expect(component.monkeyMessage).toBe(message);
+    expect(component.showSpeech).toBeTrue();
+    
+    // Message should hide after timeout
+    fakeAsync(() => {
+      tick(3000);
+      expect(component.showSpeech).toBeFalse();
+    });
+  });
+
+  it('should have test credentials for development', () => {
+    expect(component['CREDENCIALES_PRUEBA']).toBeDefined();
+    expect(component['CREDENCIALES_PRUEBA'].length).toBeGreaterThan(0);
+    
+    // Check structure of test credentials
+    const testCred = component['CREDENCIALES_PRUEBA'][0];
+    expect(testCred.email).toBeDefined();
+    expect(testCred.password).toBeDefined();
+    expect(testCred.rol).toBeDefined();
+    expect(testCred.nombre).toBeDefined();
+  });
+
+  it('should have monkey messages dictionary', () => {
+    expect(component['MONKEY_MESSAGES']).toBeDefined();
+    expect(component['MONKEY_MESSAGES'].WELCOME).toContain('Hola');
+    expect(component['MONKEY_MESSAGES'].EMAIL_FOCUS).toContain('correo');
+    expect(component['MONKEY_MESSAGES'].PASSWORD_FOCUS).toContain('Shhh');
+  });
+
+  it('should get role-specific welcome message', () => {
+    expect((component as any).obtenerMensajeRol('TUTOR')).toContain('Tutor');
+    expect((component as any).obtenerMensajeRol('SuperAdmin')).toContain('Super Administrador');
+    expect((component as any).obtenerMensajeRol('UNKNOWN_ROLE')).toContain('UNKNOWN_ROLE');
+  });
+
+  it('should navigate to register when goToRegister is called', fakeAsync(() => {
+    component.goToRegister();
+    tick(500);
+    
     expect(component.isTransitioning).toBeTrue();
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/auth/login']);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/auth/registro']);
+  }));
+
+  it('should show recovery message when openRecovery is called', () => {
+    const event = { preventDefault: jasmine.createSpy('preventDefault') } as any;
+    component.openRecovery(event);
+    
+    expect(event.preventDefault).toHaveBeenCalled();
+    expect(component.monkeyMessage).toContain('recuperación');
+  });
+
+  describe('Form Submission', () => {
+    it('should not submit if form is invalid', async () => {
+      component.model.email = 'invalid';
+      component.model.password = '';
+      
+      spyOn(component as any, 'iniciarLogin');
+      
+      await component.submit();
+      
+      expect((component as any).iniciarLogin).not.toHaveBeenCalled();
+      expect(component.errors['email']).toBeDefined();
+    });
+
+    it('should call authService.login with correct parameters when form is valid', async () => {
+      component.model.email = 'test@example.com';
+      component.model.password = 'Password123';
+      
+      const mockResponse = {
+        success: true,
+        user: { email: 'test@example.com', rol: 'TUTOR', nombre: 'Test User' },
+        token: 'mock-token'
+      };
+      
+      authServiceSpy.login.and.returnValue(Promise.resolve(mockResponse) as any);
+      
+      await component.submit();
+      
+      expect(authServiceSpy.login).toHaveBeenCalledWith('test@example.com', 'Password123');
+    });
+  });
+
+  describe('Redirection Logic', () => {
+    it('should redirect tutors to /estudiante/configuracion', async () => {
+      const user = { rol: 'TUTOR', email: 'tutor@example.com' };
+      
+      await (component as any).redirigirSegunRol(user);
+      
+      expect(routerSpy.navigateByUrl).toHaveBeenCalledWith(
+        '/estudiante/configuracion',
+        jasmine.objectContaining({ replaceUrl: true })
+      );
+    });
+
+    it('should redirect admin roles to /maestro/dashboard', async () => {
+      const roles = ['SuperAdmin', 'Admin', 'MAESTRO', 'PROFESOR', 'COORDINADOR'];
+      
+      for (const rol of roles) {
+        routerSpy.navigateByUrl.calls.reset();
+        const user = { rol, email: `${rol.toLowerCase()}@example.com` };
+        
+        await (component as any).redirigirSegunRol(user);
+        
+        expect(routerSpy.navigateByUrl).toHaveBeenCalledWith(
+          '/maestro/dashboard',
+          jasmine.objectContaining({ replaceUrl: true })
+        );
+      }
+    });
+
+    it('should redirect unknown roles to /estudiante/dashboard', async () => {
+      const user = { rol: 'UNKNOWN', email: 'unknown@example.com' };
+      
+      await (component as any).redirigirSegunRol(user);
+      
+      expect(routerSpy.navigateByUrl).toHaveBeenCalledWith(
+        '/estudiante/dashboard',
+        jasmine.objectContaining({ replaceUrl: true })
+      );
+    });
   });
 });
-

@@ -1,11 +1,17 @@
-﻿﻿﻿﻿/* ===== LAYOUT GENERAL - COMPACTO Y ELEGANTE ===== */
+﻿﻿body {
+  background: #000000;
+  margin: 0;
+  padding: 0;
+}
+
+/* ===== LAYOUT GENERAL - COMPACTO Y ELEGANTE ===== */
 
 .page-wrap {
   padding: 1.5rem;
   max-width: 1000px;
   margin: 0 auto;
   font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-  background: linear-gradient(135deg, #000000 0%, #090909 100%);
+  background: #000000;
   min-height: 100vh;
   color: #1f2937;
 }

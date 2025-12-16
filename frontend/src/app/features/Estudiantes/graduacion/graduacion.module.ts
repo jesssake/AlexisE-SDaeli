@@ -1,16 +1,22 @@
+// C:\Codigos\HTml\gestion-educativa\frontend\src\app\features\Estudiantes\graduacion\graduacion.module.ts
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';  // Necesario para *ngFor
-import { FormsModule } from '@angular/forms';    // Necesario para ngModel
-import { GraduacionComponent } from './graduacion.component';  // Importa el componente correctamente
+import { CommonModule } from '@angular/common';
+import { RouterModule, Routes } from '@angular/router';
+import { EstudianteGraduacionComponent } from './graduacion.component';
+
+const routes: Routes = [
+  {
+    path: '',
+    component: EstudianteGraduacionComponent
+  }
+];
 
 @NgModule({
-  declarations: [
-    // No es necesario declarar GraduacionComponent aquí porque es standalone
-  ],
+  declarations: [],
   imports: [
     CommonModule,
-    FormsModule
+    RouterModule.forChild(routes)
   ],
-  providers: []  // No necesitas declarar el componente aquí
+  exports: [RouterModule]
 })
-export class GraduacionModule {}
+export class GraduacionEstudianteModule { }

@@ -13,17 +13,25 @@ try {
     console.log('✅ chatController cargado exitosamente');
     
     // Verificar métodos del controlador
-    const requiredMethods = ['getConversaciones', 'getMensajes', 'enviarMensaje', 'getEstadisticas'];
+    const requiredMethods = [
+        'getConversaciones', 
+        'getMensajes', 
+        'enviarMensaje', 
+        'getEstadisticas',
+        'getMensajesNoLeidos',
+        'marcarMensajesLeidos'
+    ];
+    
     const missingMethods = requiredMethods.filter(method => typeof chatController[method] !== 'function');
     
     if (missingMethods.length > 0) {
         console.error('❌ Métodos faltantes en chatController:', missingMethods);
-        throw new Error(`Métodos faltantes: ${missingMethods.join(', ')}`);
+    } else {
+        console.log('✅ Todos los métodos del controlador están disponibles');
     }
     
-    console.log('✅ Todos los métodos del controlador están disponibles');
 } catch (error) {
-    console.error('❌ Error crítico cargando chatController:', error.message);
+    console.error('❌ Error cargando chatController:', error.message);
     
     // Crear controlador de emergencia
     console.log('⚠️ Creando controlador de emergencia');
@@ -95,6 +103,24 @@ try {
                     ultima_actividad: new Date().toISOString()
                 }
             });
+        },
+        
+        getMensajesNoLeidos: async (req, res) => {
+            console.log('📨 Controlador emergente: getMensajesNoLeidos');
+            res.json({
+                success: true,
+                data: {
+                    mensajes_no_leidos: 0
+                }
+            });
+        },
+        
+        marcarMensajesLeidos: async (req, res) => {
+            console.log('📖 Controlador emergente: marcarMensajesLeidos');
+            res.json({
+                success: true,
+                message: 'Mensajes marcados como leídos (emergencia)'
+            });
         }
     };
 }
@@ -127,6 +153,18 @@ router.get('/estadisticas/:maestro_id', (req, res) => {
     return chatController.getEstadisticas(req, res);
 });
 
+// Ruta: Obtener mensajes no leídos
+router.get('/no-leidos/:maestro_id', (req, res) => {
+    console.log(`🌐 RUTA: GET /no-leidos/${req.params.maestro_id}`);
+    return chatController.getMensajesNoLeidos(req, res);
+});
+
+// Ruta: Marcar mensajes como leídos
+router.post('/marcar-leidos', (req, res) => {
+    console.log('🌐 RUTA: POST /marcar-leidos');
+    return chatController.marcarMensajesLeidos(req, res);
+});
+
 // ========================================
 // 🔹 RUTA DE PRUEBA/HEALTH CHECK
 // ========================================
@@ -137,11 +175,15 @@ router.get('/status', (req, res) => {
         service: 'Chat Maestro/Tutor',
         status: '🟢 Online',
         timestamp: new Date().toISOString(),
+        timestamp_local: new Date().toLocaleString('es-MX'),
         endpoints: [
             'GET /conversaciones/:maestro_id',
             'GET /mensajes/:maestro_id/:tutor_id',
             'POST /enviar',
-            'GET /estadisticas/:maestro_id'
+            'GET /estadisticas/:maestro_id',
+            'GET /no-leidos/:maestro_id',
+            'POST /marcar-leidos',
+            'GET /status'
         ]
     });
 });

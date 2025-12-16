@@ -8,6 +8,11 @@
       <button class="btn-primary" (click)="abrirModalNuevo()">
         ➕ Nuevo Certificado
       </button>
+      
+      <!-- ✅ BOTÓN DE VERIFICACIÓN DE DATOS (TEMPORAL) -->
+      <button class="btn-info" (click)="verificarDatosCertificados()" style="margin-left: 10px;">
+        🔍 Verificar Datos
+      </button>
     </div>
   </div>
 
@@ -26,6 +31,12 @@
     <div class="stat-card">
       <p class="label">ENVIADOS</p>
       <p class="value">{{ stats.enviados }}</p>
+    </div>
+    
+    <!-- ✅ NUEVA ESTADÍSTICA DE PENDIENTES -->
+    <div class="stat-card">
+      <p class="label">PENDIENTES</p>
+      <p class="value">{{ stats.pendientes }}</p>
     </div>
   </div>
 
@@ -61,12 +72,27 @@
           </option>
         </select>
       </div>
+      
+      <!-- ✅ BOTONES DE UTILIDAD -->
+      <div class="filtro-item" style="display: flex; gap: 10px; align-items: center;">
+        <button class="btn-mini" (click)="limpiarFiltros()" style="margin-top: 20px;">
+          🧹 Limpiar Filtros
+        </button>
+        <button class="btn-mini" (click)="recargarDatos()" style="margin-top: 20px;">
+          🔄 Recargar
+        </button>
+      </div>
     </div>
   </div>
 
   <!-- TABLA CERTIFICADOS -->
   <div class="tabla-card">
     <h3>Listado de certificados</h3>
+
+    <!-- ✅ INDICADOR DE CARGA -->
+    <div *ngIf="cargando" class="loading-indicator">
+      Cargando certificados...
+    </div>
 
     <table>
       <thead>
@@ -83,33 +109,40 @@
       </thead>
 
       <tbody>
-        <tr *ngIf="certificados.length === 0">
+        <tr *ngIf="certificados.length === 0 && !cargando">
           <td colspan="8" style="text-align: center; padding: 12px">
             No hay certificados para mostrar.
           </td>
         </tr>
 
         <tr *ngFor="let c of certificados; let i = index">
-          <td>{{ i + 1 }}</td> <!-- Muestra 1, 2, 3, ... -->
+          <td>{{ c.id }}</td> <!-- Mostrar ID real de la base de datos -->
           <td class="negrita-italic">{{ c.alumno || '—' }}</td> <!-- Cursiva y negrita -->
           <td>{{ c.promedio | number : '1.1-2' }}</td>
           <td>{{ c.tipo | titlecase }}</td>
           <td class="negrita-italic">{{ c.ciclo }}</td> <!-- Cursiva y negrita -->
-          <td>{{ c.creado_en | date : 'yyyy-MM-dd HH:mm' }}</td>
+          <td>{{ fechaBonita(c.creado_en) }}</td>
 
           <td>
-            <span class="estado" [class.enviado]="c.estado === 'enviado'">
+            <span class="estado" 
+                  [class.enviado]="c.estado === 'enviado'"
+                  [class.pendiente]="c.estado === 'pendiente'"
+                  [style.background-color]="getColorEstado(c.estado)">
               {{ c.estado | titlecase }}
             </span>
           </td>
 
           <td class="acciones">
             <button class="btn-mini" (click)="descargar(c.id)">⬇ Descargar</button>
-            <button class="btn-mini verde" (click)="enviar(c.id)">
+            <button class="btn-mini verde" (click)="enviar(c.id)"
+                    *ngIf="c.estado !== 'enviado'">
               ✉ Enviar
             </button>
             <button class="btn-mini rojo" (click)="eliminar(c.id)">
               🗑 Eliminar
+            </button>
+            <button class="btn-mini info" (click)="ver(c)" style="margin-left: 5px;">
+              👁 Ver
             </button>
           </td>
         </tr>
@@ -166,8 +199,8 @@
       </div>
 
       <div class="modal-footer">
-        <button class="btn-primary" (click)="generarCertificado()">
-          Generar PDF
+        <button class="btn-primary" (click)="generarCertificado()" [disabled]="cargando">
+          {{ cargando ? 'Generando...' : 'Generar PDF' }}
         </button>
         <button class="btn-secondary" (click)="cerrarModal()">
           Cancelar

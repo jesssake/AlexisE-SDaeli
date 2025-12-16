@@ -1,118 +1,281 @@
-﻿<div class="asist-wrapper">
-
-  <!-- TOP | DATOS DEL ALUMNO -->
-  <div class="top">
-    <h1>Historial de Asistencia</h1>
-    <p>Consulta tu asistencia del mes o por rango de fechas.</p>
-
-    <div class="user-info">
-      <div class="user-details">
-        <strong>Alumno:</strong> {{ auth.getUserName() }} <br />
-        <strong>Email:</strong> {{ auth.getUserEmail() }} <br />
-        <strong>ID Alumno:</strong> {{ auth.userAlumnoId || 'N/A' }}
-      </div>
+﻿<!-- C:\Codigos\HTml\gestion-educativa\frontend\src\app\features\Estudiantes\asistencia\asistencia.component.html -->
+<div class="asistencia-estudiante-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <h1>📅 Mi Asistencia</h1>
+      <div class="breadcrumb">Estudiante / Asistencia</div>
     </div>
-
-    <!-- FILTROS -->
-    <div class="filtros">
-
-      <div class="acciones">
-        <button (click)="verMesActual()">Mes actual</button>
+    
+    <div class="header-right">
+      <div class="estudiante-info">
+        <div class="avatar">
+          <span class="avatar-icon">👨‍🎓</span>
+        </div>
+        <div class="info">
+          <div class="nombre">{{ estudianteNombre }}</div>
+          <div class="tutor">Tutor: {{ tutorNombre }}</div>
+        </div>
       </div>
-
-      <div class="grupo">
-        <label>Desde</label>
-        <input type="date" [(ngModel)]="desde" />
-      </div>
-
-      <div class="grupo">
-        <label>Hasta</label>
-        <input type="date" [(ngModel)]="hasta" />
-      </div>
-
-      <div class="acciones">
-        <button (click)="aplicarRango()">Buscar</button>
-        <button (click)="limpiarRango()">Limpiar</button>
-      </div>
-
     </div>
   </div>
 
-  <!-- MENSAJES -->
-  <div *ngIf="error" class="msg error">{{ error }}</div>
-  <div *ngIf="cargando" class="msg info">Cargando asistencia...</div>
-
-  <!-- CONTENIDO PRINCIPAL -->
-  <div *ngIf="!cargando && !error" class="stats-section">
-
-    <!-- RESUMEN -->
-    <div class="stats-main">
-      <h2>Resumen del período</h2>
-      <div class="attendance-percentage">
-        {{ asistenciaPct() }}%
-      </div>
-      <p class="stats-description">Porcentaje de asistencia del alumno</p>
-    </div>
-
-    <!-- TOTALES -->
-    <div class="stats-grid">
-      <div class="stat-card present">
-        <span class="stat-label">PRESENTE</span>
-        <span class="stat-value present">{{ totales.PRESENTE }}</span>
-      </div>
-
-      <div class="stat-card justified">
-        <span class="stat-label">JUSTIFICADO</span>
-        <span class="stat-value justified">{{ totales.JUSTIFICADO }}</span>
-      </div>
-
-      <div class="stat-card absent">
-        <span class="stat-label">AUSENTE</span>
-        <span class="stat-value absent">{{ totales.AUSENTE }}</span>
-      </div>
-    </div>
-
-    <!-- TABLA -->
-    <div class="table-section">
-      <div class="table-header">
-        <h3>Registros de Asistencia</h3>
-        <p>Listado detallado por fecha y hora</p>
-      </div>
-
-      <div class="tabla">
-
-        <div class="head">
-          <div>Fecha</div>
-          <div>Hora</div>
-          <div>Estado</div>
-          <div>Comentario</div>
-          <div>Maestro</div>
+  <!-- Filtros y Controles -->
+  <div class="controles-container" *ngIf="estudianteId">
+    <div class="controles-superiores">
+      <div class="filtros">
+        <div class="filtro-group">
+          <label for="mes">Mes:</label>
+          <select id="mes" [(ngModel)]="mesSeleccionado" (change)="onMesChange()" [disabled]="cargando">
+            <option *ngFor="let mes of meses" [value]="mes.numero">{{ mes.nombre }}</option>
+          </select>
         </div>
+        
+        <div class="filtro-group">
+          <label for="anio">Año:</label>  <!-- Cambiado de 'año' a 'anio' -->
+          <select id="anio" [(ngModel)]="anioSeleccionado" (change)="onAnioChange()" [disabled]="cargando">
+            <option *ngFor="let anio of anios" [value]="anio">{{ anio }}</option>  <!-- Cambiado 'años' por 'anios' -->
+          </select>
+        </div>
+        
+        <div class="filtro-group">
+          <label for="limite">Mostrar:</label>
+          <select id="limite" [(ngModel)]="limiteRegistros" (change)="onLimiteChange()" [disabled]="cargando">
+            <option *ngFor="let limite of limites" [value]="limite">{{ limite }} registros</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="acciones">
+        <button class="btn btn-primary" (click)="cargarAsistencia()" [disabled]="cargando">
+          <span *ngIf="!cargando">🔄 Actualizar</span>
+          <span *ngIf="cargando">⏳ Cargando...</span>
+        </button>
+        
+        <button class="btn btn-secondary" (click)="cargarAsistenciaHoy()" [disabled]="cargando">
+          📅 Hoy
+        </button>
+        
+        <button class="btn btn-success" (click)="limpiarFiltros()" [disabled]="cargando">
+          🧹 Limpiar
+        </button>
+      </div>
+    </div>
+    
+    <div class="controles-inferiores">
+      <div class="exportar">
+        <button class="btn btn-exportar" (click)="descargarReporte('pdf')">
+          📄 PDF
+        </button>
+        <button class="btn btn-exportar" (click)="descargarReporte('excel')">
+          📊 Excel
+        </button>
+        <button class="btn btn-exportar" (click)="descargarReporte('json')">
+          🔧 JSON
+        </button>
+      </div>
+      
+      <button class="btn btn-debug" (click)="probarConexion()">
+        🔍 Probar Conexión
+      </button>
+    </div>
+  </div>
 
-        <div
-          class="row"
-          *ngFor="let r of registros"
-          [ngClass]="{ empty: registros.length === 0 }"
-        >
-          <div data-label="Fecha">{{ r.fecha }}</div>
-          <div data-label="Hora">{{ r.hora }}</div>
-          <div data-label="Estado">
-            <span class="badge" [ngClass]="badgeClase(r.estado)">
-              {{ r.estado }}
-            </span>
+  <!-- Mensajes de estado -->
+  <div class="mensajes">
+    <div class="error-message" *ngIf="error">
+      <span class="icon">⚠️</span>
+      <span>{{ error }}</span>
+    </div>
+    
+    <div class="success-message" *ngIf="mensajeExito">
+      <span class="icon">✅</span>
+      <span>{{ mensajeExito }}</span>
+    </div>
+  </div>
+
+  <!-- Estadísticas Principales -->
+  <div class="estadisticas-principales" *ngIf="estudianteId && !cargando && !error">
+    <div class="tarjeta-estadistica total">
+      <div class="icono">📊</div>
+      <div class="contenido">
+        <div class="valor">{{ estadisticas.generales.total_dias }}</div>
+        <div class="label">Total de Días</div>
+      </div>
+    </div>
+    
+    <div class="tarjeta-estadistica presente">
+      <div class="icono">✅</div>
+      <div class="contenido">
+        <div class="valor">{{ estadisticas.generales.presentes }}</div>
+        <div class="label">Presentes</div>
+      </div>
+    </div>
+    
+    <div class="tarjeta-estadistica ausente">
+      <div class="icono">❌</div>
+      <div class="contenido">
+        <div class="valor">{{ estadisticas.generales.ausentes }}</div>
+        <div class="label">Ausentes</div>
+      </div>
+    </div>
+    
+    <div class="tarjeta-estadistica justificado">
+      <div class="icono">⚠️</div>
+      <div class="contenido">
+        <div class="valor">{{ estadisticas.generales.justificados }}</div>
+        <div class="label">Justificados</div>
+      </div>
+    </div>
+    
+    <div class="tarjeta-estadistica porcentaje" [class]="getPorcentajeColor(estadisticas.generales.porcentaje_asistencia)">
+      <div class="icono">📈</div>
+      <div class="contenido">
+        <div class="valor">{{ estadisticas.generales.porcentaje_asistencia }}%</div>
+        <div class="label">Porcentaje</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Última Asistencia -->
+  <div class="ultima-asistencia" *ngIf="ultimaAsistencia && !cargando">
+    <div class="titulo-seccion">
+      <h3>📝 Última Asistencia Registrada</h3>
+    </div>
+    <div class="tarjeta-ultima">
+      <div class="fecha">
+        <span class="icono">📅</span>
+        <span>{{ formatearFecha(ultimaAsistencia.fecha) }}</span>
+      </div>
+      <div class="estado" [class]="getEstadoClass(ultimaAsistencia.estado)">
+        <span class="icono">{{ getEstadoIcon(ultimaAsistencia.estado) }}</span>
+        <span>{{ getEstadoText(ultimaAsistencia.estado) }}</span>
+      </div>
+      <div class="comentario" *ngIf="ultimaAsistencia.comentario_maestro">
+        <span class="icono">💬</span>
+        <span>{{ ultimaAsistencia.comentario_maestro }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resumen Mensual -->
+  <div class="resumen-mensual" *ngIf="resumenMensual.length > 0 && !cargando">
+    <div class="titulo-seccion">
+      <h3>📈 Resumen por Mes ({{ anioSeleccionado }})</h3>  <!-- Cambiado aquí -->
+    </div>
+    <div class="meses-grid">
+      <div *ngFor="let mes of resumenMensual" class="mes-card" [class]="getPorcentajeColor(mes.porcentaje)">
+        <div class="mes-header">
+          <span class="mes-nombre">{{ mes.mes_nombre }}</span>
+          <span class="mes-porcentaje">{{ mes.porcentaje }}%</span>
+        </div>
+        <div class="mes-detalle">
+          <div class="detalle-item">
+            <span class="icono">✅</span>
+            <span class="valor">{{ mes.presentes }}</span>
           </div>
-          <div data-label="Comentario" class="coment">
-            {{ r.comentario || '-' }}
+          <div class="detalle-item">
+            <span class="icono">❌</span>
+            <span class="valor">{{ mes.ausentes }}</span>
           </div>
-          <div data-label="Maestro">{{ r.maestro_id }}</div>
+          <div class="detalle-item">
+            <span class="icono">⚠️</span>
+            <span class="valor">{{ mes.justificados }}</span>
+          </div>
         </div>
-
-        <div class="row empty" *ngIf="registros.length === 0">
-          <div class="full">No hay registros para mostrar</div>
+        <div class="mes-total">
+          <span class="label">Total:</span>
+          <span class="valor">{{ mes.total_dias }} días</span>
         </div>
-
       </div>
     </div>
+  </div>
 
+  <!-- Lista de Asistencias -->
+  <div class="lista-asistencias" *ngIf="estudianteId && !cargando && !error">
+    <div class="titulo-seccion">
+      <h3>📋 Historial de Asistencias</h3>
+      <div class="contador">
+        Mostrando {{ asistencias.length }} registros
+      </div>
+    </div>
+    
+    <div *ngIf="asistencias.length === 0" class="sin-registros">
+      <div class="icono">📭</div>
+      <div class="mensaje">No hay registros de asistencia para el período seleccionado.</div>
+      <div class="sugerencia">Intenta cambiar los filtros o seleccionar otro mes/año.</div>
+    </div>
+    
+    <div class="tabla-container" *ngIf="asistencias.length > 0">
+      <table class="tabla-asistencias">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Día</th>
+            <th>Hora</th>
+            <th>Estado</th>
+            <th>Maestro</th>
+            <th>Comentario</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let asistencia of asistencias" [class]="getEstadoClass(asistencia.estado)">
+            <td class="fecha">
+              <div class="fecha-completa">{{ asistencia.fecha_formateada }}</div>
+              <div class="anio-mes">{{ asistencia.anio }}-{{ asistencia.mes_numero.toString().padStart(2, '0') }}</div>  <!-- Cambiado aquí -->
+            </td>
+            <td class="dia">
+              <div class="dia-semana">{{ asistencia.dia_semana }}</div>
+              <div class="dia-numero">Día {{ asistencia.dia }}</div>
+            </td>
+            <td class="hora">
+              <span class="icono-hora">🕐</span>
+              {{ asistencia.hora_clase }}
+            </td>
+            <td class="estado">
+              <span class="estado-icono">{{ getEstadoIcon(asistencia.estado) }}</span>
+              <span class="estado-texto">{{ getEstadoText(asistencia.estado) }}</span>
+            </td>
+            <td class="maestro">
+              <span class="icono-maestro">👨‍🏫</span>
+              {{ asistencia.maestro_nombre || 'No asignado' }}
+            </td>
+            <td class="comentario">
+              <div class="comentario-texto" *ngIf="asistencia.comentario_maestro">
+                {{ asistencia.comentario_maestro }}
+              </div>
+              <div class="sin-comentario" *ngIf="!asistencia.comentario_maestro">
+                Sin comentarios
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="paginacion" *ngIf="asistencias.length > 10">
+      <div class="info-paginacion">
+        Mostrando {{ asistencias.length }} de {{ estadisticas.generales.total_dias }} registros totales
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="cargando">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Cargando tu asistencia...</div>
+    <div class="loading-subtext">Esto puede tomar unos segundos</div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="info-sistema">
+      <span class="icono">⚙️</span>
+      <span>Sistema de Asistencia - Versión 1.0</span>
+    </div>
+    <div class="info-fecha">
+      <span class="icono">📅</span>
+      <span>Actualizado: {{ fechaActual }}</span>
+    </div>
   </div>
 </div>

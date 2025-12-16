@@ -1,763 +1,755 @@
-﻿// ===== VARIABLES =====
-$primary-color: #3b82f6;
-$primary-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-$secondary-gradient: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-$success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-$warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-$danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+﻿// =====================================================
+// 🎨 VARIABLES Y ESTILOS GLOBALES
+// =====================================================
+:host {
+  display: block;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
 
-$border-radius: 12px;
-$border-radius-sm: 8px;
-$border-radius-lg: 16px;
+.page-wrap {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
 
-$shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.08);
-$shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
-$shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06);
+// =====================================================
+// 📋 TÍTULOS Y ENCABEZADOS
+// =====================================================
+.page-title {
+  color: #2d3748;
+  margin-bottom: 32px;
+  font-size: 2rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 
-// ===== HEADER SUPERIOR =====
-.top-header {
-  background: #f8fafc;
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid #e5e7eb;
-  text-align: center;
-  
-  .update-info {
-    color: #6b7280;
-    font-size: 0.85rem;
+  span {
+    color: #718096;
+    font-size: 1rem;
     font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    
-    .update-icon {
-      font-size: 0.9rem;
-    }
+    background: #f7fafc;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
   }
 }
 
-// ===== ESTILOS BASE =====
-.estudiante-page {
-  min-height: 100vh;
-  background: #f8fafc;
-  font-family: 'Segoe UI', system-ui, sans-serif;
+// =====================================================
+// 🎯 BARRA DE NAVEGACIÓN
+// =====================================================
+.navegacion-vistas {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
 
-  .container {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
+  .nav-btn {
     background: white;
-    box-shadow: $shadow-soft;
-  }
-}
-
-// ===== HEADER PRINCIPAL =====
-.student-header {
-  background: white;
-  color: #1f2937;
-  padding: 2rem;
-  border-bottom: 1px solid #e5e7eb;
-
-  .header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1.5rem;
-  }
-
-  .student-profile {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    flex: 1;
-  }
-
-  .gradient-avatar {
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    background: $primary-gradient;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 1.5rem;
-    color: white;
-    border: 3px solid #e5e7eb;
-  }
-
-  .student-info {
-    h1 {
-      margin: 0;
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: #111827;
-    }
-
-    p {
-      margin: 0.5rem 0 0 0;
-      color: #6b7280;
-      font-size: 1rem;
-    }
-  }
-
-  .student-stats {
-    display: flex;
-    gap: 1rem;
-    margin-top: 0.75rem;
-
-    .stat {
-      background: #f3f4f6;
-      padding: 0.4rem 0.8rem;
-      border-radius: 16px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: #4b5563;
-      border: 1px solid #e5e7eb;
-    }
-  }
-
-  .header-actions {
-    display: flex;
-    gap: 0.75rem;
-
-    .btn {
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.9rem;
-
-      &.btn-outline {
-        background: white;
-        border: 2px solid #d1d5db;
-        color: #374151;
-
-        &:hover {
-          background: #f9fafb;
-          border-color: #9ca3af;
-        }
-      }
-
-      &.btn-primary {
-        background: $primary-gradient;
-        color: white;
-
-        &:hover {
-          background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-          transform: translateY(-1px);
-          box-shadow: $shadow-hover;
-        }
-      }
-    }
-  }
-}
-
-// ===== CONTENIDO PRINCIPAL =====
-.main-content {
-  padding: 2rem;
-  background: #f8fafc;
-}
-
-// ===== SECCIONES =====
-.section {
-  background: white;
-  border-radius: $border-radius;
-  margin-bottom: 1.5rem;
-  box-shadow: $shadow-card;
-  border: 1px solid #e5e7eb;
-
-  .section-header {
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #f9fafb;
-
-    h2 {
-      margin: 0;
-      font-size: 1.3rem;
-      font-weight: 600;
-      color: #111827;
-    }
-
-    .badge {
-      background: $primary-gradient;
-      color: white;
-      padding: 0.4rem 0.8rem;
-      border-radius: 16px;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-  }
-
-  .section-body {
-    padding: 1.5rem;
-  }
-}
-
-// ===== TARJETAS DE TAREAS =====
-.tareas-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-}
-
-.tarea-card {
-  background: white;
-  border-radius: $border-radius;
-  padding: 1.5rem;
-  transition: all 0.3s ease;
-  border: 1px solid #e5e7eb;
-  position: relative;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: $shadow-hover;
-  }
-
-  &.vencida {
-    border-left: 4px solid #ef4444;
-    background: #fef2f2;
-  }
-
-  .card-gradient {
-    height: 4px;
-    background: $primary-gradient;
-    border-radius: 2px 2px 0 0;
-    margin: -1.5rem -1.5rem 1rem -1.5rem;
-  }
-
-  .tarea-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-
-    .priority-indicator {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #10b981;
-      margin-top: 0.5rem;
-
-      &.high {
-        background: #ef4444;
-        animation: pulse 2s infinite;
-      }
-    }
-
-    .tarea-title {
-      flex: 1;
-      margin: 0;
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: #111827;
-      margin: 0 1rem;
-    }
-
-    .deadline-badge {
-      background: #10b981;
-      color: white;
-      padding: 0.4rem 0.8rem;
-      border-radius: 12px;
-      font-size: 0.75rem;
-      font-weight: 600;
-
-      &.urgent {
-        background: #ef4444;
-      }
-    }
-  }
-
-  .tarea-description {
-    color: #6b7280;
-    font-size: 0.9rem;
-    line-height: 1.5;
-    margin-bottom: 1rem;
-  }
-
-  .tarea-meta {
-    display: flex;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-
-    .meta-chip {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.5rem 0.75rem;
-      background: #f3f4f6;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      color: #4b5563;
-
-      &.allowed {
-        background: #d1fae5;
-        color: #065f46;
-      }
-    }
-  }
-
-  .tarea-actions {
-    display: flex;
-    gap: 0.75rem;
-
-    .btn {
-      flex: 1;
-      padding: 0.75rem 1rem;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-
-      &.btn-outline {
-        background: white;
-        border: 2px solid #d1d5db;
-        color: #374151;
-
-        &:hover {
-          background: #f9fafb;
-          border-color: #9ca3af;
-        }
-      }
-
-      &.btn-primary {
-        background: $primary-gradient;
-        color: white;
-
-        &:hover:not([disabled]) {
-          background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-          transform: translateY(-1px);
-        }
-
-        &[disabled] {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-      }
-    }
-  }
-}
-
-// ===== LISTA DE ENTREGAS =====
-.entregas-list {
-  .entrega-item {
-    background: white;
+    border: 2px solid #e2e8f0;
     border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
+    padding: 12px 24px;
+    font-weight: 600;
+    color: #4a5568;
+    cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: $shadow-card;
-    border-left: 4px solid $primary-color;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
 
     &:hover {
-      transform: translateX(5px);
-      box-shadow: $shadow-hover;
+      border-color: #667eea;
+      color: #667eea;
+      transform: translateY(-2px);
     }
 
-    .entrega-header {
+    &.activo {
+      background: #667eea;
+      border-color: #667eea;
+      color: white;
+      box-shadow: 0 4px 6px rgba(102, 126, 234, 0.1);
+    }
+  }
+}
+
+// =====================================================
+// 🎨 TARJETAS Y CONTENEDORES
+// =====================================================
+.card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 24px;
+  overflow: hidden;
+
+  .card-header {
+    padding: 24px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+
+    .card-title {
+      color: #2d3748;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 0.75rem;
+      gap: 8px;
+    }
 
-      h4 {
-        margin: 0;
-        font-size: 1.1rem;
-        color: #2d3748;
-        font-weight: 600;
-      }
+    .card-desc {
+      color: #718096;
+      margin: 8px 0 0 0;
+      font-size: 0.95rem;
+    }
 
-      .status {
-        padding: 0.4rem 1rem;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
+    .filtros-rapidos {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+  }
+}
 
-        &.revisado {
-          background: #c6f6d5;
-          color: #22543d;
-        }
+// =====================================================
+// 🔘 FILTROS Y CHIPS
+// =====================================================
+.chip {
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-weight: 500;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
 
-        &.entregado {
-          background: #bee3f8;
-          color: #1a365d;
-        }
+  &:hover {
+    background: #edf2f7;
+    border-color: #cbd5e0;
+  }
 
-        &.pendiente {
-          background: #fefcbf;
-          color: #744210;
+  &.activo {
+    background: #667eea;
+    border-color: #667eea;
+    color: white;
+  }
+}
+
+// =====================================================
+// 📋 LISTA DE TAREAS (ESTUDIANTE)
+// =====================================================
+.lista-tareas {
+  padding: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+}
+
+.tarjeta-tarea {
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &:hover {
+    border-color: #667eea;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  &.seleccionada {
+    border-color: #667eea;
+    background: #f7fafc;
+  }
+
+  .tarea-cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .materia-indicador {
+    padding: 6px 12px;
+    border-radius: 20px;
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+  }
+
+  .tarea-estado {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+
+    &.estado-chip {
+      &.pendiente { background: #fed7d7; color: #c53030; }
+      &.entregado { background: #c6f6d5; color: #22543d; }
+      &.revisado { background: #bee3f8; color: #2a4365; }
+      &.vencida { background: #fed7d7; color: #c53030; }
+    }
+  }
+
+  .tarea-contenido {
+    flex: 1;
+
+    .tarea-titulo {
+      color: #2d3748;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 0 0 12px 0;
+      line-height: 1.4;
+    }
+
+    .tarea-descripcion {
+      color: #718096;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .tarea-metadatos {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      font-size: 0.9rem;
+
+      .metadato {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #4a5568;
+
+        strong {
+          font-weight: 600;
         }
       }
     }
+  }
 
-    .entrega-details {
+  .tarea-acciones {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+
+    .calificacion-display {
       display: flex;
-      gap: 1.5rem;
-      font-size: 0.85rem;
-      color: #718096;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: #2d3748;
 
-      .grade {
-        font-weight: 700;
-        color: $primary-color;
-        background: #f7fafc;
-        padding: 0.3rem 0.7rem;
-        border-radius: 8px;
-        border: 1px solid #e2e8f0;
+      .nota-destacada {
+        color: #48bb78;
+        font-size: 1.1rem;
       }
     }
   }
 }
 
-// ===== MODALES =====
+// =====================================================
+// 📊 ESTADÍSTICAS
+// =====================================================
+.estadisticas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 24px;
+
+  .estadistica-card {
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .estadistica-icono {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+    }
+
+    .estadistica-valor {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 8px;
+    }
+
+    .estadistica-label {
+      color: #718096;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .estadistica-subtext {
+      color: #a0aec0;
+      font-size: 0.85rem;
+    }
+  }
+}
+
+.estadisticas-servidor {
+  padding: 0 24px 24px 24px;
+
+  h3 {
+    color: #2d3748;
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+
+  .detalles-estadisticas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    background: #f7fafc;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+
+    div {
+      color: #4a5568;
+
+      strong {
+        color: #2d3748;
+      }
+    }
+  }
+}
+
+// =====================================================
+// 📈 LISTA DE CALIFICACIONES
+// =====================================================
+.lista-calificaciones {
+  padding: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+}
+
+.tarjeta-calificacion {
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  .calificacion-cabecera {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 16px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    .calificacion-materia {
+      font-weight: 600;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .calificacion-fecha {
+      font-size: 0.85rem;
+      opacity: 0.9;
+    }
+  }
+
+  .calificacion-contenido {
+    padding: 20px;
+
+    .calificacion-titulo {
+      color: #2d3748;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 0 0 16px 0;
+      line-height: 1.4;
+    }
+
+    .calificacion-puntaje {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+
+      .puntaje-numero {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #48bb78;
+      }
+
+      .puntaje-nivel {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+
+        &.nivel-excelente { background: #c6f6d5; color: #22543d; }
+        &.nivel-bueno { background: #fed7d7; color: #c53030; }
+        &.nivel-suficiente { background: #feebc8; color: #744210; }
+        &.nivel-insuficiente { background: #fed7d7; color: #c53030; }
+        &.nivel-sin-calificar { background: #e2e8f0; color: #4a5568; }
+      }
+    }
+
+    .calificacion-comentario {
+      padding-top: 16px;
+      border-top: 1px solid #e2e8f0;
+
+      strong {
+        color: #2d3748;
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      p {
+        color: #4a5568;
+        line-height: 1.5;
+        margin: 0;
+      }
+    }
+  }
+}
+
+// =====================================================
+// 🏫 TABLAS
+// =====================================================
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+
+  th {
+    background: #f7fafc;
+    color: #4a5568;
+    font-weight: 600;
+    text-align: left;
+    padding: 16px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+
+  td {
+    padding: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: top;
+  }
+
+  tbody tr {
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: #f7fafc;
+    }
+  }
+}
+
+// =====================================================
+// 🎨 ESTADOS Y BADGES
+// =====================================================
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  &.activa {
+    background: #c6f6d5;
+    color: #22543d;
+  }
+
+  &.inactiva {
+    background: #fed7d7;
+    color: #c53030;
+  }
+}
+
+.estado-chip {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  &.pendiente { background: #fed7d7; color: #c53030; }
+  &.entregado { background: #c6f6d5; color: #22543d; }
+  &.revisado { background: #bee3f8; color: #2a4365; }
+  &.vencida { background: #fed7d7; color: #c53030; }
+}
+
+// =====================================================
+// 📦 BOTONES
+// =====================================================
+.btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &.btn-primary {
+    background: #667eea;
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: #5a67d8;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px rgba(102, 126, 234, 0.2);
+    }
+  }
+
+  &.btn-warning {
+    background: #ed8936;
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: #dd6b20;
+      transform: translateY(-2px);
+    }
+  }
+
+  &.btn-danger {
+    background: #f56565;
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: #e53e3e;
+      transform: translateY(-2px);
+    }
+  }
+
+  &.btn-ver {
+    background: #e2e8f0;
+    color: #4a5568;
+
+    &:hover:not(:disabled) {
+      background: #cbd5e0;
+    }
+  }
+
+  &.btn-neutral {
+    background: #f7fafc;
+    color: #4a5568;
+    border: 1px solid #e2e8f0;
+
+    &:hover:not(:disabled) {
+      background: #edf2f7;
+    }
+  }
+
+  &-sm {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+}
+
+.btn-descargar {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #5a67d8;
+    text-decoration: underline;
+  }
+}
+
+// =====================================================
+// 🪟 MODALES
+// =====================================================
 .modal-backdrop {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: 0;
   background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
-  animation: fadeIn 0.3s ease;
-
-  .modal {
-    background: white;
-    border-radius: 16px;
-    width: 100%;
-    max-width: 600px;
-    max-height: 90vh;
-    overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: modalSlideIn 0.3s ease;
-
-    .modal-header {
-      padding: 1.5rem 2rem;
-      border-bottom: 1px solid #e5e7eb;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #f9fafb;
-
-      h3 {
-        margin: 0;
-        font-size: 1.4rem;
-        font-weight: 600;
-        color: #111827;
-      }
-
-      .close {
-        background: none;
-        border: none;
-        font-size: 1.8rem;
-        cursor: pointer;
-        color: #6b7280;
-        padding: 0;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        transition: all 0.2s ease;
-
-        &:hover {
-          background: #f3f4f6;
-          color: #374151;
-        }
-      }
-    }
-
-    .modal-body {
-      padding: 2rem;
-      max-height: 60vh;
-      overflow-y: auto;
-    }
-
-    .modal-footer {
-      padding: 1.5rem 2rem;
-      border-top: 1px solid #e5e7eb;
-      display: flex;
-      gap: 1rem;
-      background: #f9fafb;
-    }
-  }
+  z-index: 1000;
+  padding: 20px;
 }
 
-// ===== DETALLES DE TAREA =====
-.detalle-tarea {
-  .detalle-seccion {
-    margin-bottom: 2rem;
+.modal-card {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);
 
-    &:last-child {
-      margin-bottom: 0;
+  .modal-header {
+    padding: 24px;
+    border-bottom: 1px solid #e2e8f0;
+
+    h3 {
+      color: #2d3748;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    label {
-      display: block;
-      margin-bottom: 0.75rem;
-      font-weight: 600;
-      color: #374151;
-      font-size: 1rem;
+    .modal-subtitle {
+      color: #718096;
+      margin: 8px 0 0 0;
+      font-size: 0.95rem;
     }
   }
 
-  .estado-tiempo {
+  .modal-body {
+    padding: 24px;
+  }
+
+  .modal-actions {
+    padding: 24px;
+    border-top: 1px solid #e2e8f0;
     display: flex;
-    gap: 1rem;
-    align-items: center;
-    margin-top: 0.5rem;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+}
 
-    .badge {
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      background: #d1fae5;
-      color: #065f46;
+// =====================================================
+// 📝 FORMULARIOS
+// =====================================================
+.form-group {
+  margin-bottom: 20px;
 
-      &.vencida {
-        background: #fecaca;
-        color: #dc2626;
+  label {
+    display: block;
+    margin-bottom: 8px;
+    color: #4a5568;
+    font-weight: 600;
+    font-size: 0.95rem;
+
+    &.label-required {
+      &::after {
+        content: ' *';
+        color: #f56565;
       }
-    }
-
-    .tiempo-restante {
-      font-size: 0.9rem;
-      color: #6b7280;
-      font-weight: 500;
     }
   }
 
-  .contenido-detalle {
-    background: #f8fafc;
-    padding: 1.25rem;
+  input[type="text"],
+  input[type="number"],
+  input[type="date"],
+  input[type="datetime-local"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
     border-radius: 8px;
-    border: 1px solid #e5e7eb;
-    line-height: 1.6;
-    color: #4b5563;
-  }
+    font-size: 1rem;
+    color: #2d3748;
+    transition: border-color 0.3s ease;
+    background: white;
 
-  .fechas-grid {
-    display: grid;
-    gap: 1rem;
+    &:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
 
-    .fecha-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem;
-      background: #f8fafc;
-      border-radius: 8px;
-      border: 1px solid #e5e7eb;
-
-      strong {
-        color: #374151;
-      }
-
-      span {
-        color: #6b7280;
-        font-weight: 500;
-      }
+    &:disabled {
+      background: #f7fafc;
+      cursor: not-allowed;
     }
   }
 
-  .config-grid {
-    display: grid;
-    gap: 0.75rem;
-
-    .config-item {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 1rem;
-      background: #f8fafc;
-      border-radius: 8px;
-      border: 1px solid #e5e7eb;
-      color: #4b5563;
-
-      .config-icon {
-        font-size: 1.2rem;
-      }
-    }
-  }
-
-  .archivo-descarga {
-    .btn-descarga {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.75rem 1.5rem;
-      background: $primary-gradient;
-      color: white;
-      text-decoration: none;
-      border-radius: 8px;
-      font-weight: 600;
-      transition: all 0.2s ease;
-
-      &:hover {
-        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-        transform: translateY(-1px);
-        box-shadow: $shadow-hover;
-      }
-
-      .file-icon {
-        font-size: 1.1rem;
-      }
-    }
-  }
-
-  .rubrica-contenido {
-    background: #f0f9ff;
-    border: 1px solid #bae6fd;
-    border-radius: 8px;
-    padding: 1.25rem;
-    
-    pre {
-      margin: 0;
-      white-space: pre-wrap;
-      font-family: 'Courier New', monospace;
-      font-size: 0.9rem;
-      color: #0c4a6e;
-      line-height: 1.5;
-    }
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
   }
 }
 
-// ===== MODAL ENTREGA MEJORADO =====
-.tarea-info {
-  background: #f8fafc;
-  border-radius: 8px;
-  padding: 1.25rem;
-  margin-bottom: 1.5rem;
-  border: 1px solid #e5e7eb;
-  
-  .tarea-header {
-    h4 {
-      margin: 0 0 0.5rem 0;
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: #111827;
-    }
-    
-    .tarea-meta {
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-      
-      .deadline {
-        color: #6b7280;
-        font-size: 0.9rem;
-      }
-      
-      .time-left {
-        font-size: 0.85rem;
-        font-weight: 600;
-        
-        &.urgent {
-          color: #dc2626;
-        }
-      }
-    }
-  }
-}
-
-// ===== ALERTAS =====
-.alert {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-  
-  .alert-icon {
-    font-size: 1.2rem;
-    flex-shrink: 0;
-  }
-  
-  .alert-content {
-    flex: 1;
-    
-    strong {
-      display: block;
-      margin-bottom: 0.25rem;
-      color: #111827;
-    }
-    
-    p {
-      margin: 0;
-      color: #6b7280;
-      font-size: 0.9rem;
-    }
-  }
-  
-  &.alert-warning {
-    background: #fef3c7;
-    border: 1px solid #f59e0b;
-  }
-  
-  &.alert-info {
-    background: #dbeafe;
-    border: 1px solid #3b82f6;
-  }
-}
-
-// ===== FORMULARIO DE ENTREGA =====
-.upload-section {
-  .form-group {
-    margin-bottom: 1.5rem;
-    
-    .form-label {
-      display: block;
-      margin-bottom: 0.75rem;
-      font-weight: 600;
-      color: #374151;
-      font-size: 1rem;
-    }
-  }
-}
-
-// ===== ÁREA DE SUBIDA DE ARCHIVOS =====
 .file-upload-area {
-  position: relative;
-  border: 2px dashed #d1d5db;
+  border: 2px dashed #cbd5e0;
   border-radius: 12px;
-  padding: 2rem;
+  padding: 40px 20px;
   text-align: center;
-  transition: all 0.3s ease;
   cursor: pointer;
-  background: #fafafa;
-  
-  &:hover, &.dragover {
-    border-color: $primary-color;
-    background: #f0f9ff;
-    
-    .upload-content {
-      h4, p {
-        color: $primary-color;
-      }
-    }
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    border-color: #667eea;
+    background: #f7fafc;
   }
-  
+
+  &.has-file {
+    border-color: #48bb78;
+    background: #f0fff4;
+  }
+
   input[type="file"] {
     position: absolute;
     top: 0;
@@ -767,282 +759,186 @@ $shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06);
     opacity: 0;
     cursor: pointer;
   }
-  
-  .upload-content {
-    pointer-events: none;
-    
-    .upload-icon {
-      font-size: 3rem;
-      margin-bottom: 1rem;
-      opacity: 0.7;
-    }
-    
-    h4 {
-      margin: 0 0 0.5rem 0;
-      color: #374151;
-      font-size: 1.1rem;
-      font-weight: 600;
-    }
-    
-    p {
-      margin: 0 0 0.5rem 0;
-      color: #6b7280;
-    }
-    
-    small {
-      color: #9ca3af;
-    }
-  }
-}
 
-// ===== PREVISUALIZACIÓN DE ARCHIVO =====
-.file-preview {
-  margin-top: 1rem;
-  
-  .file-info {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 1rem;
-    background: #f8fafc;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-    
-    .file-icon {
-      font-size: 1.5rem;
-      flex-shrink: 0;
-    }
-    
-    .file-details {
-      flex: 1;
-      
-      strong {
-        display: block;
-        color: #111827;
-        font-size: 0.9rem;
-        margin-bottom: 0.25rem;
-      }
-      
-      span {
-        color: #6b7280;
-        font-size: 0.8rem;
-      }
-    }
-    
-    .remove-file {
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      cursor: pointer;
-      color: #6b7280;
-      padding: 0;
-      width: 30px;
-      height: 30px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      transition: all 0.2s ease;
-      
-      &:hover {
-        background: #f3f4f6;
-        color: #374151;
-      }
-    }
+  .upload-icon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
   }
-}
 
-// ===== TEXTAREA =====
-.textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-family: inherit;
-  font-size: 0.9rem;
-  resize: vertical;
-  transition: border-color 0.2s ease;
-  
-  &:focus {
-    outline: none;
-    border-color: $primary-color;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-  
-  &::placeholder {
-    color: #9ca3af;
-  }
-}
-
-.char-count {
-  text-align: right;
-  font-size: 0.8rem;
-  color: #9ca3af;
-  margin-top: 0.25rem;
-}
-
-// ===== BOTONES MODAL =====
-.modal-footer {
-  .btn {
-    flex: 1;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 8px;
+  .upload-text {
     font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
+    color: #2d3748;
+    margin-bottom: 4px;
+  }
 
-    &.btn-secondary {
-      background: #f3f4f6;
-      color: #374151;
-      border: 2px solid #d1d5db;
+  .upload-subtext {
+    color: #718096;
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+  }
 
-      &:hover {
-        background: #e5e7eb;
-        border-color: #9ca3af;
-      }
-    }
-
-    &.btn-primary {
-      background: $primary-gradient;
-      color: white;
-
-      &:hover:not([disabled]) {
-        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-        transform: translateY(-1px);
-      }
-
-      &[disabled] {
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none;
-      }
-    }
+  .formatos {
+    color: #a0aec0;
+    font-size: 0.85rem;
   }
 }
 
-// ===== ANIMACIONES =====
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+// =====================================================
+// ⏳ ESTADOS DE CARGA Y ERROR
+// =====================================================
+.loading-message {
+  text-align: center;
+  padding: 60px 20px;
+  color: #718096;
 
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9) translateY(-20px);
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #e2e8f0;
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
   }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
+
+  &.small .spinner {
+    width: 30px;
+    height: 30px;
+    border-width: 3px;
+  }
+
+  p {
+    margin: 0;
+    font-weight: 600;
   }
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-// ===== RESPONSIVE =====
+.error-message {
+  background: #fff5f5;
+  border: 1px solid #fed7d7;
+  color: #c53030;
+  padding: 16px;
+  border-radius: 8px;
+  margin: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .emoji {
+    font-size: 1.2rem;
+  }
+}
+
+.estado-vacio {
+  text-align: center;
+  padding: 60px 20px;
+  color: #718096;
+
+  .emoji {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  h3 {
+    color: #4a5568;
+    margin: 0 0 12px 0;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0;
+    font-size: 1rem;
+  }
+}
+
+// =====================================================
+// 🎭 UTILIDADES DE TEXTO
+// =====================================================
+.text-success { color: #48bb78 !important; }
+.text-error { color: #f56565 !important; }
+.text-info { color: #4299e1 !important; }
+.text-warning { color: #ed8936 !important; }
+
+.emoji {
+  font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+}
+
+// =====================================================
+// 📱 RESPONSIVE
+// =====================================================
 @media (max-width: 768px) {
-  .top-header {
-    padding: 0.5rem;
-    
-    .update-info {
-      font-size: 0.8rem;
-    }
+  .page-wrap {
+    padding: 16px;
   }
 
-  .student-header {
-    padding: 1.5rem;
-    
-    .header-content {
-      flex-direction: column;
-      text-align: center;
-      gap: 1rem;
-    }
+  .page-title {
+    font-size: 1.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
 
-    .student-profile {
-      flex-direction: column;
-    }
+  .navegacion-vistas {
+    justify-content: center;
 
-    .header-actions {
-      width: 100%;
+    .nav-btn {
+      flex: 1;
       justify-content: center;
+      padding: 10px 16px;
+      font-size: 0.9rem;
     }
   }
 
-  .main-content {
-    padding: 1rem;
+  .card .card-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
   }
 
-  .tareas-grid {
+  .lista-tareas,
+  .lista-calificaciones {
     grid-template-columns: 1fr;
   }
 
-  .tarea-card {
-    padding: 1.25rem;
-
-    .tarea-header {
-      flex-direction: column;
-      gap: 0.5rem;
-      align-items: flex-start;
-    }
-
-    .tarea-actions {
-      flex-direction: column;
-    }
+  .estadisticas-grid {
+    grid-template-columns: 1fr;
   }
 
-  .modal-backdrop .modal {
-    margin: 0.5rem;
-    max-width: calc(100vw - 1rem);
-
-    .modal-header,
-    .modal-body,
-    .modal-footer {
-      padding: 1.25rem;
-    }
-
-    .modal-footer {
-      flex-direction: column;
-    }
-  }
-
-  .detalle-tarea {
-    .fechas-grid .fecha-item {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.5rem;
-    }
-
-    .estado-tiempo {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.5rem;
-    }
-  }
-
-  .tarea-info .tarea-header .tarea-meta {
+  .tarea-acciones {
     flex-direction: column;
-    gap: 0.25rem;
+    align-items: stretch;
   }
-  
-  .file-upload-area {
-    padding: 1.5rem;
-    
-    .upload-content {
-      .upload-icon {
-        font-size: 2.5rem;
-      }
-      
-      h4 {
-        font-size: 1rem;
-      }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .modal-card {
+    margin: 0;
+    border-radius: 0;
+
+    .modal-actions {
+      flex-direction: column;
     }
   }
+}
+
+// =====================================================
+// 🎨 ANIMACIONES
+// =====================================================
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tarjeta-tarea,
+.tarjeta-calificacion,
+.estadistica-card {
+  animation: fadeIn 0.3s ease;
 }

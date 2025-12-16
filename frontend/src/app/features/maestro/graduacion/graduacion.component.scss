@@ -4,8 +4,10 @@
 .graduacion-wrapper {
   padding: 30px;
   width: 100%;
-  color: #2b2b3c;
+  color: #e0e0e0; /* Texto claro para contraste */
   font-family: "Poppins", sans-serif;
+  background: #0a0a0f; /* Fondo negro oscuro */
+  min-height: 100vh;
 }
 
 /* ===================================================================
@@ -18,18 +20,21 @@
     font-size: 32px;
     font-weight: 700;
     margin: 0;
+    color: #ffffff; /* Blanco puro para el título */
+    text-shadow: 0 2px 10px rgba(255, 152, 0, 0.3); /* Sombra naranja sutil */
   }
 
   p {
     margin-top: 4px;
     font-size: 14px;
-    color: #666;
+    color: #aaaaaa; /* Gris claro para el subtítulo */
   }
 
   .header-actions {
     margin-top: 15px;
     display: flex;
     gap: 12px;
+    align-items: center;
   }
 }
 
@@ -40,55 +45,87 @@
   background: linear-gradient(90deg, #ff9800, #ffb84d);
   border: none;
   padding: 10px 20px;
-  color: #fff;
+  color: #000000; /* Texto negro para mejor contraste */
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
   transition: 0.2s;
+  box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
 
   &:hover {
     transform: translateY(-2px);
-    filter: brightness(1.05);
+    filter: brightness(1.1);
+    box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
   }
 }
 
 .btn-secondary {
-  background: #eaf0ff;
-  border: 1px solid #c2d4ff;
+  background: #1a1a2e; /* Fondo oscuro */
+  border: 1px solid #2a2a4a;
   padding: 10px 20px;
-  color: #3555d1;
+  color: #6c8cff; /* Azul claro */
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
   transition: 0.2s;
 
   &:hover {
-    background: #d8e4ff;
+    background: #2a2a4a;
+    border-color: #4a6bff;
+  }
+}
+
+.btn-info {
+  background: linear-gradient(90deg, #2196F3, #64B5F6);
+  border: none;
+  padding: 10px 20px;
+  color: #ffffff;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+  box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+
+  &:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+    box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
   }
 }
 
 .btn-mini {
-  padding: 5px 10px;
+  padding: 6px 12px;
   border-radius: 6px;
   font-size: 12px;
   cursor: pointer;
   border: none;
-  background: #ddd;
+  background: #2a2a3a;
+  color: #cccccc;
   margin-right: 4px;
   transition: 0.2s;
+  font-weight: 500;
 
   &:hover {
-    filter: brightness(0.9);
+    background: #3a3a4a;
+    transform: translateY(-1px);
   }
 
   &.verde {
-    background: #caffcf;
-    color: #1a8d20;
+    background: linear-gradient(90deg, #00C853, #64DD17);
+    color: #000000;
+    font-weight: 600;
   }
 
   &.rojo {
-    background: #ffd6d6;
-    color: #c62828;
+    background: linear-gradient(90deg, #D32F2F, #F44336);
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  &.info {
+    background: linear-gradient(90deg, #2196F3, #03A9F4);
+    color: #ffffff;
+    font-weight: 600;
   }
 }
 
@@ -104,22 +141,32 @@
   .stat-card {
     padding: 18px;
     border-radius: 18px;
-    background: linear-gradient(135deg, #ffffff, #f4f7ff);
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
-    border: 1px solid #eef1ff;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+    border: 1px solid #2a2a4a;
     text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+      border-color: #3a3a6a;
+    }
 
     .label {
       font-size: 13px;
       font-weight: 600;
-      color: #657;
+      color: #8a8ab5;
       margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .value {
-      font-size: 28px;
-      font-weight: 700;
-      color: #222;
+      font-size: 32px;
+      font-weight: 800;
+      color: #ffffff;
+      text-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
     }
   }
 }
@@ -128,37 +175,58 @@
    FILTROS
 =================================================================== */
 .filtros {
-  background: #ffffff;
+  background: #1a1a2e;
   padding: 20px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
   margin-bottom: 25px;
+  border: 1px solid #2a2a4a;
 
   h3 {
     margin: 0 0 12px;
     font-weight: 700;
     font-size: 18px;
+    color: #ffffff;
   }
 
   .filtro-row {
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
+    align-items: flex-end;
 
     .filtro-item {
       display: flex;
       flex-direction: column;
+      flex: 1;
+      min-width: 180px;
 
       label {
         font-size: 13px;
         font-weight: 600;
-        margin-bottom: 4px;
+        margin-bottom: 8px;
+        color: #aaaaaa;
       }
 
       select {
-        padding: 8px 10px;
+        padding: 10px 12px;
         border-radius: 8px;
-        border: 1px solid #ccd5ff;
+        border: 1px solid #3a3a6a;
+        background: #0f0f1a;
+        color: #e0e0e0;
+        font-size: 14px;
+        transition: border 0.3s;
+
+        &:focus {
+          outline: none;
+          border-color: #ff9800;
+          box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.2);
+        }
+
+        option {
+          background: #1a1a2e;
+          color: #e0e0e0;
+        }
       }
     }
   }
@@ -168,14 +236,28 @@
    TABLA GENERAL
 =================================================================== */
 .tabla-card {
-  background: #ffffff;
+  background: #1a1a2e;
   padding: 20px;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+  border: 1px solid #2a2a4a;
 
   h3 {
     font-size: 18px;
     margin-bottom: 12px;
+    color: #ffffff;
+    font-weight: 700;
+  }
+
+  .loading-indicator {
+    text-align: center;
+    padding: 20px;
+    color: #ff9800;
+    font-weight: 600;
+    background: rgba(255, 152, 0, 0.1);
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border: 1px dashed rgba(255, 152, 0, 0.3);
   }
 
   table {
@@ -183,37 +265,63 @@
     border-collapse: collapse;
 
     thead {
-      background: #f5f7ff;
+      background: linear-gradient(90deg, #2a2a4a, #3a3a6a);
 
       th {
-        padding: 12px;
+        padding: 14px 12px;
         text-align: left;
         font-size: 13px;
         font-weight: 700;
-        color: #555;
+        color: #cccccc;
+        border-bottom: 2px solid #3a3a6a;
       }
     }
 
     tbody tr {
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid #2a2a4a;
+      transition: background 0.2s;
+
+      &:hover {
+        background: rgba(42, 42, 74, 0.5);
+      }
 
       td {
-        padding: 12px;
+        padding: 14px 12px;
         font-size: 13px;
         vertical-align: middle;
+        color: #cccccc;
+
+        &.negrita-italic {
+          font-style: italic;
+          font-weight: 600;
+          color: #ffffff;
+        }
       }
     }
   }
 }
 
 .estado {
-  padding: 4px 10px;
+  padding: 6px 14px;
   border-radius: 20px;
   font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-block;
+  min-width: 90px;
+  text-align: center;
 
   &.enviado {
-    background: #d4ffe0;
-    color: #0c6b1b;
+    background: linear-gradient(90deg, #00C853, #64DD17);
+    color: #000000;
+    box-shadow: 0 4px 10px rgba(0, 200, 83, 0.3);
+  }
+
+  &.pendiente {
+    background: linear-gradient(90deg, #FF9800, #FFB74D);
+    color: #000000;
+    box-shadow: 0 4px 10px rgba(255, 152, 0, 0.3);
   }
 }
 
@@ -223,64 +331,105 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
-  backdrop-filter: blur(3px);
+  backdrop-filter: blur(5px);
   z-index: 2000;
 }
 
 .modal {
-  background: #fff;
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
   width: 480px;
   max-width: 95%;
   border-radius: 18px;
-  padding: 20px 25px;
-  box-shadow: 0 10px 50px rgba(0,0,0,0.2);
-  animation: fadeIn 0.2s ease-in-out;
+  padding: 25px 30px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.3s ease-in-out;
+  border: 1px solid #3a3a6a;
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 20px;
 
   h2 {
     margin: 0;
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 700;
+    color: #ffffff;
+    text-shadow: 0 2px 10px rgba(255, 152, 0, 0.3);
   }
 
   .close {
     background: none;
     border: none;
-    font-size: 20px;
+    font-size: 24px;
     cursor: pointer;
+    color: #cccccc;
+    transition: color 0.2s;
 
     &:hover {
-      color: #d33;
+      color: #ff3333;
     }
+  }
+}
+
+.config-previa {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #aaaaaa;
+  font-size: 13px;
+  margin-bottom: 15px;
+  
+  input[type="checkbox"] {
+    accent-color: #ff9800;
   }
 }
 
 .modal-body {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 15px;
+  gap: 15px;
 
   label {
     font-size: 13px;
     font-weight: 600;
-    margin-bottom: -3px;
+    color: #cccccc;
+    margin-bottom: 4px;
   }
 
   input,
   select {
-    padding: 10px;
-    border: 1px solid #ccd5ff;
+    padding: 12px;
+    border: 1px solid #3a3a6a;
     border-radius: 8px;
+    background: #0f0f1a;
+    color: #e0e0e0;
+    font-size: 14px;
+    transition: all 0.3s;
+
+    &:focus {
+      outline: none;
+      border-color: #ff9800;
+      box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.2);
+    }
+
+    &:disabled {
+      background: #2a2a3a;
+      color: #888888;
+      cursor: not-allowed;
+    }
+  }
+
+  input[type="number"] {
+    &::-webkit-inner-spin-button {
+      opacity: 0.7;
+    }
   }
 }
 
@@ -289,17 +438,29 @@
   height: auto;
   margin-top: 10px;
   border-radius: 10px;
-  border: 1px solid #ccc;
+  border: 1px solid #3a3a6a;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* ===================================================================
    FOOTER DEL MODAL
 =================================================================== */
 .modal-footer {
-  margin-top: 20px;
+  margin-top: 25px;
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    
+    &:hover {
+      transform: none;
+      filter: none;
+      box-shadow: none;
+    }
+  }
 }
 
 /* ===================================================================
@@ -308,10 +469,32 @@
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-20px) scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ===================================================================
+   ESTILOS PARA CARGA
+=================================================================== */
+.graduacion-wrapper.loading {
+  opacity: 0.7;
+  pointer-events: none;
+  
+  &::after {
+    content: "Cargando...";
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: #ff9800;
+    padding: 20px 40px;
+    border-radius: 10px;
+    font-weight: 600;
+    z-index: 1000;
   }
 }
