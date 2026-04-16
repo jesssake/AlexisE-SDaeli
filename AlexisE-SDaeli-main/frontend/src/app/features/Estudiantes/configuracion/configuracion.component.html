@@ -1,0 +1,208 @@
+<section class="config-page" [class.loading]="cargando">
+
+  <!-- HEADER MEJORADO -->
+  <div class="header-panel">
+    <div class="avatar" (click)="abrirModalEditarPerfil()">
+      {{ usuarioNombre | slice:0:1 }}
+    </div>
+
+    <div class="info">
+      <h1>{{ usuarioNombre }}</h1>
+
+      <p class="sub">
+        Rol: {{ usuarioRol }} · {{ usuarioEmail }}
+      </p>
+      
+      <p class="sub" *ngIf="usuarioTelefono">
+        📞 Teléfono: {{ usuarioTelefono }}
+      </p>
+      
+      <p class="sub" *ngIf="usuarioFechaRegistro">
+        📅 Registro: {{ usuarioFechaRegistro }}
+      </p>
+
+      <div class="mode">
+        <span class="chip" *ngIf="usuarioRol === 'TUTOR'">👨‍🏫 MODO TUTOR</span>
+        <span class="chip" *ngIf="usuarioRol !== 'TUTOR'">🎓 MODO ESTUDIANTE</span>
+      </div>
+      
+      <div class="actions" *ngIf="usuarioRol === 'TUTOR'">
+        <button class="btn-edit" (click)="abrirModalEditarPerfil()">
+          ✏️ Editar Perfil
+        </button>
+        <button class="btn-password" (click)="abrirModalCambiarPassword()">
+          🔐 Cambiar Contraseña
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR PERFIL -->
+  <div class="modal" *ngIf="modalPerfilVisible" (click)="cerrarModalPerfil()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>✏️ Editar Perfil</h2>
+        <button class="close" (click)="cerrarModalPerfil()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nombre completo:</label>
+          <input type="text" [(ngModel)]="perfilEdit.nombre" placeholder="Tu nombre">
+        </div>
+        <div class="form-group">
+          <label>Correo electrónico:</label>
+          <input type="email" [(ngModel)]="perfilEdit.email" placeholder="tu@email.com">
+        </div>
+        <div class="form-group">
+          <label>Teléfono:</label>
+          <input type="text" [(ngModel)]="perfilEdit.telefono" placeholder="Teléfono de contacto">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="cerrarModalPerfil()">Cancelar</button>
+        <button class="btn-save" (click)="guardarPerfil()" [disabled]="guardando">
+          {{ guardando ? 'Guardando...' : 'Guardar Cambios' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CAMBIAR CONTRASEÑA -->
+  <div class="modal" *ngIf="modalPasswordVisible" (click)="cerrarModalPassword()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>🔐 Cambiar Contraseña</h2>
+        <button class="close" (click)="cerrarModalPassword()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Contraseña actual:</label>
+          <input type="password" [(ngModel)]="passwordData.actual" placeholder="Ingresa tu contraseña actual">
+        </div>
+        <div class="form-group">
+          <label>Nueva contraseña:</label>
+          <input type="password" [(ngModel)]="passwordData.nueva" placeholder="Mínimo 6 caracteres">
+        </div>
+        <div class="form-group">
+          <label>Confirmar nueva contraseña:</label>
+          <input type="password" [(ngModel)]="passwordData.confirmar" placeholder="Repite la nueva contraseña">
+        </div>
+        <div class="error-msg" *ngIf="passwordError">{{ passwordError }}</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="cerrarModalPassword()">Cancelar</button>
+        <button class="btn-save" (click)="cambiarPassword()" [disabled]="guardandoPassword">
+          {{ guardandoPassword ? 'Actualizando...' : 'Cambiar Contraseña' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR ALUMNO -->
+  <div class="modal" *ngIf="modalAlumnoVisible" (click)="cerrarModalAlumno()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>👶 Editar Alumno</h2>
+        <button class="close" (click)="cerrarModalAlumno()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nombre del alumno:</label>
+          <input type="text" [(ngModel)]="alumnoEdit.nombre" placeholder="Nombre completo">
+        </div>
+        <div class="form-group">
+          <label>Fecha de nacimiento:</label>
+          <input type="date" [(ngModel)]="alumnoEdit.fecha_nacimiento">
+        </div>
+        <div class="form-group">
+          <label>Condiciones médicas:</label>
+          <textarea [(ngModel)]="alumnoEdit.condiciones_medicas" rows="3" 
+                    placeholder="Ej: Alergias, asma, etc. (Opcional)"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="cerrarModalAlumno()">Cancelar</button>
+        <button class="btn-save" (click)="guardarAlumno()" [disabled]="guardandoAlumno">
+          {{ guardandoAlumno ? 'Guardando...' : 'Guardar Cambios' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MENSAJES -->
+  <div *ngIf="errorMsg" class="msg error">❌ {{ errorMsg }}</div>
+  <div *ngIf="successMsg" class="msg success">✅ {{ successMsg }}</div>
+
+  <!-- INFORMACIÓN DEL TUTOR -->
+  <section *ngIf="usuarioRol === 'TUTOR' && datosTutor" class="tutor-block">
+    <div class="panel tutor-info">
+      <h2>👤 Información del Tutor</h2>
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="label">Nombre completo:</span>
+          <span class="value">{{ datosTutor.nombre }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Correo electrónico:</span>
+          <span class="value">{{ datosTutor.email }}</span>
+        </div>
+        <div class="info-item" *ngIf="datosTutor.telefono">
+          <span class="label">Teléfono:</span>
+          <span class="value">{{ datosTutor.telefono }}</span>
+        </div>
+        <div class="info-item" *ngIf="datosTutor.fecha_registro_formateada">
+          <span class="label">Fecha de registro:</span>
+          <span class="value">{{ datosTutor.fecha_registro_formateada }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MIS ALUMNOS -->
+    <div class="panel">
+      <h2>👥 Mis Alumnos</h2>
+      <p class="desc">Lista de alumnos asignados</p>
+
+      <div *ngIf="cargando" class="loading">
+        <div class="spinner"></div>
+        <p>Cargando alumnos...</p>
+      </div>
+
+      <div *ngIf="!cargando" class="alumnos-list">
+        <div *ngFor="let n of listaNinos" class="alumno-card" (click)="abrirModalEditarAlumno(n)">
+          <div class="avatar-sm">{{ n.nombre | slice:0:1 }}</div>
+          <div class="info">
+            <h3>{{ n.nombre }}</h3>
+            <p class="fecha">📅 Nacimiento: {{ formatFecha(n.fecha_nacimiento) }}</p>
+            <p class="condiciones">
+              🏥 Condiciones: 
+              <span [class.sin-condiciones]="!n.condiciones_medicas || n.condiciones_medicas === ''">
+                {{ n.condiciones_medicas || 'Sin condiciones médicas' }}
+              </span>
+            </p>
+            <p class="edad" *ngIf="calcularEdad(n.fecha_nacimiento)">🎂 Edad: {{ calcularEdad(n.fecha_nacimiento) }} años</p>
+            <button class="btn-edit-small" (click)="$event.stopPropagation(); abrirModalEditarAlumno(n)">
+              ✏️ Editar
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="listaNinos.length === 0" class="empty">
+          <span class="icon">👶</span>
+          <h3>No tienes alumnos asignados</h3>
+          <p>Contacta al administrador para asignarte alumnos.</p>
+          <button class="btn ghost" (click)="recargar()">🔄 Recargar</button>
+        </div>
+      </div>
+
+      <div *ngIf="listaNinos.length > 0" class="info-adicional">
+        <p class="total-alumnos">📊 Total de alumnos: <strong>{{ listaNinos.length }}</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <div class="debug-zone">
+    <button class="btn ghost" (click)="debug()">🔍 DEBUG INFO</button>
+    <button class="btn ghost" (click)="recargar()">🔄 Recargar datos</button>
+  </div>
+
+</section>

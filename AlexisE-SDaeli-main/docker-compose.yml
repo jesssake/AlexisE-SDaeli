@@ -1,0 +1,100 @@
+services:
+  # ========================================
+  # BASE DE DATOS - MySQL 8
+  # ========================================
+  mysql:
+    image: mysql:8.0
+    container_name: gestion_educativa_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: 2025Elianadavid
+      MYSQL_DATABASE: gestion_educativa
+      MYSQL_USER: gestion_user
+      MYSQL_PASSWORD: gestion_pass
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/Base de datos/Dump20251216.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - gestion_internal
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p2025Elianadavid"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ========================================
+  # BACKEND - Node.js + Express
+  # ========================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: gestion_educativa_backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASSWORD: 2025Elianadavid
+      DB_NAME: gestion_educativa
+      JWT_SECRET: secreto-desarrollo
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - ./backend/uploads:/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - gestion_internal
+    command: sh -c "sleep 10 && npm start"
+
+  # ========================================
+  # FRONTEND - Angular
+  # ========================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: gestion_educativa_frontend
+    restart: unless-stopped
+    ports:
+      - "8091:80"
+    depends_on:
+      - backend
+    networks:
+      - gestion_internal
+      - npm_network
+    environment:
+      API_URL: http://localhost:3000
+      VIRTUAL_HOST: gestion-educativa.local
+      VIRTUAL_PORT: 80
+
+# ========================================
+# VOLUMES PERSISTENTES
+# ========================================
+volumes:
+  mysql_data:
+    driver: local
+
+# ========================================
+# REDES
+# ========================================
+networks:
+  # Red interna - Comunicación entre contenedores
+  gestion_internal:
+    name: gestion_educativa_internal
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+          gateway: 172.28.0.1
+  
+  # Red externa para Nginx Proxy Manager
+  npm_network:
+    external: true
+    name: npm_network

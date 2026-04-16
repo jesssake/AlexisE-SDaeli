@@ -1,0 +1,144 @@
+<!-- manual.component.html - VERSIÓN ACORDEÓN CON ESTILO OSCURO -->
+<div class="manual">
+
+  <!-- Hero Section Premium -->
+  <section class="panel hero no-print">
+    <div class="title">
+      <h1>🎓 Manual del Estudiante</h1>
+      <p>Explora la plataforma: roles, tareas, asistencia, calificaciones y mucho más con estilo premium.</p>
+    </div>
+
+    <form [formGroup]="form" class="search">
+      <input type="search" placeholder="🔍 Buscar en el manual..." formControlName="q">
+      <button type="button" (click)="imprimir()">
+        🖨️ Imprimir / Guardar PDF
+      </button>
+    </form>
+  </section>
+
+  <!-- Índice de Contenidos con Acordeón -->
+  <section class="panel indice no-print">
+    <h2>📑 Centro de Contenidos</h2>
+    <div class="links">
+      <button *ngFor="let s of secciones()" 
+              (click)="abrirSeccion(s.id)"
+              [class.activo]="s.abierta">
+        <span class="icon">{{ s.icono }}</span>
+        <span class="text">{{ s.titulo }}</span>
+        <span class="chevron">{{ s.abierta ? '▼' : '▶' }}</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Secciones de Contenido (Acordeón) -->
+  <section class="contenido acordeon">
+    <article class="panel seccion" 
+             *ngFor="let s of seccionesFiltradas()" 
+             [attr.id]="s.id"
+             [class.abierta]="s.abierta">
+      
+      <header class="sec-head" (click)="toggleSeccion(s.id)">
+        <h3>
+          <span class="icono">{{ s.icono }}</span>
+          {{ s.titulo }}
+        </h3>
+        <span class="toggle-icon">{{ s.abierta ? '−' : '+' }}</span>
+      </header>
+
+      <div class="contenido-seccion" *ngIf="s.abierta">
+        <ul class="bullets">
+          <li *ngFor="let c of s.contenido">{{ c }}</li>
+        </ul>
+        
+        <div class="seccion-footer no-print" *ngIf="s.contenido.length > 0">
+          <small>✨ {{ s.contenido.length }} puntos</small>
+          <button class="btn-cerrar" (click)="toggleSeccion(s.id); $event.stopPropagation()">
+            Cerrar sección
+          </button>
+        </div>
+      </div>
+    </article>
+
+    <!-- Mensaje cuando no hay resultados de búsqueda -->
+    <div class="no-resultados" *ngIf="seccionesFiltradas().length === 0">
+      <div class="empty-state">
+        <span class="empty-icon">🔍</span>
+        <h3>No se encontraron resultados</h3>
+        <p>Intenta con otras palabras clave</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQs de Lujo -->
+  <section class="panel faqs" id="faqs">
+    <h2>💎 Preguntas Frecuentes</h2>
+
+    <div class="faq" *ngFor="let f of faqsFiltradas(); let i = index">
+      <details>
+        <summary>
+          <span class="faq-numero">Q{{i + 1}}</span>
+          <span class="faq-pregunta">{{ f.q }}</span>
+        </summary>
+        <div class="faq-respuesta">
+          <p>{{ f.a }}</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="empty" *ngIf="!faqsFiltradas().length">
+      <span class="empty-icon">🔍</span>
+      <h3>No hay preguntas que coincidan</h3>
+      <p>Intenta con otra búsqueda</p>
+    </div>
+  </section>
+
+  <!-- Atajos de Teclado (solo visible en desktop) -->
+  <section class="panel atajos no-print" *ngIf="!(seccionesFiltradas().length === 0)">
+    <h2>⌨️ Atajos de Teclado</h2>
+    <div class="atajos-grid">
+      <div class="atajo-item">
+        <kbd>Ctrl</kbd> + <kbd>F</kbd>
+        <span>Buscar en el manual</span>
+      </div>
+      <div class="atajo-item">
+        <kbd>Esc</kbd>
+        <span>Cerrar sección abierta</span>
+      </div>
+      <div class="atajo-item">
+        <kbd>↑</kbd> / <kbd>↓</kbd>
+        <span>Navegar entre secciones</span>
+      </div>
+      <div class="atajo-item">
+        <kbd>Enter</kbd>
+        <span>Abrir/Cerrar sección</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Barra de progreso de lectura (solo desktop) -->
+  <div class="progress-bar no-print" *ngIf="seccionesFiltradas().length > 0">
+    <div class="progress-fill" [style.width.%]="calcularProgreso()"></div>
+  </div>
+
+  <!-- Pie de Página Elegante -->
+  <section class="panel footer">
+    <div class="footer-content">
+      <div class="note">
+        💫 ¿Necesitas ayuda adicional? Consulta "Soporte técnico" o contacta a tu profesor.
+      </div>
+      <div class="version">
+        <span>📌 v2.0.0</span>
+        <span>🔄 Actualizado: Marzo 2026</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Botón flotante para volver arriba (solo cuando hay scroll) -->
+  <button class="scroll-top no-print" 
+          *ngIf="mostrarBotonArriba" 
+          (click)="scrollToTop()"
+          title="Volver arriba">
+    ⬆️
+  </button>
+
+</div>

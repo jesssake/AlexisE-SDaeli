@@ -1,0 +1,1053 @@
+<div class="page-wrap">
+  
+  <!-- Título principal con selector de vista -->
+  <div class="page-header">
+    <h1 class="page-title">
+      Gestión de Tareas <span>Panel del Maestro</span>
+    </h1>
+    
+    <!-- Botones para cambiar vista -->
+    <div class="vista-selector">
+      <button class="vista-btn" 
+              [class.active]="vistaActual === 'lista'"
+              (click)="cambiarVista('lista')">
+        <span class="emoji">📋</span> Lista de Tareas
+      </button>
+      <button class="vista-btn" 
+              [class.active]="vistaActual === 'estudiante'"
+              (click)="cambiarVista('estudiante')">
+        <span class="emoji">👨‍🎓</span> Vista por Estudiante
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== VISTA LISTA DE TAREAS (ORIGINAL) ==================== -->
+  <div *ngIf="vistaActual === 'lista'">
+    <!-- Filtros por trimestre -->
+    <div class="trimestre-filtros">
+      <button class="chip"
+              [class.activo]="trimestreSeleccionado === 'all'"
+              (click)="setTrimestre('all')">
+        <span class="emoji">📊</span> Todas las Tareas
+      </button>
+
+      <button class="chip"
+              [class.activo]="trimestreSeleccionado === '1'"
+              (click)="setTrimestre('1')">
+        <span class="emoji">1️⃣</span> 1° Trimestre
+      </button>
+
+      <button class="chip"
+              [class.activo]="trimestreSeleccionado === '2'"
+              (click)="setTrimestre('2')">
+        <span class="emoji">2️⃣</span> 2° Trimestre
+      </button>
+
+      <button class="chip"
+              [class.activo]="trimestreSeleccionado === '3'"
+              (click)="setTrimestre('3')">
+        <span class="emoji">3️⃣</span> 3° Trimestre
+      </button>
+
+      <button class="chip"
+              [class.activo]="filtroCalificadas"
+              (click)="toggleFiltroCalificadas()">
+        <span class="emoji">⭐</span> Solo calificadas
+      </button>
+    </div>
+
+    <!-- Panel de depuración (opcional) -->
+    <div class="debug-panel" *ngIf="tareas.length > 0">
+      <div class="debug-title">Información</div>
+      <div class="debug-content">
+        <strong>Tareas cargadas:</strong> {{ tareas.length }}<br>
+        <strong>Materias cargadas:</strong> {{ materias.length }}<br>
+        <strong>Tarea seleccionada:</strong> {{ tareaSeleccionada?.titulo || 'Ninguna' }}<br>
+        <strong>Materia seleccionada:</strong> {{ tareaSeleccionada?.id_materia || 'null' }}<br>
+        <strong>¿Editando tarea?:</strong> {{ editandoTarea ? 'Sí' : 'No' }}<br>
+        <strong>Tarea actual:</strong> {{ formTarea.id_tarea || 'Ninguna' }}
+      </div>
+    </div>
+
+    <!-- Mensaje de carga -->
+    <div *ngIf="loadingTareas" class="loading-message">
+      <div class="spinner"></div>
+      <p>Cargando tareas...</p>
+    </div>
+
+    <!-- Mensaje de error -->
+    <div *ngIf="errorTareas && !loadingTareas" class="error-message">
+      <span class="emoji">⚠️</span> {{ errorTareas }}
+      <button class="btn btn-neutral" (click)="cargarTareas()">Reintentar</button>
+    </div>
+
+    <!-- Lista de tareas -->
+    <section class="card" *ngIf="!loadingTareas && !errorTareas">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">
+            <span class="emoji">📋</span> Mis Tareas Publicadas
+          </h2>
+          <p class="card-desc">
+            Administra todas tus tareas académicas. 
+            <strong>{{ tareasFiltradas.length }}</strong> tareas encontradas
+            <span *ngIf="loadingTareas" class="loading-text"> (cargando...)</span>
+          </p>
+        </div>
+
+        <div class="actions-right">
+          <button class="btn btn-primary" 
+                  (click)="abrirModalNuevaTarea()">
+            <span class="emoji">➕</span> Nueva Tarea
+          </button>
+
+          <button class="btn btn-warning"
+                  (click)="abrirModalMaterias()">
+            <span class="emoji">🎓</span> Gestionar Materias
+          </button>
+
+          <button class="btn btn-neutral"
+                  (click)="verificarEstado()"
+                  title="Verificar estado">
+            <span class="emoji">🔄</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabla de tareas -->
+      <div class="tabla-container">
+        <table class="tabla" *ngIf="tareasFiltradas.length > 0">
+          <thead>
+             <tr>
+              <th>Materia</th>
+              <th>Título y Descripción</th>
+              <th>Fecha Límite</th>
+              <th>Entrega Tarde</th>
+              <th>Estado</th>
+              <th>Entregas</th>
+              <th>Acciones</th>
+             </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let t of tareasFiltradas"
+                [class.row-activa]="tareaSeleccionada?.id_tarea === t.id_tarea"
+                (click)="seleccionarTarea(t)">
+              <td data-label="Materia">
+                <span class="materia-badge"
+                      [ngStyle]="{'background-color': materiaColor(t.nombre_materia)}">
+                  {{ t.nombre_materia || 'Sin materia' }}
+                  <small *ngIf="t.id_materia === null">(Sin asignar)</small>
+                </span>
+               </td>
+
+              <td data-label="Título y Descripción" class="titulo-col">
+                <div class="titulo">{{ t.titulo }}</div>
+                <div class="instrucciones">
+                  {{ (t.instrucciones || 'Sin instrucciones detalladas') }}
+                </div>
+                <div class="archivo-indicador" *ngIf="t.archivo_adjunto">
+                  <span class="archivo-badge">
+                    <span class="emoji">{{ obtenerIconoArchivo(t.archivo_adjunto) }}</span>
+                    Material adjunto
+                  </span>
+                </div>
+               </td>
+
+              <td data-label="Fecha Límite">
+                <strong>{{ formatearFecha(t.fecha_cierre) }}</strong>
+               </td>
+
+              <td data-label="Entrega Tarde">
+                <span class="badge"
+                      [class.activa]="permiteTarde(t)"
+                      [class.inactiva]="!permiteTarde(t)">
+                  {{ permiteTarde(t) ? 'Permitido' : 'No permitido' }}
+                </span>
+               </td>
+
+              <td data-label="Estado">
+                <span class="badge"
+                      [class.activa]="estaActiva(t)"
+                      [class.inactiva]="!estaActiva(t)">
+                  {{ estaActiva(t) ? 'Activa' : 'Inactiva' }}
+                </span>
+               </td>
+
+              <td data-label="Entregas">
+                <span class="entregas-count">
+                  {{ t.total_entregas || 0 }} entregas
+                </span>
+               </td>
+
+              <td data-label="Acciones">
+                <div class="acciones-rapidas">
+                  <button class="btn btn-ver"
+                          (click)="seleccionarTarea(t); $event.stopPropagation()">
+                    <span class="emoji">👁️</span> Ver
+                  </button>
+                  
+                  <button class="btn btn-warning"
+                          (click)="abrirModalEditarTarea(); $event.stopPropagation()"
+                          [disabled]="!t.id_materia">
+                    <span class="emoji">✏️</span> Editar
+                  </button>
+                  
+                  <button class="btn btn-danger"
+                          (click)="eliminarTareaActual(); $event.stopPropagation()">
+                    <span class="emoji">🗑️</span>
+                  </button>
+                </div>
+               </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Estado vacío -->
+      <div class="estado-vacio" *ngIf="tareasFiltradas.length === 0 && !loadingTareas">
+        <span class="emoji">📭</span>
+        <h3>No hay tareas registradas</h3>
+        <p>No se encontraron tareas para el filtro seleccionado.</p>
+        <button class="btn btn-primary" (click)="abrirModalNuevaTarea()">
+          <span class="emoji">➕</span> Crear mi primera tarea
+        </button>
+      </div>
+    </section>
+
+    <!-- Detalle de tarea -->
+    <section class="card detalle" *ngIf="tareaSeleccionada && !loadingTareas">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">
+            <span class="emoji">📑</span> Entregas: {{ tareaSeleccionada.titulo }}
+          </h2>
+          <p class="card-desc">
+            <strong>Límite:</strong> {{ formatearFecha(tareaSeleccionada.fecha_cierre) }} · 
+            <strong>Entrega tarde:</strong> {{ permiteTarde(tareaSeleccionada) ? 'Permitida' : 'No permitida' }} · 
+            <strong>Estado:</strong> {{ estaActiva(tareaSeleccionada) ? 'Activa' : 'Inactiva' }} · 
+            <strong>Total entregas:</strong> {{ entregas.length }}
+            <span *ngIf="loadingEntregas" class="loading-text"> (cargando entregas...)</span>
+          </p>
+        </div>
+
+        <span class="materia-badge"
+              [ngStyle]="{'background-color': materiaColor(tareaSeleccionada.nombre_materia)}">
+          {{ tareaSeleccionada.nombre_materia || 'Sin materia' }}
+          <small *ngIf="tareaSeleccionada.id_materia === null">(Sin asignar)</small>
+        </span>
+      </div>
+
+      <!-- Mensaje de carga de entregas -->
+      <div *ngIf="loadingEntregas" class="loading-entregas">
+        <div class="spinner small"></div>
+        <p>Cargando entregas...</p>
+      </div>
+
+      <!-- Mensaje de error de entregas -->
+      <div *ngIf="errorEntregas && !loadingEntregas" class="error-message">
+        <span class="emoji">⚠️</span> {{ errorEntregas }}
+        <button class="btn btn-neutral" (click)="cargarEntregas(tareaSeleccionada.id_tarea)">Reintentar</button>
+      </div>
+
+      <!-- Archivo adjunto de la tarea -->
+      <div class="archivo-adjunto-tarea" *ngIf="tareaSeleccionada.archivo_adjunto && !loadingEntregas">
+        <div class="mini-titulo">
+          <span class="emoji">📎</span> Material de apoyo
+        </div>
+        <div class="archivo-adjunto-info">
+          <span class="archivo-adjunto-icono">{{ obtenerIconoArchivo(tareaSeleccionada.archivo_adjunto) }}</span>
+          <div class="archivo-adjunto-details">
+            <div class="archivo-adjunto-nombre">
+              {{ getNombreArchivo(tareaSeleccionada.archivo_adjunto) }}
+            </div>
+            <div class="archivo-adjunto-desc">
+              Archivo disponible para descarga
+            </div>
+          </div>
+          <a class="btn-archivo-descargar"
+             [href]="fileUrl(tareaSeleccionada.archivo_adjunto)"
+             target="_blank"
+             download>
+            <span class="emoji">📥</span> Descargar
+          </a>
+        </div>
+      </div>
+
+      <!-- Estadísticas rápidas -->
+      <div class="estadisticas-rapidas" *ngIf="entregas.length > 0 && !loadingEntregas">
+        <div class="estadistica-item">
+          <div class="estadistica-valor">{{ estadisticasEntregas.total }}</div>
+          <div class="estadistica-label">Total</div>
+        </div>
+        <div class="estadistica-item">
+          <div class="estadistica-valor text-success">{{ estadisticasEntregas.revisadas }}</div>
+          <div class="estadistica-label">Revisadas</div>
+        </div>
+        <div class="estadistica-item">
+          <div class="estadistica-valor text-info">{{ estadisticasEntregas.entregadas }}</div>
+          <div class="estadistica-label">Entregadas</div>
+        </div>
+        <div class="estadistica-item">
+          <div class="estadistica-valor text-warning">{{ estadisticasEntregas.pendientes }}</div>
+          <div class="estadistica-label">Pendientes</div>
+        </div>
+      </div>
+
+      <!-- Tabla de entregas de estudiantes -->
+      <div class="tabla-container">
+        <table class="tabla tabla-entregas"
+               *ngIf="entregas.length > 0 && !loadingEntregas">
+          <thead>
+             <tr>
+              <th>Estudiante</th>
+              <th>Estado</th>
+              <th>Fecha Entrega</th>
+              <th>Calificación</th>
+              <th>Comentario</th>
+              <th>Archivo</th>
+              <th>Acción</th>
+             </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let e of entregas">
+              <td data-label="Estudiante">
+                <div class="alumno-nombre">{{ e.nombre_alumno || 'Nombre no disponible' }}</div>
+               </td>
+
+              <td data-label="Estado">
+                <span [ngClass]="estadoClass(e.estado)">
+                  {{ e.estado || 'PENDIENTE' }}
+                </span>
+               </td>
+
+              <td data-label="Fecha Entrega">
+                {{ formatearFecha(e.fecha_entrega) || 'No entregada' }}
+                <div *ngIf="e.estado === 'ENTREGADO_TARDE'" class="text-warning">
+                  <small>⚠️ Entregada tarde</small>
+                </div>
+               </td>
+
+              <td data-label="Calificación">
+                <span *ngIf="e.calificacion !== null && e.calificacion !== undefined" 
+                      class="nota-destacada">
+                  {{ e.calificacion }}/10
+                </span>
+                <span *ngIf="e.calificacion === null || e.calificacion === undefined">
+                  —
+                </span>
+               </td>
+
+              <td data-label="Comentario">
+                <div class="comentario-alumno" *ngIf="e.comentario_alumno">
+                  {{ e.comentario_alumno }}
+                </div>
+                <div class="sin-comentario" *ngIf="!e.comentario_alumno">
+                  Sin comentario
+                </div>
+               </td>
+
+              <td data-label="Archivo">
+                <a *ngIf="e.archivo_entregado" 
+                   [href]="fileUrl(e.archivo_entregado)" 
+                   target="_blank"
+                   class="btn-descargar"
+                   download>
+                  <span class="emoji">📥</span> Descargar entrega
+                </a>
+                <span *ngIf="!e.archivo_entregado" class="text-muted">
+                  Sin archivo
+                </span>
+               </td>
+
+              <td data-label="Acción">
+                <button class="btn btn-calificar"
+                        (click)="abrirModalCalificar(e)">
+                  <span class="emoji">✍️</span> Calificar
+                </button>
+               </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Estado vacío entregas -->
+      <div class="estado-vacio" *ngIf="entregas.length === 0 && !loadingEntregas && !errorEntregas">
+        <span class="emoji">👥</span>
+        <h3>No hay entregas aún</h3>
+        <p>Ningún estudiante ha entregado esta tarea.</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- ==================== VISTA POR ESTUDIANTE (DIAPOSITIVA) ==================== -->
+  <div *ngIf="vistaActual === 'estudiante'">
+    
+    <!-- Filtros de búsqueda -->
+    <div class="filtros-estudiante">
+      <div class="busqueda-estudiante">
+        <input type="text" 
+               [(ngModel)]="busquedaEstudiante"
+               (input)="filtrarEstudiantes()"
+               placeholder="🔍 Buscar estudiante..."
+               class="input-busqueda">
+      </div>
+      
+      <div class="filtros-rapidos">
+        <button class="chip" 
+                [class.activo]="filtroEstadoEntrega === 'todos'"
+                (click)="setFiltroEstado('todos')">
+          📋 Todos
+        </button>
+        <button class="chip" 
+                [class.activo]="filtroEstadoEntrega === 'pendientes'"
+                (click)="setFiltroEstado('pendientes')">
+          ⏳ Pendientes
+        </button>
+        <button class="chip" 
+                [class.activo]="filtroEstadoEntrega === 'entregadas'"
+                (click)="setFiltroEstado('entregadas')">
+          📤 Entregadas
+        </button>
+        <button class="chip" 
+                [class.activo]="filtroEstadoEntrega === 'calificadas'"
+                (click)="setFiltroEstado('calificadas')">
+          ⭐ Calificadas
+        </button>
+      </div>
+    </div>
+
+    <!-- Mensaje de carga -->
+    <div *ngIf="cargandoEstudiantes" class="loading-message">
+      <div class="spinner"></div>
+      <p>Cargando estudiantes...</p>
+    </div>
+
+    <!-- Vista por estudiante (diapositiva) -->
+    <div *ngIf="!cargandoEstudiantes && estudiantesFiltrados.length > 0" class="estudiante-slider">
+      
+      <!-- Header del estudiante actual -->
+      <div class="estudiante-header-slider">
+        <div class="estudiante-avatar">
+          {{ obtenerIniciales(estudianteActual?.nombre || '') }}
+        </div>
+        <div class="estudiante-info-slider">
+          <h2>{{ estudianteActual?.nombre || 'Selecciona un estudiante' }}</h2>
+          <p class="estudiante-id">ID: {{ estudianteActual?.estudiante_id || '—' }}</p>
+          <div class="estudiante-stats-slider">
+            <span class="stat-badge">
+              <i class="fas fa-tasks"></i> {{ totalTareasEstudiante }} tareas
+            </span>
+            <span class="stat-badge" [class.aprobado]="promedioEstudiante >= 5">
+              <i class="fas fa-chart-line"></i> Promedio: {{ formatoNumero(promedioEstudiante) }}
+            </span>
+            <span class="stat-badge aprobado">
+              <i class="fas fa-check-circle"></i> Entregadas: {{ entregadasEstudiante }}
+            </span>
+            <span class="stat-badge reprobado" *ngIf="pendientesEstudiante > 0">
+              <i class="fas fa-clock"></i> Pendientes: {{ pendientesEstudiante }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navegación entre estudiantes -->
+      <div class="navegacion-estudiantes">
+        <button class="nav-btn" (click)="estudianteAnterior()" [disabled]="indiceEstudianteActual === 0">
+          <i class="fas fa-chevron-left"></i> Anterior
+        </button>
+        <div class="nav-info">
+          <span>Estudiante {{ indiceEstudianteActual + 1 }} de {{ estudiantesFiltrados.length }}</span>
+          <div class="nav-paginas">
+            <span *ngFor="let est of estudiantesFiltrados; let idx = index" 
+                  class="pagina-dot" 
+                  [class.active]="idx === indiceEstudianteActual"
+                  (click)="irAEstudiante(idx)">
+            </span>
+          </div>
+        </div>
+        <button class="nav-btn" (click)="estudianteSiguiente()" [disabled]="indiceEstudianteActual === estudiantesFiltrados.length - 1">
+          Siguiente <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+
+      <!-- Tabla de tareas del estudiante -->
+      <div class="tabla-container" *ngIf="entregasEstudiante.length > 0">
+        <table class="tabla tabla-estudiante">
+          <thead>
+             <tr>
+              <th>Tarea</th>
+              <th>Materia</th>
+              <th>Fecha Límite</th>
+              <th>Fecha Entrega</th>
+              <th>Estado</th>
+              <th>Calificación</th>
+              <th>Acción</th>
+             </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let entrega of entregasEstudianteFiltradas" 
+                [class.entregada]="entrega.fecha_entrega"
+                [class.calificada]="entrega.calificacion !== null">
+              <td data-label="Tarea">
+                <div class="tarea-titulo">{{ entrega.titulo_tarea || 'Sin título' }}</div>
+                <div class="tarea-desc" *ngIf="entrega.instrucciones">
+                  {{ entrega.instrucciones | slice:0:80 }}{{ entrega.instrucciones.length > 80 ? '...' : '' }}
+                </div>
+               </td>
+              <td data-label="Materia">
+                <span class="materia-badge-mini" [ngStyle]="{'background-color': materiaColor(entrega.nombre_materia)}">
+                  {{ entrega.nombre_materia || 'Sin materia' }}
+                </span>
+               </td>
+              <td data-label="Fecha Límite">
+                {{ formatearFecha(entrega.fecha_limite) }}
+               </td>
+              <td data-label="Fecha Entrega">
+                <span *ngIf="entrega.fecha_entrega">{{ formatearFecha(entrega.fecha_entrega) }}</span>
+                <span *ngIf="!entrega.fecha_entrega" class="text-muted">No entregada</span>
+                <div *ngIf="entrega.es_tardia" class="text-warning">
+                  <small>⚠️ Entregada tarde</small>
+                </div>
+               </td>
+              <td data-label="Estado">
+                <span class="estado-badge" [ngClass]="{
+                  'pendiente': !entrega.fecha_entrega,
+                  'entregado': entrega.fecha_entrega && entrega.calificacion === null,
+                  'calificado': entrega.calificacion !== null
+                }">
+                  <i class="fas" 
+                     [class.fa-clock]="!entrega.fecha_entrega"
+                     [class.fa-paper-plane]="entrega.fecha_entrega && entrega.calificacion === null"
+                     [class.fa-check-circle]="entrega.calificacion !== null"></i>
+                  {{ getEstadoTexto(entrega) }}
+                </span>
+               </td>
+              <td data-label="Calificación">
+                <span *ngIf="entrega.calificacion !== null && entrega.calificacion !== undefined" 
+                      class="calificacion-valor"
+                      [class.excelente]="entrega.calificacion >= 9"
+                      [class.bueno]="entrega.calificacion >= 7 && entrega.calificacion < 9"
+                      [class.regular]="entrega.calificacion >= 5 && entrega.calificacion < 7"
+                      [class.malo]="entrega.calificacion < 5">
+                  {{ entrega.calificacion }}/10
+                </span>
+                <span *ngIf="entrega.calificacion === null || entrega.calificacion === undefined" class="text-muted">—</span>
+               </td>
+              <td data-label="Acción">
+                <button class="btn btn-sm btn-calificar" 
+                        (click)="abrirModalCalificarDesdeEstudiante(entrega)"
+                        [disabled]="!entrega.fecha_entrega">
+                  <span class="emoji">✍️</span> Calificar
+                </button>
+               </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Estado vacío -->
+      <div class="estado-vacio" *ngIf="entregasEstudianteFiltradas.length === 0">
+        <span class="emoji">📭</span>
+        <h3>No hay tareas para este estudiante</h3>
+        <p *ngIf="filtroEstadoEntrega !== 'todos'">Intenta cambiar el filtro para ver más tareas.</p>
+        <p *ngIf="filtroEstadoEntrega === 'todos'">Este estudiante no tiene tareas asignadas o entregadas.</p>
+      </div>
+    </div>
+
+    <!-- Estado vacío general -->
+    <div *ngIf="!cargandoEstudiantes && estudiantesFiltrados.length === 0" class="estado-vacio">
+      <span class="emoji">👥</span>
+      <h3>No hay estudiantes</h3>
+      <p>No se encontraron estudiantes con entregas.</p>
+    </div>
+  </div>
+
+  <!-- ==================== MODALES (mantener igual) ==================== -->
+  <!-- Modal Calificar Entrega -->
+  <div class="modal-backdrop modal-calificar" *ngIf="modalCalificarAbierto">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>
+          <span class="emoji">✍️</span> Calificar Entrega
+        </h3>
+        <p class="modal-subtitle">
+          Calificando entrega de <strong>{{ entregaEditando?.nombre_alumno }}</strong>
+        </p>
+      </div>
+      
+      <div class="modal-body" *ngIf="entregaEditando">
+        <div class="form-group">
+          <label class="label-required">Calificación (0-10)</label>
+          <input type="number" 
+                 [(ngModel)]="notaTemp" 
+                 min="0" 
+                 max="10" 
+                 step="0.1" 
+                 placeholder="Ej: 8.5"
+                 class="input-calificacion">
+          <div class="form-hint">
+            <span class="emoji">💡</span> Ingresa un valor entre 0 y 10
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Comentario para el estudiante</label>
+          <textarea [(ngModel)]="comentarioTemp" 
+                    rows="4" 
+                    placeholder="Escribe un comentario constructivo para retroalimentación..."
+                    class="textarea-comentario"></textarea>
+          <div class="form-hint">
+            <span class="emoji">📝</span> Opcional, pero recomendado
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-actions-tarea">
+        <button class="btn-cancelar" (click)="cerrarModalCalificar()">
+          <span class="emoji">←</span> Cancelar
+        </button>
+        <button class="btn-guardar" (click)="guardarCalificacion()">
+          <span class="emoji">✅</span> Guardar Calificación
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Tarea (Crear/Editar) -->
+  <div class="modal-backdrop modal-tarea" 
+       [class.modal-tarea-nueva]="!editandoTarea"
+       [class.modal-tarea-editar]="editandoTarea"
+       *ngIf="modalTareaAbierto">
+    
+    <div class="modal-card modal-wide">
+      <div class="modal-header">
+        <h3>
+          <span class="emoji">{{ editandoTarea ? '✏️' : '➕' }}</span>
+          {{ editandoTarea ? 'Editar Tarea' : 'Nueva Tarea' }}
+        </h3>
+        <p class="modal-subtitle">
+          {{ editandoTarea ? 'Modifica los detalles de la tarea' : 'Crea una nueva tarea para tus estudiantes' }}
+        </p>
+      </div>
+      
+      <div class="modal-body">
+        <form class="tarea-form">
+          <div class="form-section titulo-section">
+            <h4 class="section-title section-title-required">
+              <span class="emoji">📝</span> Título de la Tarea
+            </h4>
+            <div class="form-group required">
+              <input type="text" 
+                     [(ngModel)]="formTarea.titulo" 
+                     class="input-titulo"
+                     placeholder="Ej: Proyecto de Historia - Culturas Prehispánicas"
+                     required
+                     name="titulo"
+                     maxlength="200">
+            </div>
+          </div>
+          
+          <div class="form-section materia-section">
+            <h4 class="section-title section-title-required">
+              <span class="emoji">🎓</span> Materia Asignada
+            </h4>
+            <div class="form-group required select-materia">
+              <select [(ngModel)]="formTarea.id_materia" 
+                      required 
+                      name="materia"
+                      class="select-materia-input">
+                <option value="" disabled selected>Selecciona una materia</option>
+                <option *ngFor="let m of materias" 
+                        [value]="m.id_materia">
+                  {{ m.nombre }}
+                </option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-section instrucciones-section">
+            <h4 class="section-title">
+              <span class="emoji">📋</span> Instrucciones Detalladas
+            </h4>
+            <div class="form-group">
+              <textarea [(ngModel)]="formTarea.instrucciones" 
+                        class="textarea-instrucciones"
+                        placeholder="Describe detalladamente las instrucciones..."
+                        rows="5"
+                        name="instrucciones"></textarea>
+            </div>
+          </div>
+          
+          <div class="form-section fecha-section">
+            <h4 class="section-title section-title-required">
+              <span class="emoji">⏰</span> Fecha Límite de Entrega
+            </h4>
+            <div class="fecha-container">
+              <div class="input-fecha form-group required">
+                <input type="datetime-local" 
+                       [(ngModel)]="fechaTemporal" 
+                       [min]="fechaMinima"
+                       (change)="actualizarFechaDesdeInput()"
+                       required
+                       name="fecha">
+              </div>
+              <div class="fecha-info">
+                <span class="emoji">📅</span> Fecha seleccionada:
+                <span class="countdown">{{ formatearFecha(formTarea.fecha_cierre) }}</span>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Trimestre:</label>
+              <select [(ngModel)]="formTarea.trimestre" name="trimestre">
+                <option value="1">1° Trimestre</option>
+                <option value="2">2° Trimestre</option>
+                <option value="3">3° Trimestre</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-section configuracion-section">
+            <h4 class="section-title">
+              <span class="emoji">⚙️</span> Configuraciones
+            </h4>
+            <div class="config-row">
+              <div class="config-item">
+                <label>
+                  <span class="config-icon">🕒</span>
+                  <div>
+                    Permitir entrega tarde
+                    <div class="config-desc">
+                      Los estudiantes podrán entregar después de la fecha límite
+                    </div>
+                  </div>
+                  <input type="checkbox" 
+                         [(ngModel)]="formTarea.permitir_entrega_tarde"
+                         name="permiteTarde">
+                </label>
+              </div>
+              
+              <div class="config-item">
+                <label>
+                  <span class="config-icon">📢</span>
+                  <div>
+                    Tarea activa
+                    <div class="config-desc">
+                      La tarea será visible para los estudiantes
+                    </div>
+                  </div>
+                  <input type="checkbox" 
+                         [(ngModel)]="formTarea.activa"
+                         name="activa">
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-section archivo-section">
+            <h4 class="section-title">
+              <span class="emoji">📎</span> Material de apoyo (opcional)
+            </h4>
+            <div class="file-upload-area" [class.has-file]="archivoSeleccionado || rutaArchivoAdjunto">
+              <div class="upload-icon">📤</div>
+              <div class="upload-text">Arrastra y suelta tu archivo aquí</div>
+              <div class="upload-subtext">o haz clic para seleccionar</div>
+              <div class="formatos">Formatos: PDF, DOC, JPG, PNG, ZIP (Máx. 20MB)</div>
+              <input type="file" 
+                     (change)="onFileSelected($event)" 
+                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip,.rar">
+              
+              <div *ngIf="archivoSeleccionado" class="file-info">
+                <span class="file-icon">{{ obtenerIconoArchivo(archivoSeleccionado.name) }}</span>
+                <div class="file-details">
+                  <div class="file-name">{{ archivoSeleccionado.name }}</div>
+                  <div class="file-size">{{ (archivoSeleccionado.size / 1024 / 1024).toFixed(2) }} MB</div>
+                </div>
+                <button type="button" class="btn-remove" (click)="eliminarArchivoAdjunto()">✕</button>
+              </div>
+              
+              <div *ngIf="rutaArchivoAdjunto && !archivoSeleccionado" class="file-info">
+                <span class="file-icon">{{ obtenerIconoArchivo(rutaArchivoAdjunto) }}</span>
+                <div class="file-details">
+                  <div class="file-name">{{ getNombreArchivo(rutaArchivoAdjunto) }}</div>
+                  <div class="file-size">Archivo existente</div>
+                </div>
+                <button type="button" class="btn-remove" (click)="eliminarArchivoAdjunto()">✕</button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      
+      <div class="modal-actions-tarea">
+        <button class="btn-cancelar" (click)="cerrarModalTarea()">Cancelar</button>
+        <button class="btn-guardar" 
+                (click)="guardarTarea()" 
+                [disabled]="guardandoTarea">
+          <span *ngIf="guardandoTarea" class="spinner-button"></span>
+          {{ guardandoTarea ? 'Guardando...' : (editandoTarea ? 'Actualizar' : 'Crear') }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Nueva Materia -->
+  <div class="modal-backdrop modal-materia-nueva" *ngIf="modalMateriasAbierto && !editandoMateria">
+    <div class="modal-card modal-wide">
+      <div class="modal-header">
+        <h3>
+          <span class="emoji">🎓</span> Nueva Materia
+        </h3>
+        <p class="modal-subtitle">
+          Crea una nueva materia académica
+        </p>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form-section">
+          <h4 class="section-title section-title-required">
+            <span class="emoji">📝</span> Nombre de la Materia
+          </h4>
+          <div class="form-group required">
+            <input type="text" 
+                  [(ngModel)]="materiaForm.nombre" 
+                  class="input-titulo"
+                  placeholder="Ej: Matemáticas, Ciencias, Historia..."
+                  required
+                  maxlength="100">
+          </div>
+        </div>
+        
+        <div class="form-section">
+          <h4 class="section-title">
+            <span class="emoji">📋</span> Descripción
+          </h4>
+          <div class="form-group">
+            <textarea [(ngModel)]="materiaForm.descripcion" 
+                     class="textarea-instrucciones"
+                     placeholder="Describe brevemente la materia..."
+                     rows="3"></textarea>
+          </div>
+        </div>
+        
+        <div class="form-section">
+          <h4 class="section-title">
+            <span class="emoji">🎨</span> Personalización
+          </h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="label-required">Color</label>
+              <div class="color-picker">
+                <input type="color" 
+                      [(ngModel)]="materiaForm.color"
+                      class="color-input">
+                <span class="color-preview" 
+                      [style.background-color]="materiaForm.color || '#667eea'"></span>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="label-required">Icono</label>
+              <input type="text" 
+                    [(ngModel)]="materiaForm.icono"
+                    class="input-icono"
+                    placeholder="📚"
+                    maxlength="2">
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-section" *ngIf="materias.length > 0">
+          <h4 class="section-title">
+            <span class="emoji">📚</span> Materias Existentes
+          </h4>
+          <div class="materias-list">
+            <div *ngFor="let materia of materias" 
+                 class="materia-item"
+                 [class.selected]="materiaForm.id_materia === materia.id_materia"
+                 (click)="editarMateria(materia)">
+              <div class="materia-item-color" 
+                   [style.background-color]="materia.color || '#667eea'"></div>
+              <div class="materia-item-content">
+                <div class="materia-item-name">
+                  <span class="materia-item-icon">{{ materia.icono || '📚' }}</span>
+                  {{ materia.nombre }}
+                </div>
+                <div class="materia-item-desc" *ngIf="materia.descripcion">
+                  {{ materia.descripcion }}
+                </div>
+              </div>
+              <button class="btn btn-danger btn-sm" 
+                      (click)="eliminarMateria(materia); $event.stopPropagation()">
+                <span class="emoji">🗑️</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div *ngIf="errorMateriaModal" class="error-message">
+          <span class="emoji">⚠️</span> {{ errorMateriaModal }}
+        </div>
+      </div>
+      
+      <div class="modal-actions-tarea">
+        <button class="btn-cancelar" (click)="cerrarModalMaterias()">
+          <span class="emoji">←</span> Cancelar
+        </button>
+        <button class="btn-guardar" (click)="guardarMateria()">
+          <span class="emoji">➕</span> Crear Materia
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Editar Materia -->
+  <div class="modal-backdrop modal-materias" *ngIf="modalMateriasAbierto && editandoMateria">
+    <div class="modal-card modal-wide">
+      <div class="modal-header">
+        <h3>
+          <span class="emoji">🎓</span>
+          Editar Materia
+        </h3>
+        <p class="modal-subtitle">
+          Modifica los detalles de la materia
+        </p>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form-section">
+          <h4 class="section-title section-title-required">
+            <span class="emoji">📝</span> Nombre de la Materia
+          </h4>
+          <div class="form-group required">
+            <input type="text" 
+                  [(ngModel)]="materiaForm.nombre" 
+                  class="input-titulo"
+                  placeholder="Ej: Matemáticas, Ciencias, Historia..."
+                  required
+                  maxlength="100">
+          </div>
+        </div>
+        
+        <div class="form-section">
+          <h4 class="section-title">
+            <span class="emoji">📋</span> Descripción
+          </h4>
+          <div class="form-group">
+            <textarea [(ngModel)]="materiaForm.descripcion" 
+                     class="textarea-instrucciones"
+                     placeholder="Describe la materia..."
+                     rows="3"></textarea>
+          </div>
+        </div>
+        
+        <div class="form-section">
+          <h4 class="section-title">
+            <span class="emoji">🎨</span> Personalización
+          </h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="label-required">Color</label>
+              <div class="color-picker">
+                <input type="color" 
+                      [(ngModel)]="materiaForm.color"
+                      class="color-input">
+                <span class="color-preview" 
+                      [style.background-color]="materiaForm.color || '#667eea'"></span>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="label-required">Icono</label>
+              <input type="text" 
+                    [(ngModel)]="materiaForm.icono"
+                    class="input-icono"
+                    placeholder="📚, 📐, 🔬, 📖"
+                    maxlength="2">
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-section" *ngIf="materias.length > 0">
+          <h4 class="section-title">
+            <span class="emoji">📚</span> Materias Existentes
+          </h4>
+          <div class="materias-list">
+            <div *ngFor="let materia of materias" 
+                 class="materia-item"
+                 [class.selected]="materiaForm.id_materia === materia.id_materia"
+                 (click)="editarMateria(materia)">
+              <div class="materia-item-color" 
+                   [style.background-color]="materia.color || '#667eea'"></div>
+              <div class="materia-item-content">
+                <div class="materia-item-name">
+                  <span class="materia-item-icon">{{ materia.icono || '📚' }}</span>
+                  {{ materia.nombre }}
+                </div>
+                <div class="materia-item-desc" *ngIf="materia.descripcion">
+                  {{ materia.descripcion }}
+                </div>
+              </div>
+              <button class="btn btn-danger btn-sm" 
+                      (click)="eliminarMateria(materia); $event.stopPropagation()">
+                <span class="emoji">🗑️</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div *ngIf="errorMateriaModal" class="error-message">
+          <span class="emoji">⚠️</span> {{ errorMateriaModal }}
+        </div>
+      </div>
+      
+      <div class="modal-actions-tarea">
+        <button class="btn-cancelar" (click)="cerrarModalMaterias()">Cancelar</button>
+        <button class="btn-guardar" (click)="guardarMateria()">
+          Actualizar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Alerta -->
+  <div class="modal-backdrop modal-alerta" *ngIf="modalAlertaAbierto">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>{{ alertaTitulo }}</h3>
+      </div>
+      <div class="modal-body">
+        <div [ngClass]="{
+          'text-success': alertaTipo === 'success',
+          'text-error': alertaTipo === 'error',
+          'text-info': alertaTipo === 'info',
+          'text-warning': alertaTipo === 'warning'
+        }">
+          {{ alertaMensaje }}
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" (click)="cerrarAlerta()">Aceptar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Confirmación -->
+  <div class="modal-backdrop modal-confirmacion" *ngIf="modalConfirmacionAbierto">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>{{ confirmacionTitulo }}</h3>
+      </div>
+      <div class="modal-body">
+        <div [innerHTML]="confirmacionMensaje"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-neutral" (click)="cerrarConfirmacion()">Cancelar</button>
+        <button class="btn btn-danger" (click)="aceptarConfirmacion()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+</div>

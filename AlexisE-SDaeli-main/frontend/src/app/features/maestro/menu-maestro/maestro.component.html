@@ -1,0 +1,210 @@
+<div class="maestro-container" [class.menu-open]="menuAbierto">
+  <!-- Decoración de hojas -->
+  <div class="corner-decoration top-left"></div>
+  <div class="corner-decoration top-right"></div>
+  <div class="corner-decoration bottom-left"></div>
+  <div class="corner-decoration bottom-right"></div>
+  
+  <!-- Header -->
+  <header class="header" [class.menu-open]="menuAbierto">
+    <div class="header-left">
+      <button type="button" class="menu-toggle" (click)="toggleMenu()" [attr.aria-label]="menuAbierto ? 'Cerrar menú' : 'Abrir menú'">
+        <span class="menu-icon">{{ menuAbierto ? '✕' : '☰' }}</span>
+      </button>
+      <div class="page-info">
+        <h1>Panel del Maestro</h1>
+        <span class="current-section">
+          <span class="dot"></span>
+          {{ seccionActual }}
+        </span>
+      </div>
+    </div>
+    <div class="header-right">
+      <!-- BOTÓN DE LOGOUT MEJORADO -->
+      <button type="button" 
+              class="logout-btn pulse" 
+              (click)="cerrarSesion()" 
+              [attr.aria-label]="'Cerrar sesión'"
+              title="Cerrar sesión">
+        <span class="logout-icon">🚪</span>
+        <span class="logout-text">Salir</span>
+      </button>
+      
+      <!-- Información del usuario -->
+      <div class="user-info" (click)="toggleUserMenu()" (keydown.enter)="toggleUserMenu()" tabindex="0" role="button" [attr.aria-label]="'Menú de usuario'">
+        <span class="user-initials">{{ obtenerIniciales() }}</span>
+        <span class="user-name">{{ nombreUsuario }}</span>
+        <span class="user-arrow" [class.open]="userMenuAbierto">▼</span>
+      </div>
+      
+      <!-- Menú desplegable de usuario -->
+      <div class="user-dropdown" [class.open]="userMenuAbierto">
+        <div class="dropdown-header">
+          <span class="user-full">{{ nombreUsuario }}</span>
+          <span class="user-role">Maestro</span>
+        </div>
+        <div class="dropdown-items">
+          <a [routerLink]="['/maestro','perfil']" class="dropdown-item" (click)="cerrarUserMenu()">
+            <span class="item-icon">👤</span>
+            <span class="item-text">Mi Perfil</span>
+          </a>
+          <a [routerLink]="['/maestro','configuracion']" class="dropdown-item" (click)="cerrarUserMenu()">
+            <span class="item-icon">⚙️</span>
+            <span class="item-text">Configuración</span>
+          </a>
+          <div class="dropdown-divider"></div>
+          <button type="button" class="dropdown-item logout" (click)="cerrarSesion()">
+            <span class="item-icon">🚪</span>
+            <span class="item-text">Cerrar Sesión</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sidebar con menú desplegable -->
+  <aside class="sidebar" [class.open]="menuAbierto" [class.desktop-open]="!isMobile">
+    <div class="sidebar-header">
+      <h2>Menú Principal</h2>
+      <p>Gestión académica</p>
+    </div>
+    
+    <nav class="nav-menu">
+      <!-- Categoría 1: Gestión Académica -->
+      <div class="menu-category" [class.expanded]="categoriasAbiertas.academica">
+        <div class="category-header" (click)="toggleCategory('academica')" (keydown.enter)="toggleCategory('academica')" tabindex="0" role="button" [attr.aria-expanded]="categoriasAbiertas.academica">
+          <div class="category-title">
+            <span class="category-icon">📚</span>
+            <span class="category-text">Gestión Académica</span>
+          </div>
+          <span class="category-arrow" [class.open]="categoriasAbiertas.academica">▼</span>
+        </div>
+        <div class="category-items" [class.open]="categoriasAbiertas.academica">
+          <a [routerLink]="['/maestro','dashboard']"
+             routerLinkActive="active"
+             class="nav-link"
+             (click)="cerrarMenuEnMovil()"
+             [routerLinkActiveOptions]="{exact: true}">
+            <span class="nav-icon">📊</span>
+            <span class="nav-text">Dashboard</span>
+            <span class="nav-badge" *ngIf="notificaciones.dashboard">3</span>
+          </a>
+          <a [routerLink]="['/maestro','estudiantes']"
+             routerLinkActive="active"
+             class="nav-link"
+             (click)="cerrarMenuEnMovil()">
+            <span class="nav-icon">👥</span>
+            <span class="nav-text">Estudiantes</span>
+            <span class="nav-badge" *ngIf="notificaciones.estudiantes">12</span>
+          </a>
+          <a [routerLink]="['/maestro','tareas']"
+             routerLinkActive="active"
+             class="nav-link"
+             (click)="cerrarMenuEnMovil()">
+            <span class="nav-icon">📝</span>
+            <span class="nav-text">Tareas</span>
+            <span class="nav-badge" *ngIf="notificaciones.tareas">5</span>
+          </a>
+          <a [routerLink]="['/maestro','asistencia']"
+             routerLinkActive="active"
+             class="nav-link"
+             (click)="cerrarMenuEnMovil()">
+            <span class="nav-icon">✅</span>
+            <span class="nav-text">Asistencia</span>
+          </a>
+          <a [routerLink]="['/maestro','calificaciones']"
+             routerLinkActive="active"
+             class="nav-link"
+             (click)="cerrarMenuEnMovil()">
+            <span class="nav-icon">🎓</span>
+            <span class="nav-text">Calificaciones</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Categoría 2: Comunicación -->
+      <div class="menu-category" [class.expanded]="categoriasAbiertas.comunicacion">
+        <div class="category-header" (click)="toggleCategory('comunicacion')" (keydown.enter)="toggleCategory('comunicacion')" tabindex="0" role="button" [attr.aria-expanded]="categoriasAbiertas.comunicacion">
+          <div class="category-title">
+            <span class="category-icon">💬</span>
+            <span class="category-text">Comunicación</span>
+          </div>
+          <span class="category-arrow" [class.open]="categoriasAbiertas.comunicacion">▼</span>
+        </div>
+        <div class="category-items" [class.open]="categoriasAbiertas.comunicacion">
+          <a [routerLink]="['/maestro','padres']"
+             routerLinkActive="active"
+             class="nav-link"
+             (click)="cerrarMenuEnMovil()">
+            <span class="nav-icon">👨‍👩‍👧‍👦</span>
+            <span class="nav-text">Padres</span>
+            <span class="nav-badge" *ngIf="notificaciones.padres">2</span>
+          </a>
+          <a [routerLink]="['/maestro','reportes']"
+             routerLinkActive="active"
+             class="nav-link"
+             (click)="cerrarMenuEnMovil()">
+            <span class="nav-icon">📈</span>
+            <span class="nav-text">Reportes</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Categoría 3: Administración -->
+      <div class="menu-category" [class.expanded]="categoriasAbiertas.administracion">
+        <div class="category-header" (click)="toggleCategory('administracion')" (keydown.enter)="toggleCategory('administracion')" tabindex="0" role="button" [attr.aria-expanded]="categoriasAbiertas.administracion">
+          <div class="category-title">
+            <span class="category-icon">⚙️</span>
+            <span class="category-text">Administración</span>
+          </div>
+          <span class="category-arrow" [class.open]="categoriasAbiertas.administracion">▼</span>
+        </div>
+        <div class="category-items" [class.open]="categoriasAbiertas.administracion">
+          <a [routerLink]="['/maestro','graduacion']"
+             routerLinkActive="active"
+             class="nav-link"
+             (click)="cerrarMenuEnMovil()">
+            <span class="nav-icon">🎓</span>
+            <span class="nav-text">Graduación</span>
+          </a>
+          <a [routerLink]="['/maestro','manual']"
+             routerLinkActive="active"
+             class="nav-link"
+             (click)="cerrarMenuEnMovil()">
+            <span class="nav-icon">📖</span>
+            <span class="nav-text">Manual</span>
+          </a>
+          <a [routerLink]="['/maestro','configuracion']"
+             routerLinkActive="active"
+             class="nav-link"
+             (click)="cerrarMenuEnMovil()">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-text">Configuración</span>
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Footer del sidebar -->
+    <div class="sidebar-footer">
+      <div class="version-info">
+        <span>Versión 2.0.0</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Overlay para móviles -->
+  <div class="overlay" [class.active]="menuAbierto" (click)="cerrarMenu()" (keydown.enter)="cerrarMenu()" tabindex="0" role="button" [attr.aria-label]="'Cerrar menú'"></div>
+
+  <!-- Contenido principal -->
+  <main class="main-content" [class.sidebar-open]="menuAbierto" [class.desktop-sidebar]="!isMobile">
+    <div class="content-wrapper">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+
+  <!-- Botón flotante para móvil (acceso rápido) -->
+  <button class="fab-mobile" *ngIf="isMobile && !menuAbierto" (click)="toggleMenu()" [attr.aria-label]="'Abrir menú'">
+    <span class="fab-icon">☰</span>
+  </button>
+</div>

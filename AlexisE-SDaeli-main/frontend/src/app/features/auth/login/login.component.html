@@ -1,0 +1,157 @@
+<div class="login-container fade-transition fade-in">
+  <!-- Overlay de transición -->
+  <div class="transition-loading" *ngIf="isTransitioning" aria-live="polite" aria-busy="true">
+    <div class="transition-spinner" aria-hidden="true"></div>
+    <div class="transition-text">{{ transitionMessage }}</div>
+  </div>
+
+  <!-- Partículas de transición -->
+  <div class="transition-particles" *ngIf="isTransitioning" aria-hidden="true">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+
+  <!-- Partículas de fondo -->
+  <div class="background-particles" aria-hidden="true">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="login-header" role="banner">
+    <h1>¡Bienvenidos!</h1>
+    <p>Vamos a aprender y divertirnos 🎉</p>
+  </header>
+
+  <!-- Errores generales -->
+  <div class="alert error" *ngIf="errors['general'] as errGeneral" role="alert" aria-live="assertive">
+    <span class="alert-icon" aria-hidden="true">⚠️</span>
+    {{ errGeneral }}
+  </div>
+
+  <!-- Formulario -->
+  <form class="login-form" (ngSubmit)="submit()" #frm="ngForm" novalidate aria-labelledby="login-heading">
+
+    <!-- Email -->
+    <div class="form-group" [class.has-error]="!!errors['email']">
+      <label for="email" class="form-label">Correo Electrónico</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        [(ngModel)]="model.email"
+        placeholder="admin@escuela.com"
+        (focus)="onEmailFocus()"
+        (blur)="onEmailBlur()"
+        required
+        [disabled]="loading || isTransitioning"
+        autocomplete="username"
+        aria-required="true"
+        [attr.aria-invalid]="!!errors['email']"
+        [attr.aria-describedby]="errors['email'] ? 'email-error' : null"
+        class="form-input"
+      />
+      <div class="field-error" *ngIf="errors['email']" id="email-error" role="alert" aria-live="polite">
+        <span class="error-icon" aria-hidden="true">❌</span>
+        {{ errors['email'] }}
+      </div>
+    </div>
+
+    <!-- Password -->
+    <div class="form-group" [class.has-error]="!!errors['password']">
+      <label for="password" class="form-label">Contraseña</label>
+
+      <div class="password-container">
+        <input
+          [type]="showPass ? 'text' : 'password'"
+          id="password"
+          name="password"
+          [(ngModel)]="model.password"
+          placeholder="Escribe tu contraseña..."
+          (focus)="onPasswordFocus()"
+          (blur)="onPasswordBlur()"
+          (input)="onPasswordInput()"
+          required
+          [disabled]="loading || isTransitioning"
+          autocomplete="current-password"
+          aria-required="true"
+          [attr.aria-invalid]="!!errors['password']"
+          [attr.aria-describedby]="errors['password'] ? 'password-error monkey-help' : 'monkey-help'"
+          class="form-input"
+        />
+
+        <!-- Mono -->
+        <div class="monkey-eye-container" *ngIf="showMonkey">
+          <button
+            type="button"
+            class="monkey-eye-button"
+            (click)="togglePasswordVisibility()"
+            [class.visible]="showPass"
+            [attr.aria-pressed]="showPass"
+            [attr.aria-label]="showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            [disabled]="loading || isTransitioning"
+          >
+            <span class="monkey-emoji" aria-hidden="true">{{ monkeyEyes }}</span>
+            <div class="speech-bubble" *ngIf="showSpeech" role="tooltip">{{ monkeyMessage }}</div>
+          </button>
+        </div>
+      </div>
+
+      <div class="field-error" *ngIf="errors['password']" id="password-error" role="alert" aria-live="polite">
+        <span class="error-icon" aria-hidden="true">❌</span>
+        {{ errors['password'] }}
+      </div>
+
+      <!-- Ayuda del mono (accesibilidad) -->
+      <div id="monkey-help" class="sr-only">
+        Presiona el botón del mono para mostrar u ocultar la contraseña
+      </div>
+
+      <a href="#" class="recovery-link" (click)="openRecovery($event)" [attr.aria-disabled]="loading">
+        ¿Olvidaste tu contraseña?
+      </a>
+    </div>
+
+    <!-- Botón -->
+    <button
+      type="submit"
+      class="login-btn"
+      [disabled]="loading || isTransitioning || !model.email || !model.password"
+      [attr.aria-busy]="loading"
+    >
+      <div class="btn-content">
+        <span *ngIf="!loading" class="btn-text">
+          🎮 ENTRAR A LA AVENTURA
+        </span>
+        <span *ngIf="loading" class="loading-content">
+          <span class="loading-spinner" aria-hidden="true"></span>
+          <span class="loading-text">Cargando...</span>
+        </span>
+      </div>
+    </button>
+  </form>
+
+  <!-- Footer -->
+  <footer class="footer-links" role="contentinfo">
+    <a 
+      (click)="goToRegister()" 
+      [class.disabled]="isTransitioning" 
+      [attr.aria-disabled]="isTransitioning"
+      role="button"
+      tabindex="0"
+      (keydown.enter)="!isTransitioning && goToRegister()"
+      (keydown.space)="!isTransitioning && goToRegister()"
+    >
+      ¿No tienes cuenta? Registro a tu niño
+    </a>
+  </footer>
+
+  <!-- Mensaje oculto para lectores de pantalla -->
+  <div class="sr-only" aria-live="polite" aria-atomic="true">
+    {{ monkeyMessage }}
+  </div>
+</div>

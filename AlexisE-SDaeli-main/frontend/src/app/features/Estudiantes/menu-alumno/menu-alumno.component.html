@@ -1,0 +1,113 @@
+﻿﻿<div class="layout">
+  <!-- BOTÓN HAMBURGUESA PARA MÓVIL -->
+  <button class="menu-toggle-mobile" 
+          (click)="toggleSidebar()" 
+          [attr.aria-label]="!sidebarColapsada ? 'Cerrar menú' : 'Abrir menú'"
+          *ngIf="isMobile">
+    <span class="menu-icon">{{ !sidebarColapsada ? '✕' : '☰' }}</span>
+  </button>
+  
+  <!-- PARTÍCULAS DE FONDO -->
+  <div class="particles" #particlesContainer></div>
+  
+  <!-- BARRA LATERAL NEBULOSA -->
+  <aside class="sidebar" 
+         [class.colapsada]="sidebarColapsada" 
+         [class.mobile]="isMobile"
+         [class.abierta]="!sidebarColapsada && isMobile">
+    <div class="brand" 
+         (click)="!isMobile ? toggleSidebar() : null" 
+         role="button" 
+         tabindex="0" 
+         (keyup.enter)="!isMobile ? toggleSidebar() : null">
+      <div class="mascota" aria-hidden="true">🚀</div>
+      <div class="marca">
+        <strong>EduPlatform Pro</strong>
+        <small>Experiencia Premium</small>
+      </div>
+      
+      <!-- ✅ BOTÓN TOGGLE REDISEÑADO - MÁS GRANDE Y ANIMADO -->
+      <button class="toggle-btn" 
+              type="button" 
+              *ngIf="!isMobile"
+              (click)="toggleSidebar()"
+              [attr.aria-label]="sidebarColapsada ? 'Expandir menú' : 'Contraer menú'">
+        <span class="toggle-icon" [class.rotated]="sidebarColapsada">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9 12H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="middle-line"/>
+          </svg>
+        </span>
+        <span class="toggle-text" [class.hidden]="sidebarColapsada">
+          {{ sidebarColapsada ? 'Expandir' : 'Contraer' }}
+        </span>
+        <span class="toggle-glow"></span>
+      </button>
+    </div>
+
+    <nav class="nav" aria-label="Navegación principal">
+      <a *ngFor="let item of nav"
+         class="nav-item"
+         [routerLink]="item.link"
+         routerLinkActive="active"
+         [attr.data-tooltip]="sidebarColapsada && !isMobile ? item.titulo : null"
+         [attr.aria-label]="item.titulo"
+         (click)="onItemClick($event)">
+        <span class="ink" #ink></span>
+        <span class="nav-icon" aria-hidden="true">{{ item.icono }}</span>
+        <span class="nav-text">
+          <span class="nav-title">{{ item.titulo }}</span>
+          <small class="nav-desc">{{ item.desc }}</small>
+        </span>
+        <span class="nav-badge" *ngIf="item.key === 'tareas' && getPendingTasks() > 0">
+          {{ getPendingTasks() }}
+        </span>
+      </a>
+    </nav>
+
+    <div class="footer">
+      <button class="btn salir" (click)="cerrarSesion()" aria-label="Cerrar sesión">
+        <span class="ico">⚡</span>
+        <span class="btn-text">Cerrar Sesión</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- OVERLAY PARA MÓVIL -->
+  <div class="sidebar-overlay" 
+       [class.active]="!sidebarColapsada && isMobile" 
+       (click)="toggleSidebar()">
+  </div>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="content" [class.menu-abierto]="sidebarColapsada && !isMobile" role="main">
+    <!-- Tarjeta de Bienvenida Dimensional -->
+    <article class="bienvenida" *ngIf="datosAlumno && !cargando">
+      <header class="encabezado">
+        <div class="avatar" role="img" aria-label="Avatar del estudiante">
+          <span>{{ getInitials(datosAlumno.alumno_nombre) }}</span>
+        </div>
+        <div class="titulos">
+          <h1>¡Bienvenido, {{ datosAlumno.alumno_nombre }}!</h1>
+          <p class="sub">Tu centro de excelencia académica y desarrollo personal</p>
+        </div>
+      </header>
+    </article>
+
+    <!-- ESTADOS DE CARGA Y ERROR CÓSMICOS -->
+    <div *ngIf="cargando" class="alert loading" role="status" aria-live="polite">
+      <span class="ico">⏳</span>
+      <span><strong>Cargando información...</strong> Preparando tu experiencia educativa</span>
+    </div>
+    
+    <div *ngIf="error && !cargando" class="alert error" role="alert" aria-live="assertive">
+      <span class="ico">⚠️</span>
+      <span><strong>Atención:</strong> {{ error }}</span>
+    </div>
+
+    <!-- MÓDULO DINÁMICO (Tareas, Reportes, Chat, etc.) -->
+    <section class="modulo">
+      <router-outlet></router-outlet>
+    </section>
+  </main>
+</div>

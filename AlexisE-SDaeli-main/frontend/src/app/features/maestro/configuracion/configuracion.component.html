@@ -1,0 +1,113 @@
+<!-- cSpell:disable -->
+<div class="config-wrapper">
+  <h2>⚙️ Configuración del Sistema</h2>
+
+  <!-- Información del usuario actual -->
+  <div class="user-info-card" *ngIf="usuarioActual">
+    <h3>📋 Información de la cuenta</h3>
+    
+    <!-- Vista normal -->
+    <div *ngIf="!editando">
+      <div class="info-row">
+        <span class="info-label">Usuario:</span>
+        <span class="info-value">{{ usuarioActual.nombre }}</span>
+      </div>
+      <!-- cSpell:enable -->
+      <div class="info-row">
+        <span class="info-label">Correo electrónico:</span>
+        <span class="info-value">{{ usuarioActual.email }}</span>
+      </div>
+      <div class="info-row" *ngIf="usuarioActual.rol">
+        <span class="info-label">Rol:</span>
+        <span class="info-value">{{ usuarioActual.rol }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">ID:</span>
+        <span class="info-value">{{ usuarioActual.id }}</span>
+      </div>
+      <div class="info-row" *ngIf="usuarioActual.fechaRegistro">
+        <span class="info-label">Registro:</span>
+        <span class="info-value">{{ usuarioActual.fechaRegistro | date:'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+      
+      <button class="btn-editar" (click)="activarEdicion()">
+        ✏️ Editar perfil
+      </button>
+    </div>
+    
+    <!-- Vista de edición -->
+    <div *ngIf="editando">
+      <div class="form-group">
+        <label>👤 Nombre completo:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="nuevoNombre" 
+          placeholder="Ingresa tu nombre completo"
+          [disabled]="cargando"
+        />
+        <small class="hint">Mínimo 3 caracteres</small>
+      </div>
+      
+      <div class="form-group">
+        <label>📧 Correo electrónico:</label>
+        <input 
+          type="email" 
+          [(ngModel)]="nuevoCorreo" 
+          placeholder="correo@ejemplo.com"
+          [disabled]="cargando"
+        />
+        <small *ngIf="usuarioActual.email !== nuevoCorreo && nuevoCorreo" class="hint warning">
+          ⚠️ El correo cambiará de "{{ usuarioActual.email }}" a "{{ nuevoCorreo }}"
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label>🔐 Contraseña actual:</label>
+        <input 
+          type="password" 
+          [(ngModel)]="contrasenaActual" 
+          placeholder="Ingresa tu contraseña actual"
+          [disabled]="cargando"
+        />
+        <small class="hint">Requerida para cambiar la contraseña</small>
+      </div>
+
+      <div class="form-group">
+        <label>🆕 Nueva contraseña:</label>
+        <input 
+          type="password" 
+          [(ngModel)]="contrasenaNueva" 
+          placeholder="Mínimo 6 caracteres"
+          [disabled]="cargando"
+        />
+        <small class="hint">🔒 Debe tener al menos 6 caracteres</small>
+      </div>
+
+      <div class="form-buttons">
+        <button 
+          class="btn-guardar" 
+          (click)="guardarCambiosUsuario()" 
+          [disabled]="cargando"
+        >
+          <span *ngIf="!cargando">💾 Guardar cambios</span>
+          <span *ngIf="cargando" class="loading">
+            <span class="spinner"></span> Guardando...
+          </span>
+        </button>
+        
+        <button 
+          class="btn-cancelar" 
+          (click)="cancelarEdicion()" 
+          [disabled]="cargando"
+        >
+          ❌ Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensajes -->
+  <div *ngIf="mensaje" class="mensaje" [class.success]="mensajeTipo === 'success'" [class.error]="mensajeTipo === 'error'" [class.info]="mensajeTipo === 'info'">
+    {{ mensaje }}
+  </div>
+</div>

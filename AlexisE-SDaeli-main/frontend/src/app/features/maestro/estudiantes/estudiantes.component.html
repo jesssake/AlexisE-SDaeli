@@ -1,0 +1,241 @@
+<div class="estudiantes-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <div class="header-text">
+        <h1 class="page-title">Estudiantes</h1>
+        <div class="page-subtitle">Gestión de estudiantes registrados en el sistema</div>
+      </div>
+      <button class="btn-primary" (click)="abrirModalNuevo()">
+        <span class="btn-icon">+</span>
+        Agregar Estudiante
+      </button>
+    </div>
+  </div>
+
+  <!-- Estados de carga y error -->
+  <div *ngIf="cargando" class="info-banner loading">
+    <div class="banner-content">
+      <span class="banner-icon">⏳</span>
+      Cargando estudiantes...
+    </div>
+  </div>
+
+  <div *ngIf="error && !cargando" class="info-banner error">
+    <div class="banner-content">
+      <span class="banner-icon">❌</span>
+      {{ error }}
+      <button class="link" (click)="cargarEstudiantes()">Reintentar</button>
+    </div>
+  </div>
+
+  <div *ngIf="estudiantes.length === 0 && !cargando && !error" class="info-banner empty">
+    <div class="banner-content">
+      <span class="banner-icon">📝</span>
+      No hay estudiantes registrados
+      <button class="link" (click)="abrirModalNuevo()">Agregar el primero</button>
+    </div>
+  </div>
+
+  <!-- Tabla de estudiantes -->
+  <div *ngIf="estudiantes.length > 0 && !cargando" class="tabla-container">
+    <div class="tabla-header">
+      <div class="results-count">
+        Mostrando {{estudiantes.length}} estudiante{{estudiantes.length !== 1 ? 's' : ''}}
+      </div>
+    </div>
+    
+    <div class="tabla">
+      <table>
+        <thead>
+          <tr>
+            <th class="col-nombre">Estudiante</th>
+            <th class="col-fecha">Nacimiento</th>
+            <th class="col-edad">Edad</th>
+            <th class="col-condiciones">Condiciones Médicas</th>
+            <th class="col-tutor">Tutor</th>
+            <th class="col-contacto">Contacto</th>
+            <th class="col-acciones">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let e of estudiantes; trackBy: trackById" class="fila-estudiante">
+            <td class="col-nombre">
+              <div class="student-name">{{ e.nombre }}</div>
+            </td>
+            <td class="col-fecha">
+              <div class="fecha">{{ formatFecha(e.fecha_nacimiento) }}</div>
+            </td>
+            <td class="col-edad">
+              <div class="edad-badge">{{ e.edad }} años</div>
+            </td>
+            <td class="col-condiciones">
+              <div class="condiciones" [class.empty]="!e.condiciones_medicas">
+                {{ e.condiciones_medicas || 'Ninguna' }}
+              </div>
+            </td>
+            <td class="col-tutor">
+              <div class="tutor-name">{{ e.tutor_nombre }}</div>
+            </td>
+            <td class="col-contacto">
+              <div class="contacto-email">{{ e.tutor_email }}</div>
+              <div class="contacto-telefono">{{ e.tutor_telefono }}</div>
+            </td>
+            <td class="col-acciones">
+              <div class="acciones">
+                <button class="btn-small edit" (click)="editarEstudiante(e)" title="Editar estudiante">
+                  <span class="btn-icon">✏️</span>
+                  Editar
+                </button>
+                <button class="btn-small delete" (click)="eliminarEstudiante(e)" title="Eliminar estudiante">
+                  <span class="btn-icon">🗑️</span>
+                  Eliminar
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div *ngIf="modalVisible" class="modal-backdrop" (click)="cerrarModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ editando ? 'Editar Estudiante' : 'Agregar Estudiante' }}</h2>
+        <button class="btn-close" (click)="cerrarModal()">×</button>
+      </div>
+      
+      <form (ngSubmit)="guardarEstudiante()" #estudianteForm="ngForm" class="modal-form">
+        <!-- Sección: Datos del Niño -->
+        <div class="form-section">
+          <h3 class="section-title">Datos del Niño</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="nombre" class="form-label">Nombre del Niño *</label>
+              <input 
+                type="text" 
+                id="nombre"
+                [(ngModel)]="form.nombre" 
+                name="nombre" 
+                required
+                class="form-input"
+                placeholder="Nombre completo del niño">
+            </div>
+
+            <div class="form-group">
+              <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento *</label>
+              <input 
+                type="date" 
+                id="fecha_nacimiento"
+                [(ngModel)]="form.fecha_nacimiento" 
+                name="fecha_nacimiento" 
+                required
+                class="form-input">
+            </div>
+
+            <div class="form-group full-width">
+              <label for="condiciones_medicas" class="form-label">Condiciones Médicas</label>
+              <textarea 
+                id="condiciones_medicas"
+                [(ngModel)]="form.condiciones_medicas" 
+                name="condiciones_medicas"
+                class="form-textarea"
+                placeholder="Alergias, condiciones especiales, medicamentos, etc."
+                rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección: Datos del Tutor -->
+        <div class="form-section">
+          <h3 class="section-title">Datos del Tutor</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="tutor_nombre" class="form-label">Nombre del Tutor *</label>
+              <input 
+                type="text" 
+                id="tutor_nombre"
+                [(ngModel)]="form.tutor_nombre" 
+                name="tutor_nombre" 
+                required
+                class="form-input"
+                placeholder="Nombre completo del tutor">
+            </div>
+
+            <div class="form-group">
+              <label for="tutor_email" class="form-label">Correo del Tutor *</label>
+              <input 
+                type="email" 
+                id="tutor_email"
+                [(ngModel)]="form.tutor_email" 
+                name="tutor_email" 
+                required
+                class="form-input"
+                placeholder="correo@ejemplo.com">
+            </div>
+
+            <div class="form-group">
+              <label for="tutor_telefono" class="form-label">Teléfono del Tutor *</label>
+              <input 
+                type="tel" 
+                id="tutor_telefono"
+                [(ngModel)]="form.tutor_telefono" 
+                name="tutor_telefono" 
+                required
+                class="form-input"
+                placeholder="+52 555 123 4567">
+            </div>
+
+            <div class="form-group" *ngIf="!editando">
+              <label for="tutor_password" class="form-label">Contraseña del Tutor *</label>
+              <input 
+                type="password" 
+                id="tutor_password"
+                [(ngModel)]="form.tutor_password" 
+                name="tutor_password" 
+                required
+                class="form-input"
+                placeholder="Mínimo 8 caracteres">
+            </div>
+
+            <div *ngIf="editando" class="form-group full-width">
+              <div class="password-note">
+                🔒 La contraseña no se puede modificar aquí
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mensaje de error -->
+        <div *ngIf="error" class="form-error">
+          {{ error }}
+        </div>
+
+        <!-- Acciones del modal -->
+        <div class="modal-actions">
+          <button 
+            type="submit" 
+            class="btn-primary"
+            [disabled]="!estudianteForm.form.valid"
+            [class.loading]="cargando">
+            {{ editando ? 'Guardar Cambios' : 'Agregar Estudiante' }}
+          </button>
+          <button 
+            type="button" 
+            class="btn-secondary" 
+            (click)="cerrarModal()"
+            [disabled]="cargando">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FAB para móvil -->
+  <button class="fab-add" (click)="abrirModalNuevo()" title="Agregar estudiante">
+    <span class="fab-icon">+</span>
+  </button>
+</div>

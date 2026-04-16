@@ -1,0 +1,469 @@
+<div class="page-wrap">
+  
+  <!-- Título principal -->
+  <h1 class="page-title">
+    Mis Tareas <span>Panel del Estudiante</span>
+  </h1>
+
+  <!-- Barra de navegación -->
+  <div class="navegacion-vistas">
+    <button class="nav-btn" 
+            [class.activo]="vistaActual === 'tareas'"
+            (click)="cambiarVista('tareas')">
+      <span class="emoji">📋</span> Tareas
+    </button>
+    
+    <button class="nav-btn" 
+            [class.activo]="vistaActual === 'entregas'"
+            (click)="cambiarVista('entregas')">
+      <span class="emoji">📤</span> Mis Entregas
+    </button>
+    
+    <button class="nav-btn" 
+            [class.activo]="vistaActual === 'calificaciones'"
+            (click)="cambiarVista('calificaciones')">
+      <span class="emoji">📊</span> Calificaciones
+    </button>
+    
+    <button class="nav-btn" 
+            [class.activo]="vistaActual === 'estadisticas'"
+            (click)="cambiarVista('estadisticas')">
+      <span class="emoji">📈</span> Estadísticas
+    </button>
+  </div>
+
+  <!-- VISTA: TAREAS -->
+  <section *ngIf="vistaActual === 'tareas'" class="card">
+    <div class="card-header">
+      <div>
+        <h2 class="card-title">
+          <span class="emoji">📋</span> Tareas Asignadas
+        </h2>
+        <p class="card-desc">
+          Hola <strong>{{ nombreEstudiante }}</strong>, aquí están tus tareas activas.
+        </p>
+      </div>
+
+      <div class="filtros-rapidos">
+        <button class="chip" 
+                [class.activo]="filtroSeleccionado === 'todas'"
+                (click)="setFiltro('todas')">
+          <span class="emoji">📊</span> Todas
+        </button>
+        
+        <button class="chip" 
+                [class.activo]="filtroSeleccionado === 'pendientes'"
+                (click)="setFiltro('pendientes')">
+          <span class="emoji">⏳</span> Pendientes
+        </button>
+        
+        <button class="chip" 
+                [class.activo]="filtroSeleccionado === 'entregadas'"
+                (click)="setFiltro('entregadas')">
+          <span class="emoji">✅</span> Entregadas
+        </button>
+        
+        <button class="chip" 
+                [class.activo]="filtroSeleccionado === 'calificadas'"
+                (click)="setFiltro('calificadas')">
+          <span class="emoji">📝</span> Calificadas
+        </button>
+        
+        <button class="chip" 
+                [class.activo]="filtroSeleccionado === 'vencidas'"
+                (click)="setFiltro('vencidas')">
+          <span class="emoji">⚠️</span> Vencidas
+        </button>
+      </div>
+    </div>
+
+    <!-- Mensaje de carga -->
+    <div *ngIf="loadingTareas" class="loading-message">
+      <div class="spinner"></div>
+      <p>Cargando tareas...</p>
+    </div>
+
+    <!-- Mensaje de error -->
+    <div *ngIf="errorTareas && !loadingTareas" class="error-message">
+      <span class="emoji">⚠️</span> {{ errorTareas }}
+      <button class="btn btn-neutral" (click)="cargarTareas()">Reintentar</button>
+    </div>
+
+    <!-- Lista de tareas -->
+    <div class="lista-tareas" *ngIf="!loadingTareas && !errorTareas">
+      <div *ngFor="let tarea of tareasFiltradas" 
+           class="tarjeta-tarea"
+           [class.seleccionada]="tareaSeleccionada?.id_tarea === tarea.id_tarea"
+           (click)="seleccionarTarea(tarea)">
+        
+        <div class="tarea-cabecera">
+          <div class="materia-indicador" [style.background-color]="materiaColor(tarea.nombre_materia)">
+            {{ tarea.nombre_materia || 'Sin materia' }}
+          </div>
+          
+          <div class="tarea-estado" [ngClass]="estadoClass(tarea.estado_alumno)">
+            {{ tarea.estado_alumno || 'PENDIENTE' }}
+          </div>
+        </div>
+        
+        <div class="tarea-contenido">
+          <h3 class="tarea-titulo">{{ tarea.titulo }}</h3>
+          
+          <div class="tarea-descripcion">
+            {{ truncarTexto(tarea.instrucciones || 'Sin instrucciones detalladas', 150) }}
+          </div>
+          
+          <div class="tarea-metadatos">
+            <div class="metadato">
+              <span class="emoji">⏰</span>
+              <strong>Fecha límite:</strong> {{ formatearFecha(tarea.fecha_cierre) }}
+            </div>
+            
+            <div class="metadato">
+              <span class="emoji">📅</span>
+              <strong>Días restantes:</strong> {{ formatoDiasRestantes(tarea) }}
+            </div>
+            
+            <div class="metadato">
+              <span class="emoji">🕒</span>
+              <strong>Entrega tarde:</strong> {{ permiteTarde(tarea) ? 'Permitida' : 'No permitida' }}
+            </div>
+          </div>
+        </div>
+        
+        <div class="tarea-acciones">
+          <!-- Acción según estado -->
+          <ng-container *ngIf="tarea.id_entrega && tarea.estado_entrega !== 'REVISADO'">
+            <button class="btn btn-warning" 
+                    (click)="abrirModalEntrega(tarea, true); $event.stopPropagation()">
+              <span class="emoji">🔄</span> Actualizar entrega
+            </button>
+          </ng-container>
+          
+          <ng-container *ngIf="!tarea.id_entrega">
+            <button class="btn btn-primary" 
+                    (click)="abrirModalEntrega(tarea, false); $event.stopPropagation()">
+              <span class="emoji">📤</span> Entregar tarea
+            </button>
+          </ng-container>
+          
+          <ng-container *ngIf="tarea.id_entrega && tarea.estado_entrega === 'REVISADO'">
+            <div class="calificacion-display">
+              <span class="emoji">📝</span>
+              <strong>Calificación:</strong> 
+              <span class="nota-destacada">{{ tarea.calificacion }}/10</span>
+            </div>
+          </ng-container>
+          
+          <button class="btn btn-ver" (click)="seleccionarTarea(tarea); $event.stopPropagation()">
+            <span class="emoji">👁️</span> Ver detalles
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estado vacío -->
+    <div *ngIf="tareasFiltradas.length === 0 && !loadingTareas && !errorTareas" class="estado-vacio">
+      <span class="emoji">🎉</span>
+      <h3>¡No hay tareas {{ filtroSeleccionado !== 'todas' ? filtroSeleccionado : '' }}!</h3>
+      <p *ngIf="filtroSeleccionado === 'todas'">No tienes tareas asignadas en este momento.</p>
+      <p *ngIf="filtroSeleccionado !== 'todas'">No hay tareas que coincidan con este filtro.</p>
+    </div>
+  </section>
+
+  <!-- VISTA: MIS ENTREGAS -->
+  <section *ngIf="vistaActual === 'entregas'" class="card">
+    <div class="card-header">
+      <h2 class="card-title">
+        <span class="emoji">📤</span> Mis Entregas
+      </h2>
+      <p class="card-desc">
+        Historial de todas las tareas que has entregado.
+      </p>
+    </div>
+
+    <!-- Mensaje de carga -->
+    <div *ngIf="loadingEntregas" class="loading-message">
+      <div class="spinner"></div>
+      <p>Cargando entregas...</p>
+    </div>
+
+    <!-- Tabla de entregas -->
+    <table class="tabla" *ngIf="misEntregas.length > 0 && !loadingEntregas">
+      <thead>
+        <tr>
+          <th width="200">Tarea</th>
+          <th width="120">Estado</th>
+          <th width="150">Fecha Entrega</th>
+          <th width="100">Calificación</th>
+          <th width="200">Comentario del Docente</th>
+          <th width="150">Archivo</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let entrega of misEntregas">
+          <td>
+            <strong>{{ entrega.titulo || 'Sin título' }}</strong>
+            <div class="materia-pequeña" *ngIf="entrega.color_materia" [style.color]="entrega.color_materia">
+              {{ entrega.nombre_materia || '' }}
+            </div>
+            <div class="materia-pequeña" *ngIf="!entrega.color_materia">
+              {{ entrega.nombre_materia || '' }}
+            </div>
+          </td>
+
+          <td>
+            <span [ngClass]="estadoClass(entrega.estado)">
+              {{ entrega.estado }}
+            </span>
+          </td>
+
+          <td>
+            {{ formatearFecha(entrega.fecha_entrega) || 'No especificada' }}
+            <div *ngIf="entrega.entregada_tarde" class="text-warning">
+              <small>Entregada tarde</small>
+            </div>
+          </td>
+
+          <td>
+            <span *ngIf="entrega.calificacion !== null && entrega.calificacion !== undefined" 
+                  class="nota-destacada">
+              {{ entrega.calificacion }}/10
+            </span>
+            <span *ngIf="entrega.calificacion === null || entrega.calificacion === undefined">
+              —
+            </span>
+          </td>
+
+          <td>
+            <div class="comentario-docente" *ngIf="entrega.comentario_docente">
+              {{ entrega.comentario_docente }}
+            </div>
+            <div class="sin-comentario" *ngIf="!entrega.comentario_docente">
+              Sin comentario
+            </div>
+          </td>
+
+          <td>
+            <a *ngIf="entrega.archivo_entrega" 
+               [href]="fileUrl(entrega.archivo_entrega)" 
+               target="_blank"
+               class="btn-descargar">
+              <span class="emoji">📥</span> Descargar
+            </a>
+            <span *ngIf="!entrega.archivo_entrega">
+              —
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Estado vacío entregas -->
+    <div *ngIf="misEntregas.length === 0 && !loadingEntregas" class="estado-vacio">
+      <span class="emoji">📭</span>
+      <h3>No has entregado ninguna tarea</h3>
+      <p>Ve a la sección de "Tareas" para entregar tus asignaciones.</p>
+    </div>
+  </section>
+
+  <!-- VISTA: CALIFICACIONES -->
+  <section *ngIf="vistaActual === 'calificaciones'" class="card">
+    <div class="card-header">
+      <h2 class="card-title">
+        <span class="emoji">📊</span> Mis Calificaciones
+      </h2>
+      <p class="card-desc">
+        Historial de calificaciones recibidas.
+      </p>
+    </div>
+
+    <!-- Mensaje de carga -->
+    <div *ngIf="loadingCalificaciones" class="loading-message">
+      <div class="spinner"></div>
+      <p>Cargando calificaciones...</p>
+    </div>
+
+    <!-- Lista de calificaciones -->
+    <div class="lista-calificaciones" *ngIf="calificaciones.length > 0 && !loadingCalificaciones">
+      <div *ngFor="let calificacion of calificaciones" class="tarjeta-calificacion">
+        <div class="calificacion-cabecera" [style.background-color]="calificacion.color_materia">
+          <div class="calificacion-materia">
+            <span class="emoji">📚</span> {{ calificacion.nombre_materia }}
+          </div>
+          <div class="calificacion-fecha">
+            {{ formatearFecha(calificacion.fecha_entrega) }}
+          </div>
+        </div>
+        
+        <div class="calificacion-contenido">
+          <h3 class="calificacion-titulo">{{ calificacion.titulo }}</h3>
+          
+          <div class="calificacion-puntaje">
+            <div class="puntaje-numero">{{ calificacion.calificacion }}/10</div>
+            <div class="puntaje-nivel" [ngClass]="nivelDesempenoClass(calificacion.nivel_desempeno)">
+              {{ calificacion.nivel_desempeno }}
+            </div>
+          </div>
+          
+          <div *ngIf="calificacion.comentario_docente" class="calificacion-comentario">
+            <strong>Comentario del docente:</strong>
+            <p>{{ calificacion.comentario_docente }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estado vacío calificaciones -->
+    <div *ngIf="calificaciones.length === 0 && !loadingCalificaciones" class="estado-vacio">
+      <span class="emoji">📝</span>
+      <h3>No tienes calificaciones aún</h3>
+      <p>Las calificaciones aparecerán aquí una vez que tus entregas sean revisadas.</p>
+    </div>
+  </section>
+
+  <!-- VISTA: ESTADÍSTICAS -->
+  <section *ngIf="vistaActual === 'estadisticas'" class="card">
+    <div class="card-header">
+      <h2 class="card-title">
+        <span class="emoji">📈</span> Mis Estadísticas
+      </h2>
+      <p class="card-desc">
+        Resumen de tu desempeño académico.
+      </p>
+    </div>
+
+    <!-- Panel de estadísticas -->
+    <div class="estadisticas-grid">
+      <div class="estadistica-card">
+        <div class="estadistica-icono">📋</div>
+        <div class="estadistica-valor">{{ estadisticasTareas.total }}</div>
+        <div class="estadistica-label">Total Tareas</div>
+      </div>
+      
+      <div class="estadistica-card">
+        <div class="estadistica-icono">✅</div>
+        <div class="estadistica-valor">{{ estadisticasTareas.entregadas }}</div>
+        <div class="estadistica-label">Entregadas</div>
+        <div class="estadistica-subtext">{{ estadisticasTareas.porcentajeEntregadas }}%</div>
+      </div>
+      
+      <div class="estadistica-card">
+        <div class="estadistica-icono">📝</div>
+        <div class="estadistica-valor">{{ estadisticasTareas.calificadas }}</div>
+        <div class="estadistica-label">Calificadas</div>
+        <div class="estadistica-subtext">{{ estadisticasTareas.porcentajeCalificadas }}% de entregas</div>
+      </div>
+      
+      <div class="estadistica-card">
+        <div class="estadistica-icono">⚠️</div>
+        <div class="estadistica-valor">{{ estadisticasTareas.vencidas }}</div>
+        <div class="estadistica-label">Vencidas</div>
+      </div>
+    </div>
+
+    <!-- Mensaje de estadísticas del servidor -->
+    <div *ngIf="estadisticas && estadisticas.total_tareas" class="estadisticas-servidor">
+      <h3>Estadísticas Generales</h3>
+      <div class="detalles-estadisticas">
+        <div><strong>Promedio general:</strong> {{ estadisticas.promedio_general?.toFixed(1) || '0.0' }}/10</div>
+        <div><strong>Tareas aprobadas:</strong> {{ estadisticas.tareas_aprobadas || '0' }}</div>
+        <div><strong>Tareas reprobadas:</strong> {{ estadisticas.tareas_reprobadas || '0' }}</div>
+        <div><strong>Tareas vencidas:</strong> {{ estadisticas.tareas_vencidas || '0' }}</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       MODALES
+  ============================================================ -->
+  
+  <!-- Modal Entrega Tarea -->
+  <div class="modal-backdrop modal-entrega" *ngIf="modalEntregaAbierto">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>
+          <span class="emoji">{{ formEntrega.esActualizacion ? '🔄' : '📤' }}</span>
+          {{ formEntrega.esActualizacion ? 'Actualizar Entrega' : 'Entregar Tarea' }}
+        </h3>
+        <p class="modal-subtitle">
+          {{ formEntrega.esActualizacion ? 'Actualiza tu entrega existente' : 'Envía tu tarea para evaluación' }}
+        </p>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="label-required">Archivo de entrega</label>
+          <div class="file-upload-area" [class.has-file]="archivoSeleccionado">
+            <div class="upload-icon">📤</div>
+            <div class="upload-text" *ngIf="!archivoSeleccionado">
+              Arrastra y suelta tu archivo aquí
+            </div>
+            <div class="upload-text" *ngIf="archivoSeleccionado">
+              {{ nombreArchivo }}
+            </div>
+            <div class="upload-subtext">o haz clic para seleccionar</div>
+            <div class="formatos">Formatos: PDF, DOC, JPG, PNG, ZIP, TXT (Máx. 20MB)</div>
+            <input type="file" 
+                   (change)="onFileSelected($event)" 
+                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip,.rar,.txt,.xls,.xlsx,.ppt,.pptx">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Comentario para el docente (opcional)</label>
+          <textarea [(ngModel)]="formEntrega.comentario_alumno" 
+                    rows="3" 
+                    placeholder="Escribe algún comentario o aclaración sobre tu entrega..."
+                    class="textarea-comentario"></textarea>
+        </div>
+        
+        <div *ngIf="errorModalEntrega" class="error-message">
+          <span class="emoji">⚠️</span> {{ errorModalEntrega }}
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <button class="btn-cancelar" (click)="cerrarModalEntrega()">
+          <span class="emoji">←</span> Cancelar
+        </button>
+        <button class="btn-guardar" (click)="enviarEntrega()" [disabled]="entregandoTarea">
+          <span *ngIf="entregandoTarea" class="spinner-button"></span>
+          {{ entregandoTarea ? 'Enviando...' : (formEntrega.esActualizacion ? 'Actualizar' : 'Entregar') }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Alerta -->
+  <div class="modal-backdrop" *ngIf="modalAlertaAbierto">
+    <div class="modal-card">
+      <h3>{{ alertaTitulo }}</h3>
+      <div [ngClass]="{
+        'text-success': alertaTipo === 'success',
+        'text-error': alertaTipo === 'error',
+        'text-info': alertaTipo === 'info',
+        'text-warning': alertaTipo === 'warning'
+      }">
+        {{ alertaMensaje }}
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" (click)="cerrarAlerta()">Aceptar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Confirmación -->
+  <div class="modal-backdrop" *ngIf="modalConfirmacionAbierto">
+    <div class="modal-card">
+      <h3>{{ confirmacionTitulo }}</h3>
+      <div [innerHTML]="confirmacionMensaje"></div>
+      <div class="modal-actions">
+        <button class="btn btn-neutral" (click)="cerrarConfirmacion()">Cancelar</button>
+        <button class="btn btn-danger" (click)="aceptarConfirmacion()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,1389 @@
+﻿:host {
+  display: block;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.page-wrap {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px;
+  }
+}
+
+// =====================================================
+// 📋 TÍTULOS Y ENCABEZADOS
+// =====================================================
+.page-title {
+  color: white;
+  margin-bottom: 32px;
+  font-size: 2rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+  }
+
+  span {
+    color: #888;
+    font-size: 1rem;
+    font-weight: 500;
+    background: #2a2a2a;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid #444;
+
+    @media (max-width: 480px) {
+      font-size: 0.85rem;
+      padding: 3px 10px;
+    }
+  }
+}
+
+// =====================================================
+// 🎯 BARRA DE NAVEGACIÓN
+// =====================================================
+.navegacion-vistas {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 480px) {
+    gap: 8px;
+  }
+
+  .nav-btn {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    color: #e0e0e0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+
+    @media (max-width: 768px) {
+      flex: 1;
+      justify-content: center;
+      padding: 10px 16px;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 480px) {
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      gap: 6px;
+    }
+
+    &:hover {
+      border-color: #3498db;
+      color: #3498db;
+      transform: translateY(-2px);
+      background: #2a2a2a;
+    }
+
+    &.activo {
+      background: #3498db;
+      border-color: #3498db;
+      color: white;
+      box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+    }
+  }
+}
+
+// =====================================================
+// 🎨 TARJETAS Y CONTENEDORES
+// =====================================================
+.card {
+  background: #1a1a1a;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid #333;
+  margin-bottom: 24px;
+  overflow: hidden;
+
+  @media (max-width: 480px) {
+    margin-bottom: 16px;
+  }
+
+  .card-header {
+    padding: 24px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      padding: 20px;
+    }
+
+    @media (max-width: 480px) {
+      padding: 16px;
+    }
+
+    .card-title {
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      @media (max-width: 480px) {
+        font-size: 1.2rem;
+      }
+    }
+
+    .card-desc {
+      color: #888;
+      margin: 8px 0 0 0;
+      font-size: 0.95rem;
+
+      @media (max-width: 480px) {
+        font-size: 0.85rem;
+      }
+
+      strong {
+        color: #3498db;
+      }
+    }
+
+    .filtros-rapidos {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+
+      @media (max-width: 480px) {
+        gap: 6px;
+      }
+    }
+  }
+}
+
+// =====================================================
+// 🔘 FILTROS Y CHIPS
+// =====================================================
+.chip {
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-weight: 500;
+  color: #e0e0e0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+
+  @media (max-width: 480px) {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+
+  &:hover {
+    background: #333;
+    border-color: #666;
+  }
+
+  &.activo {
+    background: #3498db;
+    border-color: #3498db;
+    color: white;
+  }
+}
+
+// =====================================================
+// 📋 LISTA DE TAREAS (ESTUDIANTE)
+// =====================================================
+.lista-tareas {
+  padding: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    padding: 16px;
+    gap: 16px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px;
+    gap: 12px;
+  }
+}
+
+.tarjeta-tarea {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeIn 0.3s ease;
+
+  @media (max-width: 480px) {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  &:hover {
+    border-color: #3498db;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    background: #222;
+  }
+
+  &.seleccionada {
+    border-color: #3498db;
+    background: #2a2a2a;
+  }
+
+  .tarea-cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    @media (max-width: 480px) {
+      gap: 8px;
+    }
+  }
+
+  .materia-indicador {
+    padding: 6px 12px;
+    border-radius: 20px;
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+
+    @media (max-width: 480px) {
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      max-width: 120px;
+    }
+  }
+
+  .tarea-estado {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+
+    @media (max-width: 480px) {
+      padding: 3px 8px;
+      font-size: 0.7rem;
+    }
+  }
+
+  .tarea-contenido {
+    flex: 1;
+
+    .tarea-titulo {
+      color: white;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 0 0 12px 0;
+      line-height: 1.4;
+
+      @media (max-width: 480px) {
+        font-size: 1rem;
+        margin-bottom: 8px;
+      }
+    }
+
+    .tarea-descripcion {
+      color: #b0b0b0;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin-bottom: 16px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+
+      @media (max-width: 480px) {
+        font-size: 0.85rem;
+        margin-bottom: 12px;
+      }
+    }
+
+    .tarea-metadatos {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      font-size: 0.9rem;
+
+      @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .metadato {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #b0b0b0;
+
+        strong {
+          font-weight: 600;
+          color: #888;
+        }
+      }
+    }
+  }
+
+  .tarea-acciones {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .calificacion-display {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: #e0e0e0;
+
+      .nota-destacada {
+        color: #2ecc71;
+        font-size: 1.1rem;
+      }
+    }
+  }
+}
+
+// =====================================================
+// 📊 ESTADÍSTICAS
+// =====================================================
+.estadisticas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 24px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 20px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .estadistica-card {
+    background: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    transition: all 0.3s ease;
+    animation: fadeIn 0.3s ease;
+
+    @media (max-width: 480px) {
+      padding: 16px;
+    }
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+      background: #333;
+    }
+
+    .estadistica-icono {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+      color: white;
+
+      @media (max-width: 480px) {
+        font-size: 2rem;
+      }
+    }
+
+    .estadistica-valor {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 8px;
+
+      @media (max-width: 480px) {
+        font-size: 2rem;
+      }
+    }
+
+    .estadistica-label {
+      color: #888;
+      font-weight: 600;
+      margin-bottom: 4px;
+
+      @media (max-width: 480px) {
+        font-size: 0.85rem;
+      }
+    }
+
+    .estadistica-subtext {
+      color: #666;
+      font-size: 0.85rem;
+
+      @media (max-width: 480px) {
+        font-size: 0.75rem;
+      }
+    }
+  }
+}
+
+.estadisticas-servidor {
+  padding: 0 24px 24px 24px;
+
+  @media (max-width: 480px) {
+    padding: 0 16px 16px 16px;
+  }
+
+  h3 {
+    color: white;
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+    font-weight: 600;
+
+    @media (max-width: 480px) {
+      font-size: 1rem;
+    }
+  }
+
+  .detalles-estadisticas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    background: #2a2a2a;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #444;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    div {
+      color: #b0b0b0;
+
+      @media (max-width: 480px) {
+        font-size: 0.85rem;
+      }
+
+      strong {
+        color: #3498db;
+      }
+    }
+  }
+}
+
+// =====================================================
+// 📈 LISTA DE CALIFICACIONES
+// =====================================================
+.lista-calificaciones {
+  padding: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    padding: 16px;
+    gap: 16px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px;
+    gap: 12px;
+  }
+}
+
+.tarjeta-calificacion {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  animation: fadeIn 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  }
+
+  .calificacion-cabecera {
+    background: #3498db;
+    padding: 16px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    @media (max-width: 480px) {
+      padding: 12px;
+      gap: 8px;
+    }
+
+    .calificacion-materia {
+      font-weight: 600;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      @media (max-width: 480px) {
+        font-size: 0.95rem;
+      }
+    }
+
+    .calificacion-fecha {
+      font-size: 0.85rem;
+      opacity: 0.9;
+
+      @media (max-width: 480px) {
+        font-size: 0.75rem;
+      }
+    }
+  }
+
+  .calificacion-contenido {
+    padding: 20px;
+
+    @media (max-width: 480px) {
+      padding: 16px;
+    }
+
+    .calificacion-titulo {
+      color: white;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 0 0 16px 0;
+      line-height: 1.4;
+
+      @media (max-width: 480px) {
+        font-size: 1rem;
+        margin-bottom: 12px;
+      }
+    }
+
+    .calificacion-puntaje {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+
+      @media (max-width: 480px) {
+        gap: 12px;
+      }
+
+      .puntaje-numero {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2ecc71;
+
+        @media (max-width: 480px) {
+          font-size: 1.5rem;
+        }
+      }
+
+      .puntaje-nivel {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+
+        @media (max-width: 480px) {
+          padding: 4px 10px;
+          font-size: 0.75rem;
+        }
+
+        &.nivel-excelente {
+          background: #1a2a1a;
+          color: #2ecc71;
+          border: 1px solid #2ecc71;
+        }
+
+        &.nivel-bueno {
+          background: #1a1a2a;
+          color: #3498db;
+          border: 1px solid #3498db;
+        }
+
+        &.nivel-suficiente {
+          background: #2a1a1a;
+          color: #e74c3c;
+          border: 1px solid #e74c3c;
+        }
+
+        &.nivel-insuficiente {
+          background: #2a1a1a;
+          color: #e74c3c;
+          border: 1px solid #e74c3c;
+        }
+
+        &.nivel-sin-calificar {
+          background: #2a2a2a;
+          color: #888;
+          border: 1px solid #444;
+        }
+      }
+    }
+
+    .calificacion-comentario {
+      padding-top: 16px;
+      border-top: 1px solid #333;
+
+      strong {
+        color: white;
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      p {
+        color: #b0b0b0;
+        line-height: 1.5;
+        margin: 0;
+
+        @media (max-width: 480px) {
+          font-size: 0.85rem;
+        }
+      }
+    }
+  }
+}
+
+// =====================================================
+// 🏫 TABLAS
+// =====================================================
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+
+  @media (max-width: 768px) {
+    font-size: 0.85rem;
+  }
+
+  th {
+    background: #2a2a2a;
+    color: #e0e0e0;
+    font-weight: 600;
+    text-align: left;
+    padding: 16px;
+    border-bottom: 2px solid #444;
+
+    @media (max-width: 768px) {
+      padding: 12px;
+    }
+
+    @media (max-width: 480px) {
+      padding: 10px;
+      font-size: 0.8rem;
+    }
+  }
+
+  td {
+    padding: 16px;
+    border-bottom: 1px solid #333;
+    vertical-align: top;
+    color: #b0b0b0;
+
+    @media (max-width: 768px) {
+      padding: 12px;
+    }
+
+    @media (max-width: 480px) {
+      padding: 10px;
+      font-size: 0.8rem;
+    }
+  }
+
+  tbody tr {
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: #2a2a2a;
+    }
+  }
+}
+
+// =====================================================
+// 🎨 ESTADOS Y BADGES
+// =====================================================
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  @media (max-width: 480px) {
+    padding: 3px 8px;
+    font-size: 0.7rem;
+  }
+
+  &.activa {
+    background: #1a2a1a;
+    color: #2ecc71;
+    border: 1px solid #2ecc71;
+  }
+
+  &.inactiva {
+    background: #2a1a1a;
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+  }
+}
+
+.estado-chip {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+
+  @media (max-width: 480px) {
+    padding: 3px 8px;
+    font-size: 0.7rem;
+  }
+
+  &.pendiente {
+    background: #2a2a1a;
+    color: #f39c12;
+    border: 1px solid #f39c12;
+  }
+
+  &.entregado {
+    background: #1a2a1a;
+    color: #2ecc71;
+    border: 1px solid #2ecc71;
+  }
+
+  &.revisado {
+    background: #1a1a2a;
+    color: #3498db;
+    border: 1px solid #3498db;
+  }
+
+  &.vencida {
+    background: #2a1a1a;
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+  }
+}
+
+// =====================================================
+// 📦 BOTONES
+// =====================================================
+.btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+  }
+
+  @media (max-width: 480px) {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &.btn-primary {
+    background: #3498db;
+    color: white;
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+
+    &:hover:not(:disabled) {
+      background: #2980b9;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+    }
+  }
+
+  &.btn-warning {
+    background: #f39c12;
+    color: white;
+    box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+
+    &:hover:not(:disabled) {
+      background: #e67e22;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(230, 126, 34, 0.4);
+    }
+  }
+
+  &.btn-danger {
+    background: #e74c3c;
+    color: white;
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+
+    &:hover:not(:disabled) {
+      background: #c0392b;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(192, 57, 43, 0.4);
+    }
+  }
+
+  &.btn-ver {
+    background: #2a2a2a;
+    color: #e0e0e0;
+    border: 1px solid #444;
+
+    &:hover:not(:disabled) {
+      background: #333;
+      border-color: #666;
+    }
+  }
+
+  &.btn-neutral {
+    background: #2a2a2a;
+    color: #e0e0e0;
+    border: 1px solid #444;
+
+    &:hover:not(:disabled) {
+      background: #333;
+    }
+  }
+
+  &-sm {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+
+    @media (max-width: 480px) {
+      padding: 4px 10px;
+      font-size: 0.75rem;
+    }
+  }
+}
+
+.btn-descargar {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #2980b9;
+    text-decoration: underline;
+  }
+}
+
+// =====================================================
+// 🪟 MODALES
+// =====================================================
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+
+  @media (max-width: 480px) {
+    padding: 10px;
+  }
+}
+
+.modal-card {
+  background: #1a1a1a;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.5);
+  border: 1px solid #333;
+  animation: fadeIn 0.3s ease;
+
+  @media (max-width: 768px) {
+    margin: 0;
+    border-radius: 12px;
+  }
+
+  .modal-header {
+    padding: 24px;
+    border-bottom: 1px solid #333;
+
+    @media (max-width: 480px) {
+      padding: 16px;
+    }
+
+    h3 {
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      @media (max-width: 480px) {
+        font-size: 1.2rem;
+      }
+    }
+
+    .modal-subtitle {
+      color: #888;
+      margin: 8px 0 0 0;
+      font-size: 0.95rem;
+
+      @media (max-width: 480px) {
+        font-size: 0.85rem;
+      }
+    }
+  }
+
+  .modal-body {
+    padding: 24px;
+
+    @media (max-width: 480px) {
+      padding: 16px;
+    }
+  }
+
+  .modal-actions {
+    padding: 24px;
+    border-top: 1px solid #333;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    @media (max-width: 480px) {
+      padding: 16px;
+    }
+  }
+}
+
+// =====================================================
+// 📝 FORMULARIOS
+// =====================================================
+.form-group {
+  margin-bottom: 20px;
+
+  @media (max-width: 480px) {
+    margin-bottom: 16px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    color: #e0e0e0;
+    font-weight: 600;
+    font-size: 0.95rem;
+
+    @media (max-width: 480px) {
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+    }
+
+    &.label-required {
+      &::after {
+        content: ' *';
+        color: #e74c3c;
+      }
+    }
+  }
+
+  input[type="text"],
+  input[type="number"],
+  input[type="date"],
+  input[type="datetime-local"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #444;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: white;
+    transition: border-color 0.3s ease;
+    background: #2a2a2a;
+
+    @media (max-width: 480px) {
+      padding: 10px 12px;
+      font-size: 0.9rem;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    }
+
+    &:disabled {
+      background: #1a1a1a;
+      cursor: not-allowed;
+      color: #666;
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+  }
+}
+
+.file-upload-area {
+  border: 2px dashed #444;
+  border-radius: 12px;
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  @media (max-width: 480px) {
+    padding: 30px 16px;
+  }
+
+  &:hover {
+    border-color: #3498db;
+    background: #2a2a2a;
+  }
+
+  &.has-file {
+    border-color: #2ecc71;
+    background: #1a2a1a;
+  }
+
+  input[type="file"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .upload-icon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    color: white;
+
+    @media (max-width: 480px) {
+      font-size: 2rem;
+    }
+  }
+
+  .upload-text {
+    font-weight: 600;
+    color: white;
+    margin-bottom: 4px;
+
+    @media (max-width: 480px) {
+      font-size: 0.9rem;
+    }
+  }
+
+  .upload-subtext {
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+
+    @media (max-width: 480px) {
+      font-size: 0.8rem;
+    }
+  }
+
+  .formatos {
+    color: #666;
+    font-size: 0.85rem;
+
+    @media (max-width: 480px) {
+      font-size: 0.75rem;
+    }
+  }
+}
+
+// =====================================================
+// ⏳ ESTADOS DE CARGA Y ERROR
+// =====================================================
+.loading-message {
+  text-align: center;
+  padding: 60px 20px;
+  color: #888;
+
+  @media (max-width: 480px) {
+    padding: 40px 16px;
+  }
+
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #333;
+    border-top-color: #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+
+    @media (max-width: 480px) {
+      width: 40px;
+      height: 40px;
+      border-width: 3px;
+    }
+  }
+
+  &.small .spinner {
+    width: 30px;
+    height: 30px;
+    border-width: 3px;
+
+    @media (max-width: 480px) {
+      width: 25px;
+      height: 25px;
+    }
+  }
+
+  p {
+    margin: 0;
+    font-weight: 600;
+    color: #b0b0b0;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-message {
+  background: #2a1a1a;
+  border: 1px solid #e74c3c;
+  color: #e74c3c;
+  padding: 16px;
+  border-radius: 8px;
+  margin: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  @media (max-width: 480px) {
+    padding: 12px;
+    margin: 16px;
+    font-size: 0.85rem;
+  }
+
+  .emoji {
+    font-size: 1.2rem;
+  }
+}
+
+.estado-vacio {
+  text-align: center;
+  padding: 60px 20px;
+  color: #888;
+
+  @media (max-width: 480px) {
+    padding: 40px 16px;
+  }
+
+  .emoji {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    display: block;
+    color: white;
+    opacity: 0.5;
+
+    @media (max-width: 480px) {
+      font-size: 2.5rem;
+      margin-bottom: 16px;
+    }
+  }
+
+  h3 {
+    color: #e0e0e0;
+    margin: 0 0 12px 0;
+    font-weight: 600;
+
+    @media (max-width: 480px) {
+      font-size: 1rem;
+    }
+  }
+
+  p {
+    margin: 0;
+    font-size: 1rem;
+    color: #888;
+
+    @media (max-width: 480px) {
+      font-size: 0.85rem;
+    }
+  }
+}
+
+// =====================================================
+// 🎭 UTILIDADES DE TEXTO
+// =====================================================
+.text-success {
+  color: #2ecc71 !important;
+}
+
+.text-error {
+  color: #e74c3c !important;
+}
+
+.text-info {
+  color: #3498db !important;
+}
+
+.text-warning {
+  color: #f39c12 !important;
+}
+
+.emoji {
+  font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+}
+
+// =====================================================
+// 🎨 ANIMACIONES
+// =====================================================
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tarjeta-tarea,
+.tarjeta-calificacion,
+.estadistica-card {
+  animation: fadeIn 0.3s ease;
+}
+
+// Scrollbar personalizado
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+
+  @media (max-width: 480px) {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+
+  &:hover {
+    background: #555;
+  }
+}
+
+// Mejoras de accesibilidad
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .tarjeta-tarea,
+  .tarjeta-calificacion,
+  .estadistica-card {
+    animation: none;
+  }
+}

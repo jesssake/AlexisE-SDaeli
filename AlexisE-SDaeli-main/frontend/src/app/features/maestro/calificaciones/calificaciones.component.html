@@ -1,0 +1,588 @@
+<div class="centered-box">
+  <!-- Header del cuadro -->
+  <div class="box-header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="title-group">
+          <i class="fas fa-graduation-cap main-icon"></i>
+          <h1>Gestión de Calificaciones</h1>
+        </div>
+        <p class="subtitle">Administración completa de calificaciones por estudiante, materia y trimestre</p>
+        <div class="status-indicator">
+          <span class="status-dot"></span>
+          {{ cargando ? 'Cargando...' : 'Sistema Operativo' }}
+        </div>
+      </div>
+      
+      <div class="header-right">
+        <button class="action-button" (click)="cargarCalificaciones()" [disabled]="cargando">
+          <i class="fas fa-sync-alt"></i>
+          {{ cargando ? 'Cargando...' : 'Actualizar' }}
+        </button>
+        
+        <button class="action-button" (click)="alternarVista()">
+          <i class="fas" [class.fa-user-graduate]="vistaActual === 'estudiante'" [class.fa-table]="vistaActual === 'tabla'" [class.fa-th-large]="vistaActual === 'cards'"></i>
+          {{ vistaActual === 'estudiante' ? 'Vista Estudiante' : vistaActual === 'tabla' ? 'Vista Tabla' : 'Vista Tarjetas' }}
+        </button>
+        
+        <button class="action-button primary" (click)="generarReporteEstadistico()">
+          <i class="fas fa-chart-bar"></i> Reporte
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Contenido del cuadro -->
+  <div class="box-content">
+    <!-- Alertas flotantes -->
+    <div *ngIf="alerta.mostrar" class="alert-centered fade-in">
+      <i class="fas alert-icon" 
+         [class.fa-check-circle]="alerta.tipo === 'success'"
+         [class.fa-exclamation-circle]="alerta.tipo === 'error'"
+         [class.fa-exclamation-triangle]="alerta.tipo === 'warning'"
+         [class.fa-info-circle]="alerta.tipo === 'info'"
+         [class.success]="alerta.tipo === 'success'"
+         [class.error]="alerta.tipo === 'error'"
+         [class.warning]="alerta.tipo === 'warning'"
+         [class.info]="alerta.tipo === 'info'"></i>
+      <div class="alert-message">{{ alerta.mensaje }}</div>
+      <button class="alert-close" (click)="alerta.mostrar = false">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <!-- Stats mini -->
+    <div class="stats-mini-grid">
+      <div class="stat-mini-card">
+        <div class="stat-decorator">
+          <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-main">
+          <div class="stat-label">Total Estudiantes</div>
+          <div class="stat-value">{{ resumen.totalEstudiantes }}</div>
+          <div class="stat-description">Registrados en el sistema</div>
+        </div>
+      </div>
+      
+      <div class="stat-mini-card">
+        <div class="stat-decorator">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="stat-main">
+          <div class="stat-label">Promedio General</div>
+          <div class="stat-value">{{ formatNumber(resumen.promedioGeneral) }}</div>
+          <div class="stat-description">Escala 0-10</div>
+        </div>
+      </div>
+      
+      <div class="stat-mini-card">
+        <div class="stat-decorator">
+          <i class="fas fa-tasks"></i>
+        </div>
+        <div class="stat-main">
+          <div class="stat-label">Tareas Calificadas</div>
+          <div class="stat-value">{{ resumen.totalTareasCalificadas }}</div>
+          <div class="stat-description">Total evaluaciones</div>
+        </div>
+      </div>
+      
+      <div class="stat-mini-card">
+        <div class="stat-decorator">
+          <i class="fas fa-book"></i>
+        </div>
+        <div class="stat-main">
+          <div class="stat-label">Total Materias</div>
+          <div class="stat-value">{{ resumen.totalMaterias }}</div>
+          <div class="stat-description">Materias activas</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Filtros compactos -->
+    <div class="filters-compact-panel">
+      <div class="filters-header">
+        <div class="filters-title">
+          <i class="fas fa-filter"></i>
+          Filtros de Búsqueda
+        </div>
+        <button class="toggle-advanced" (click)="toggleFiltrosAvanzados()">
+          <i class="fas fa-sliders-h"></i>
+          {{ mostrarFiltrosAvanzados ? 'Ocultar' : 'Mostrar' }} Avanzados
+        </button>
+      </div>
+      
+      <div class="filters-body">
+        <div class="filters-grid">
+          <div class="filter-group">
+            <label class="filter-label">
+              <i class="fas fa-search"></i> Buscar Estudiante
+            </label>
+            <input type="text" class="filter-input" 
+                   [(ngModel)]="filtroBusqueda" 
+                   (ngModelChange)="actualizarBusqueda($event)"
+                   placeholder="Nombre del estudiante...">
+          </div>
+          
+          <div class="filter-group">
+            <label class="filter-label">
+              <i class="fas fa-book"></i> Materia
+            </label>
+            <select class="filter-input select-input" 
+                    [(ngModel)]="filtroMateria" 
+                    (ngModelChange)="onMateriaChange($event)">
+              <option value="">Todas las materias</option>
+              <option *ngFor="let materia of materiasUnicas" [value]="materia">{{ materia }}</option>
+            </select>
+          </div>
+          
+          <div class="filter-group">
+            <label class="filter-label">
+              <i class="fas fa-calendar-alt"></i> Trimestre
+            </label>
+            <select class="filter-input select-input" 
+                    [(ngModel)]="filtroTrimestre" 
+                    (ngModelChange)="onTrimestreChange($event)">
+              <option value="">Todos los trimestres</option>
+              <option *ngFor="let trimestre of trimestresUnicos" [value]="trimestre">{{ trimestre }}</option>
+            </select>
+          </div>
+          
+          <div class="filter-group">
+            <label class="filter-label">
+              <i class="fas fa-flag"></i> Estado
+            </label>
+            <select class="filter-input select-input" 
+                    [(ngModel)]="filtroEstado" 
+                    (ngModelChange)="onEstadoChange($event)">
+              <option value="">Todos los estados</option>
+              <option value="Calificada">Calificada</option>
+              <option value="Entregada">Entregada</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="Sin tareas">Sin tareas</option>
+            </select>
+          </div>
+        </div>
+        
+        <!-- Filtros activos -->
+        <div *ngIf="obtenerFiltrosActivos().length > 0" class="active-filters">
+          <div class="filters-label">
+            <i class="fas fa-filter"></i> Filtros activos:
+          </div>
+          <div>
+            <span *ngFor="let filtro of obtenerFiltrosActivos()" class="filter-chip">
+              {{ filtro }}
+              <span class="remove-filter" (click)="removerFiltro(getTipoFiltro(filtro))">
+                <i class="fas fa-times"></i>
+              </span>
+            </span>
+          </div>
+        </div>
+        
+        <!-- Acciones de filtros -->
+        <div class="filters-actions">
+          <button class="filter-action-btn" (click)="limpiarFiltros()">
+            <i class="fas fa-broom"></i> Limpiar Filtros
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Estados de carga/vacío -->
+    <div *ngIf="cargando" class="loading-state-centered">
+      <div class="loading-spinner"></div>
+      <h5 class="loading-title">Cargando calificaciones...</h5>
+      <p class="loading-description">Por favor espere mientras se cargan los datos</p>
+    </div>
+
+    <div *ngIf="!cargando && calificacionesFiltradasPlanas.length === 0" class="empty-state-centered">
+      <i class="fas fa-clipboard-list empty-icon"></i>
+      <h5 class="empty-title">No hay calificaciones disponibles</h5>
+      <p class="empty-description">Intenta cambiar los filtros o cargar los datos nuevamente</p>
+      <button class="reload-btn" (click)="cargarCalificaciones()">
+        <i class="fas fa-sync-alt"></i> Cargar Calificaciones
+      </button>
+    </div>
+    
+    <!-- ==================== VISTA POR ESTUDIANTE (CON BORDES VISIBLES) ==================== -->
+    <div *ngIf="!cargando && calificacionesFiltradasPlanas.length > 0 && vistaActual === 'estudiante' && estudianteActual" class="estudiante-container">
+      <!-- Header del estudiante -->
+      <div class="estudiante-header">
+        <div class="estudiante-avatar">
+          {{ obtenerIniciales(estudianteActual.alumno_nombre) }}
+        </div>
+        <div class="estudiante-info">
+          <h2>{{ estudianteActual.alumno_nombre }}</h2>
+          <p class="estudiante-id">ID: {{ estudianteActual.estudiante_id }}</p>
+          <div class="estudiante-stats">
+            <span class="stat-badge">
+              <i class="fas fa-tasks"></i> {{ contarTareasEstudianteActual() }} tareas
+            </span>
+            <span class="stat-badge" [class.aprobado]="obtenerPromedioEstudianteActual() >= 5">
+              <i class="fas fa-chart-line"></i> Promedio: {{ formatNumber(obtenerPromedioEstudianteActual()) }}
+            </span>
+            <span class="stat-badge aprobado">
+              <i class="fas fa-check-circle"></i> Aprobadas: {{ contarAprobadasEstudianteActual() }}
+            </span>
+            <span class="stat-badge reprobado" *ngIf="contarReprobadasEstudianteActual() > 0">
+              <i class="fas fa-times-circle"></i> Reprobadas: {{ contarReprobadasEstudianteActual() }}
+            </span>
+          </div>
+        </div>
+        <div class="estudiante-actions">
+          <button class="favorite-btn" 
+                  [class.active]="esFavorito(estudianteActual.estudiante_id)" 
+                  (click)="toggleFavorito(estudianteActual.estudiante_id)">
+            <i class="fas fa-heart"></i>
+          </button>
+          <button class="export-btn" (click)="exportarExcel()">
+            <i class="fas fa-file-excel"></i> Exportar
+          </button>
+        </div>
+      </div>
+
+      <!-- Navegación entre estudiantes -->
+      <div class="estudiante-navegacion">
+        <button class="nav-btn" (click)="estudianteAnterior()" [disabled]="indiceEstudianteActual === 0">
+          <i class="fas fa-chevron-left"></i> Anterior
+        </button>
+        <div class="nav-info">
+          <span>Estudiante {{ indiceEstudianteActual + 1 }} de {{ calificacionesFiltradas.length }}</span>
+          <div class="nav-paginas">
+            <span *ngFor="let estudiante of calificacionesFiltradas; let idx = index" 
+                  class="pagina-dot" 
+                  [class.active]="idx === indiceEstudianteActual"
+                  (click)="irAEstudiante(idx)">
+            </span>
+          </div>
+        </div>
+        <button class="nav-btn" (click)="estudianteSiguiente()" [disabled]="indiceEstudianteActual === calificacionesFiltradas.length - 1">
+          Siguiente <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+
+      <!-- Tabla de calificaciones del estudiante CON BORDES VISIBLES -->
+      <div class="table-wrapper" *ngIf="calificacionesEstudianteActual.length > 0">
+        <table class="compact-table bordered-table">
+          <thead>
+            <tr>
+              <th>Trimestre</th>
+              <th>Materia</th>
+              <th>Tarea</th>
+              <th>Calificación</th>
+              <th>Estado</th>
+              <th>Promedio Materia</th>
+              <th>Fecha Entrega</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of calificacionesEstudianteActual" 
+                [class.has-poor-grade]="item.calificacion && item.calificacion < 5"
+                [class.has-excellent-grade]="item.calificacion && item.calificacion >= 9">
+              <td class="border-cell"><span class="badge">{{ item.trimestre_nombre }}</span></td>
+              <td class="border-cell"><strong>{{ item.materia_nombre }}</strong></td>
+              <td class="border-cell task-title">{{ item.titulo_tarea || 'Sin tarea' }}</td>
+              <!-- CALIFICACIÓN CON COLORES -->
+              <td class="grade-cell border-cell">
+                <span *ngIf="item.calificacion !== null" 
+                      class="grade-value"
+                      [class.excellent]="item.calificacion >= 9"
+                      [class.good]="item.calificacion >= 7 && item.calificacion < 9"
+                      [class.average]="item.calificacion >= 5 && item.calificacion < 7"
+                      [class.poor]="item.calificacion < 5">
+                  <i class="fas" 
+                     [class.fa-star]="item.calificacion >= 9"
+                     [class.fa-check-circle]="item.calificacion >= 7 && item.calificacion < 9"
+                     [class.fa-chart-line]="item.calificacion >= 5 && item.calificacion < 7"
+                     [class.fa-exclamation-triangle]="item.calificacion < 5"></i>
+                  {{ formatNumber(item.calificacion) }}
+                </span>
+                <span *ngIf="item.calificacion === null" class="badge badge-status no-tasks">N/A</span>
+              </td>
+              <!-- ESTADO CON COLORES -->
+              <td class="border-cell">
+                <span class="status-badge" 
+                      [class.graded]="item.estado_tarea === 'Calificada'"
+                      [class.submitted]="item.estado_tarea === 'Entregada'"
+                      [class.pending]="item.estado_tarea === 'Pendiente'">
+                  <i class="fas" 
+                     [class.fa-check-circle]="item.estado_tarea === 'Calificada'"
+                     [class.fa-paper-plane]="item.estado_tarea === 'Entregada'"
+                     [class.fa-clock]="item.estado_tarea === 'Pendiente'"></i>
+                  {{ item.estado_tarea }}
+                </span>
+              </td>
+              <!-- PROMEDIO CON COLORES -->
+              <td class="promedio-cell border-cell">
+                <span class="promedio-value"
+                      [class.high]="item.promedio_materia >= 7"
+                      [class.medium]="item.promedio_materia >= 5 && item.promedio_materia < 7"
+                      [class.low]="item.promedio_materia < 5 && item.promedio_materia > 0">
+                  {{ formatNumber(item.promedio_materia) }}
+                </span>
+              </td>
+              <td class="border-cell">{{ item.fecha_entrega || 'N/A' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Estado vacío para estudiante sin tareas -->
+      <div *ngIf="calificacionesEstudianteActual.length === 0" class="empty-state-centered">
+        <i class="fas fa-clipboard-list empty-icon"></i>
+        <h5>No hay calificaciones para este estudiante</h5>
+        <p>Este estudiante no tiene tareas registradas</p>
+      </div>
+    </div>
+    
+    <!-- ==================== VISTA TABLA CON BORDES VISIBLES ==================== -->
+    <div *ngIf="!cargando && calificacionesFiltradasPlanas.length > 0 && vistaActual === 'tabla'" class="table-container-centered">
+      <div class="table-controls">
+        <div class="table-info">
+          <div class="table-title">
+            <i class="fas fa-graduation-cap"></i>
+            Lista de Calificaciones
+            <span class="table-count">{{ calificacionesFiltradasPlanas.length }}</span>
+          </div>
+          <div class="table-subtitle">
+            <i class="fas fa-info-circle"></i>
+            Mostrando {{ (paginaActual - 1) * itemsPorPagina + 1 }} - 
+            {{ Math.min(paginaActual * itemsPorPagina, calificacionesFiltradasPlanas.length) }} 
+            de {{ calificacionesFiltradasPlanas.length }} registros
+          </div>
+        </div>
+        
+        <div class="table-actions">
+          <div *ngIf="estudiantesSeleccionados.size > 0" class="selection-info">
+            <span class="selection-badge">
+              <i class="fas fa-users"></i> {{ estudiantesSeleccionados.size }} seleccionados
+              <span class="clear-selection" (click)="deseleccionarTodos()">
+                <i class="fas fa-times"></i>
+              </span>
+            </span>
+          </div>
+          
+          <div class="items-per-page">
+            <span class="per-page-label">Mostrar:</span>
+            <select class="per-page-select" 
+                    [(ngModel)]="itemsPorPagina" 
+                    (ngModelChange)="cambiarItemsPorPagina()">
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+          
+          <button class="select-all-btn" (click)="seleccionarTodos()">
+            <i class="fas fa-check-double"></i> Seleccionar Todos
+          </button>
+        </div>
+      </div>
+      
+      <div class="table-wrapper">
+        <table class="compact-table bordered-table">
+          <thead>
+            <tr>
+              <th style="width: 40px;">
+                <input type="checkbox" class="row-checkbox" 
+                       [checked]="estudiantesSeleccionados.size === calificacionesPaginaActual.length"
+                       (change)="estudiantesSeleccionados.size === calificacionesPaginaActual.length ? deseleccionarTodos() : seleccionarTodos()">
+              </th>
+              <th (click)="ordenarPor('alumno_nombre')">Estudiante</th>
+              <th (click)="ordenarPor('trimestre_nombre')">Trimestre</th>
+              <th (click)="ordenarPor('materia_nombre')">Materia</th>
+              <th>Tarea</th>
+              <th (click)="ordenarPor('calificacion')">Calificación</th>
+              <th (click)="ordenarPor('estado_tarea')">Estado</th>
+              <th>Promedio</th>
+              <th (click)="ordenarPor('fecha_entrega')">Fecha</th>
+              <th>Favorito</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of calificacionesPaginaActual" 
+                [class.selected]="estudiantesSeleccionados.has(item.estudiante_id)"
+                [class.has-poor-grade]="item.calificacion && item.calificacion < 5"
+                [class.has-excellent-grade]="item.calificacion && item.calificacion >= 9">
+              <!-- Checkbox -->
+              <td class="border-cell">
+                <input type="checkbox" class="row-checkbox" 
+                       [checked]="estudiantesSeleccionados.has(item.estudiante_id)"
+                       (change)="toggleSeleccionEstudiante(item.estudiante_id)">
+              </td>
+              <!-- Estudiante -->
+              <td class="border-cell">
+                <div class="student-cell">
+                  <div class="student-avatar">{{ obtenerIniciales(item.alumno_nombre) }}</div>
+                  <div class="student-details">
+                    <div class="student-name">{{ item.alumno_nombre }}</div>
+                    <div class="student-id">ID: {{ item.estudiante_id }}</div>
+                  </div>
+                </div>
+              </td>
+              <!-- Trimestre -->
+              <td class="border-cell"><span class="badge">{{ item.trimestre_nombre }}</span></td>
+              <!-- Materia -->
+              <td class="border-cell"><span class="task-title">{{ item.materia_nombre }}</span></td>
+              <!-- Tarea -->
+              <td class="border-cell">
+                <div class="task-info">
+                  <div class="task-title">{{ item.titulo_tarea || 'Sin tarea' }}</div>
+                  <div *ngIf="item.comentarios && item.comentarios.trim()" class="task-comments">{{ item.comentarios }}</div>
+                </div>
+              </td>
+              <!-- CALIFICACIÓN CON COLORES -->
+              <td class="grade-cell border-cell">
+                <span *ngIf="item.calificacion !== null" 
+                      class="grade-value"
+                      [class.excellent]="item.calificacion >= 9"
+                      [class.good]="item.calificacion >= 7 && item.calificacion < 9"
+                      [class.average]="item.calificacion >= 5 && item.calificacion < 7"
+                      [class.poor]="item.calificacion < 5">
+                  <i class="fas" 
+                     [class.fa-star]="item.calificacion >= 9"
+                     [class.fa-check-circle]="item.calificacion >= 7 && item.calificacion < 9"
+                     [class.fa-chart-line]="item.calificacion >= 5 && item.calificacion < 7"
+                     [class.fa-exclamation-triangle]="item.calificacion < 5"></i>
+                  {{ formatNumber(item.calificacion) }}
+                </span>
+                <span *ngIf="item.calificacion === null" class="badge badge-status no-tasks">N/A</span>
+              </td>
+              <!-- ESTADO CON COLORES -->
+              <td class="border-cell">
+                <span class="status-badge" 
+                      [class.graded]="item.estado_tarea === 'Calificada'"
+                      [class.submitted]="item.estado_tarea === 'Entregada'"
+                      [class.pending]="item.estado_tarea === 'Pendiente'">
+                  <i class="fas" 
+                     [class.fa-check-circle]="item.estado_tarea === 'Calificada'"
+                     [class.fa-paper-plane]="item.estado_tarea === 'Entregada'"
+                     [class.fa-clock]="item.estado_tarea === 'Pendiente'"></i>
+                  {{ item.estado_tarea }}
+                </span>
+              </td>
+              <!-- PROMEDIO CON COLORES -->
+              <td class="promedio-cell border-cell">
+                <span class="promedio-value"
+                      [class.high]="item.promedio_materia >= 7"
+                      [class.medium]="item.promedio_materia >= 5 && item.promedio_materia < 7"
+                      [class.low]="item.promedio_materia < 5 && item.promedio_materia > 0">
+                  {{ formatNumber(item.promedio_materia) }}
+                </span>
+              </td>
+              <!-- Fecha -->
+              <td class="border-cell">{{ item.fecha_entrega || 'N/A' }}</td>
+              <!-- Favorito -->
+              <td class="border-cell">
+                <button class="favorite-btn" 
+                        [class.active]="esFavorito(item.estudiante_id)"
+                        (click)="toggleFavorito(item.estudiante_id)">
+                  <i class="fas fa-heart"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="table-pagination">
+        <div class="pagination-info">
+          <i class="fas fa-info-circle"></i>
+          Página {{ paginaActual }} de {{ totalPaginas }}
+        </div>
+        <div class="pagination-controls">
+          <button class="page-btn" (click)="cambiarPagina(paginaActual - 1)" [disabled]="paginaActual === 1">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <div class="page-numbers">
+            <button *ngFor="let pagina of obtenerPaginas()" class="page-btn" [class.active]="pagina === paginaActual" (click)="cambiarPagina(pagina)">
+              {{ pagina }}
+            </button>
+          </div>
+          <button class="page-btn" (click)="cambiarPagina(paginaActual + 1)" [disabled]="paginaActual === totalPaginas">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+        <div class="pagination-stats">
+          <i class="fas fa-chart-line"></i>
+          Promedio general: <strong>{{ formatNumber(calcularPromedioGeneral()) }}</strong>
+        </div>
+      </div>
+    </div>
+    
+    <!-- ==================== VISTA TARJETAS ==================== -->
+    <div *ngIf="!cargando && calificacionesFiltradasPlanas.length > 0 && vistaActual === 'cards'" class="cards-container">
+      <div class="cards-grid">
+        <div *ngFor="let item of calificacionesPaginaActual" class="grade-card"
+             [class.has-poor-grade]="item.calificacion && item.calificacion < 5"
+             [class.has-excellent-grade]="item.calificacion && item.calificacion >= 9">
+          <div class="card-header">
+            <div class="student-info">
+              <div class="student-avatar">{{ obtenerIniciales(item.alumno_nombre) }}</div>
+              <div class="student-name">{{ item.alumno_nombre }}</div>
+            </div>
+            <button class="favorite-btn" [class.active]="esFavorito(item.estudiante_id)" (click)="toggleFavorito(item.estudiante_id)">
+              <i class="fas fa-heart"></i>
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="task-info">
+              <span class="task-title">{{ item.titulo_tarea || 'Sin tarea' }}</span>
+              <span class="materia">{{ item.materia_nombre }}</span>
+              <span class="trimestre">{{ item.trimestre_nombre }}</span>
+            </div>
+            <div class="grade-info">
+              <span class="grade" [ngClass]="{
+                'excellent': item.calificacion && item.calificacion >= 9,
+                'good': item.calificacion && item.calificacion >= 7 && item.calificacion < 9,
+                'average': item.calificacion && item.calificacion >= 5 && item.calificacion < 7,
+                'poor': item.calificacion && item.calificacion < 5
+              }">
+                <i class="fas" 
+                   [class.fa-star]="item.calificacion && item.calificacion >= 9"
+                   [class.fa-check-circle]="item.calificacion && item.calificacion >= 7 && item.calificacion < 9"
+                   [class.fa-chart-line]="item.calificacion && item.calificacion >= 5 && item.calificacion < 7"
+                   [class.fa-exclamation-triangle]="item.calificacion && item.calificacion < 5"></i>
+                {{ item.calificacion ? formatNumber(item.calificacion) : 'N/A' }}
+              </span>
+              <span class="status" [ngClass]="{
+                'graded': item.estado_tarea === 'Calificada',
+                'submitted': item.estado_tarea === 'Entregada',
+                'pending': item.estado_tarea === 'Pendiente'
+              }">
+                {{ item.estado_tarea }}
+              </span>
+            </div>
+          </div>
+          <div class="card-footer">
+            <span class="date"><i class="fas fa-calendar"></i> {{ item.fecha_entrega || 'Sin fecha' }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="table-pagination">
+        <div class="pagination-info">
+          <i class="fas fa-info-circle"></i>
+          Página {{ paginaActual }} de {{ totalPaginas }}
+        </div>
+        <div class="pagination-controls">
+          <button class="page-btn" (click)="cambiarPagina(paginaActual - 1)" [disabled]="paginaActual === 1">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <div class="page-numbers">
+            <button *ngFor="let pagina of obtenerPaginas()" class="page-btn" [class.active]="pagina === paginaActual" (click)="cambiarPagina(pagina)">
+              {{ pagina }}
+            </button>
+          </div>
+          <button class="page-btn" (click)="cambiarPagina(paginaActual + 1)" [disabled]="paginaActual === totalPaginas">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+        <div class="pagination-stats">
+          <i class="fas fa-chart-line"></i>
+          Promedio general: <strong>{{ formatNumber(calcularPromedioGeneral()) }}</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

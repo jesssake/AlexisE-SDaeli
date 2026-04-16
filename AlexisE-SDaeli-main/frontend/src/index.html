@@ -1,0 +1,149 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>GestionEducativa</title>
+
+  <!-- 🔒 BLOQUEO DE CONSOLA -->
+  <script>
+    (function () {
+      const noop = function () {};
+      const methods = [
+        'log','info','warn','error','debug',
+        'table','trace','group','groupCollapsed','groupEnd',
+        'time','timeEnd','dir','dirxml','assert','clear','count','countReset'
+      ];
+      methods.forEach(function (m) {
+        try { console[m] = noop; } catch (_) {}
+      });
+    })();
+  </script>
+
+  <!-- 🚫 BLOQUEO DE ACCIONES "HAKABLES" -->
+  <script>
+    (function() {
+      // 1. Bloquear clic derecho (para evitar "Inspeccionar")
+      document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        return false;
+      });
+
+      // 2. Bloquear teclas que abren herramientas de desarrollador
+      document.addEventListener('keydown', function(e) {
+        const key = e.key;
+        const ctrl = e.ctrlKey;
+        const shift = e.shiftKey;
+        const meta = e.metaKey;
+        
+        // F12 (Abre DevTools)
+        if (key === 'F12' || e.keyCode === 123) {
+          e.preventDefault();
+          return false;
+        }
+        
+        // Ctrl+Shift+I (Inspeccionar)
+        if (ctrl && shift && (key === 'I' || e.keyCode === 73)) {
+          e.preventDefault();
+          return false;
+        }
+        
+        // Ctrl+Shift+J (Consola - ejecutar código malicioso)
+        if (ctrl && shift && (key === 'J' || e.keyCode === 74)) {
+          e.preventDefault();
+          return false;
+        }
+        
+        // Ctrl+U (Ver código fuente - expone rutas y lógica)
+        if (ctrl && (key === 'U' || e.keyCode === 85)) {
+          e.preventDefault();
+          return false;
+        }
+        
+        // Ctrl+Shift+C (Inspeccionar elemento)
+        if (ctrl && shift && (key === 'C' || e.keyCode === 67)) {
+          e.preventDefault();
+          return false;
+        }
+        
+        // Ctrl+S (Guardar página - robar código)
+        if (ctrl && (key === 's' || key === 'S' || e.keyCode === 83)) {
+          e.preventDefault();
+          return false;
+        }
+        
+        // Ctrl+P (Imprimir - robar información)
+        if (ctrl && (key === 'p' || key === 'P' || e.keyCode === 80)) {
+          e.preventDefault();
+          return false;
+        }
+        
+        // Mac: Cmd+Option+I/J/C/U
+        if (meta && (key === 'I' || key === 'J' || key === 'C' || key === 'U')) {
+          e.preventDefault();
+          return false;
+        }
+      });
+
+      // 3. Prevenir que se vea el código fuente desde el menú
+      // (Esto oculta la opción en el menú contextual)
+      document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+      });
+      
+      // 4. Detectar si se intenta abrir DevTools (debugger)
+      let devToolsOpen = false;
+      const checkDevTools = function() {
+        const before = new Date();
+        debugger;
+        const after = new Date();
+        if (after - before > 100) {
+          if (!devToolsOpen) {
+            devToolsOpen = true;
+            // Redirigir o limpiar datos sensibles
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = '/';
+          }
+        } else {
+          devToolsOpen = false;
+        }
+      };
+      setInterval(checkDevTools, 1000);
+      
+      // 5. Prevenir selección de texto (evita copy/paste de información)
+      document.addEventListener('selectstart', function(e) {
+        e.preventDefault();
+      });
+      
+      // 6. Prevenir copia de contenido
+      document.addEventListener('copy', function(e) {
+        e.preventDefault();
+        return false;
+      });
+    })();
+  </script>
+
+  <base href="/" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b1220" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+  <!-- Redirigir al login -->
+  <script>
+    (function () {
+      try {
+        var base = (document.querySelector('base')?.getAttribute('href') || '/').replace(/\/+$/, '/');
+        var loginPath = base + 'auth/login';
+
+        if (!location.pathname.startsWith(new URL(loginPath, location.origin).pathname)) {
+          location.replace(loginPath);
+        }
+      } catch (_) {}
+    })();
+  </script>
+</head>
+<body>
+  <noscript>Necesitas habilitar JavaScript para usar esta aplicación.</noscript>
+  <app-root></app-root>
+</body>
+</html>

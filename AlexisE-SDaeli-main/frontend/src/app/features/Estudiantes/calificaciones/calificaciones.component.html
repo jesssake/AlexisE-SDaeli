@@ -1,0 +1,149 @@
+<section class="calif" [class.loading]="cargando">
+  <header class="top">
+    <div class="lh">
+      <h1>Mis Calificaciones</h1>
+      <p *ngIf="alumnoNombre">Estudiante: <strong>{{ alumnoNombre }}</strong></p>
+      <p>Consulta tus notas por trimestre y tu promedio general.</p>
+    </div>
+    <div class="rh">
+      <button type="button" (click)="recargar()" [disabled]="cargando">
+        <i class="fas fa-sync-alt"></i> Actualizar
+      </button>
+    </div>
+  </header>
+
+  <div *ngIf="cargando" class="msg info">
+    <i class="fas fa-spinner fa-spin"></i> Cargando tus calificaciones...
+  </div>
+  
+  <div *ngIf="error && !cargando" class="msg error">
+    <i class="fas fa-exclamation-circle"></i> {{ error }}
+  </div>
+
+  <!-- KPIs mejorados -->
+  <div class="kpis" *ngIf="!cargando && !error">
+    <div class="kpi">
+      <div class="kpi-title">
+        <i class="fas fa-chart-line"></i> Promedio Global
+      </div>
+      <div class="kpi-value">
+        <!-- ✅ CORRECCIÓN PRINCIPAL: Verificar si hay calificaciones -->
+        <ng-container *ngIf="trimestres.length > 0 && promedioGlobal !== null; else sinCalificaciones">
+          <span [style.color]="getColorCalificacion(promedioGlobal)">
+            {{ promedioGlobal }}
+          </span>
+        </ng-container>
+        <ng-template #sinCalificaciones>
+          <span class="sin-calificaciones-text">
+            Sin calificaciones
+          </span>
+        </ng-template>
+      </div>
+      <div class="kpi-subtitle" *ngIf="trimestres.length > 0 && promedioGlobal !== null">
+        {{ getNivelDesempeno(promedioGlobal) }}
+      </div>
+      <div class="kpi-subtitle" *ngIf="trimestres.length === 0">
+        Aún no hay calificaciones registradas
+      </div>
+    </div>
+    
+    <div class="kpi">
+      <div class="kpi-title">
+        <i class="fas fa-calendar-alt"></i> Trimestres con calificaciones
+      </div>
+      <div class="kpi-value">
+        {{ trimestres.length }}
+      </div>
+      <div class="kpi-subtitle">
+        Períodos evaluados
+      </div>
+    </div>
+    
+    <div class="kpi">
+      <div class="kpi-title">
+        <i class="fas fa-tasks"></i> Tareas Calificadas
+      </div>
+      <div class="kpi-value">
+        {{ obtenerTotalTareas() }}
+      </div>
+      <div class="kpi-subtitle">
+        Entregas evaluadas
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensaje cuando no hay calificaciones -->
+  <div class="sin-calificaciones" *ngIf="!cargando && !error && trimestres.length === 0">
+    <div class="empty-state">
+      <div class="empty-icon">📝</div>
+      <h3>Aún no tienes calificaciones</h3>
+      <p>Las calificaciones aparecerán aquí cuando tus tareas sean revisadas por los maestros.</p>
+      <div class="empty-actions">
+        <button class="btn-refresh" (click)="recargar()">
+          <i class="fas fa-sync-alt"></i> Actualizar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de trimestres con calificaciones -->
+  <div class="trimestres" *ngIf="!cargando && !error && trimestres.length > 0">
+    <div class="trim" *ngFor="let t of trimestres">
+      <div class="trim-head">
+        <h2>
+          <i class="fas fa-calendar-week"></i> {{ t.nombre }}
+        </h2>
+        <div class="prom">
+          Promedio del trimestre: 
+          <strong [style.color]="getColorCalificacion(t.promedio)">
+            {{ t.promedio !== null ? t.promedio : '—' }}
+          </strong>
+          <span class="nivel" *ngIf="t.promedio !== null">
+            ({{ getNivelDesempeno(t.promedio) }})
+          </span>
+        </div>
+      </div>
+
+      <div class="tabla">
+        <div class="th">
+          <div>Tarea / Actividad</div>
+          <div>Fecha de Cierre</div>
+          <div>Calificación</div>
+          <div>Materia</div>
+        </div>
+
+        <div class="row" *ngFor="let x of t.tareas">
+          <div class="cell title">
+            <div class="titulo">
+              <span class="materia-icono" *ngIf="x.materia_icono">{{ x.materia_icono }}</span>
+              {{ x.titulo }}
+            </div>
+            <div class="sub" *ngIf="x.instrucciones">{{ x.instrucciones }}</div>
+          </div>
+          <div class="cell">{{ fmt(x.fecha_cierre) }}</div>
+          <div class="cell nota">
+            <span class="calificacion-badge" 
+                  [style.background]="getColorCalificacion(x.calificacion)"
+                  [style.color]="'white'">
+              {{ x.calificacion !== null ? x.calificacion : '—' }}
+            </span>
+            <span class="nivel-small" *ngIf="x.nivel_desempeno">
+              {{ x.nivel_desempeno }}
+            </span>
+          </div>
+          <div class="cell">
+            <span class="materia-nombre" 
+                  [style.background]="x.materia_color || '#667eea'"
+                  [style.color]="'white'">
+              {{ x.materia_nombre || 'Sin materia' }}
+            </span>
+          </div>
+        </div>
+        
+        <div *ngIf="t.tareas.length === 0" class="empty">
+          <i class="fas fa-info-circle"></i> No hay tareas calificadas en este trimestre
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
