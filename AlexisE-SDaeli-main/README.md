@@ -81,7 +81,7 @@ Test:
 2. Ejecutar Angular:
 
     ng serve --o
-
+o  ng serve --proxy-config proxy.conf.js
 Disponible en:
 
     http://localhost:4200
